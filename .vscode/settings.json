@@ -1,0 +1,13 @@
+{
+    "WillLuke.nextjs.addTypesOnSave": true,
+    "WillLuke.nextjs.hasPrompted": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:auth-app}/prisma/dev.db",
+            "name": "LocalDB"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
