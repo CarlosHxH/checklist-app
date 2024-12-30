@@ -5,7 +5,7 @@ export interface User {
     id: string;
     name: string;
     email: string;
-};
+}
 
 export const session: () => Promise<User | null> = async () => {
     const sessionData = await getServerSession(authOptions);

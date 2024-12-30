@@ -6,7 +6,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 type Props = {
   name: string;
   items: string[];
-  onChange?: (value: string) => void; // Adjusted type for onChange
+  onChange?: (value: { [x: string]: string; }) => void; // Adjusted type for onChange
 }
 
 export default function CustomToggleButton(props: Props): React.JSX.Element {

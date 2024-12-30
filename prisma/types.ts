@@ -8,7 +8,6 @@ export interface User {
     createdAt: Date;
     role?: string;
     accounts: Account[];
-    sessions: Session[];
     vehicles: Vehicle[];
     inspections: Inspection[];
   }

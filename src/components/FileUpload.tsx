@@ -16,7 +16,7 @@ interface Base64File {
 interface FileUploadProps {
   label?: string;
   name: string;
-  onChange?: (event:{[key: string]: any; }) =>void;
+  onChange: (event:{[key: string]: any; }) =>void;
   multiple?: boolean
 }
 
@@ -33,7 +33,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ label, name, onChange, multiple
     convertToBase64(newFiles);
   };
 
-  React.useEffect(()=>onChange({[name]: JSON.stringify(base64Files)}),[base64Files])
+  React.useEffect(()=>onChange && onChange({[name]: JSON.stringify(base64Files)}),[base64Files])
 
   // Function to convert files to Base64
   const convertToBase64 = (newFiles: FileData[]) => {

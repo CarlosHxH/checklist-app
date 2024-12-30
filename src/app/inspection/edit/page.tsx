@@ -188,10 +188,10 @@ export default function EditInspection()
                   onChange={handleChange}
                 />
                 <BottonLabel
-                  title={"Nível de Água"}
+                  label={"Nível de Água"}
                   name={"nivelAgua"}
-                  inicialValue="Normal"
-                  values={["Normal", "Baixo", "Critico"]}
+                  value="Normal"
+                  options={["Normal", "Baixo", "Critico"]}
                   onChange={handleToggle}
                 />
                 <input
