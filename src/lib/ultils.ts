@@ -2,7 +2,7 @@
 export const fakeArray = (value: number) => Array.from({ length: value }, (_, i) => i + 1);
 export const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
 };
 

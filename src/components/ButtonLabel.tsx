@@ -16,7 +16,7 @@ interface ButtonLabelProps {
 export const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
   border: "1px solid #ccc",
   borderRadius: "8px",
-  padding: "10px 20px",
+  padding: "5px 5px",
   width: "100%",
   "&:hover": {
     backgroundColor: "#999",
@@ -49,7 +49,7 @@ const ButtonLabel: React.FC<ButtonLabelProps> = ({label,name,value,options,error
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", mb: 2 }}>
-      <Typography variant="h6" color="#444" sx={{ mt: "auto", mr: 2, alignItems: "center" }}>{label}</Typography>
+      <Typography variant="body1" color="#444" sx={{ mt: "auto", mr: 1, alignItems: "center" }}>{label}</Typography>
       <ToggleButtonGroup value={selectedValue} exclusive onChange={handleAlignment} aria-label="Toggle">
         {options.map(renderButton)}
       </ToggleButtonGroup>

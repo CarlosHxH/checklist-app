@@ -10,5 +10,8 @@
         }
     ],
     "sqltools.useNodeRuntime": true,
-    "editor.wordSeparators": "`~!@%^&*()-=+[{]}\\|;:'\",.<>/?"
+    "editor.wordSeparators": "`~!@%^&*()-=+[{]}\\|;:'\",.<>/?",
+    "cSpell.words": [
+        "Inspecao"
+    ]
 }

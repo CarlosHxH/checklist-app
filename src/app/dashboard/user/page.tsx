@@ -187,18 +187,9 @@ export default function UsersTable() {
 
   return (
     <Stack spacing={2}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography variant="h5"></Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
           Adicionar usuário
         </Button>
       </Stack>
@@ -208,7 +199,7 @@ export default function UsersTable() {
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
           <TextField
             name="name"
-            label="Filter by Name"
+            label="Filtrar por nome"
             value={filters.name}
             onChange={handleFilterChange}
             size="small"
@@ -221,7 +212,7 @@ export default function UsersTable() {
           />
           <TextField
             name="email"
-            label="Filter by Email"
+            label="Filtrar por e-mail"
             value={filters.email}
             onChange={handleFilterChange}
             size="small"
@@ -232,16 +223,8 @@ export default function UsersTable() {
               ),
             }}
           />
-          <TextField
-            name="role"
-            label="Filter by Role"
-            select
-            value={filters.role}
-            onChange={handleFilterChange}
-            size="small"
-            fullWidth
-          >
-            <MenuItem value="ALL">All Roles</MenuItem>
+          <TextField name="role" label="Filtrar por função" select value={filters.role} onChange={handleFilterChange} size="small" fullWidth>
+            <MenuItem value="ALL">Todos os perfis</MenuItem>
             <MenuItem value="USER">Usuário</MenuItem>
             <MenuItem value="ADMIN">Admin</MenuItem>
             <MenuItem value="DRIVER">Motorista</MenuItem>
@@ -306,12 +289,7 @@ export default function UsersTable() {
         />
       </TableContainer>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <form onSubmit={handleSubmit}>
           <DialogTitle>
             {selectedUser ? "Edit User" : "Add New User"}
@@ -332,9 +310,7 @@ export default function UsersTable() {
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                required
-                fullWidth
-              />
+                required fullWidth/>
               <TextField
                 name="password"
                 label="Senha"

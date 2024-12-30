@@ -79,6 +79,7 @@ const InspectionForm: React.FC = () => {
       }
 
       const result = await response.json();
+
       
       router.push(`/inspection/${result.id}`);
     } catch (error) {

@@ -7,15 +7,27 @@ interface Props {
   label?: string | null;
   options: {
     id: string;
-    licensePlate: string 
+    [key: string]: string 
   }[];
   error?: boolean | string | null;
   helperText?: string;
   onSelect?: (event: { [key: string]: string | null }) => void;
   defaultValue?: string | boolean | undefined;
+  // Novo prop para especificar qual campo usar como label
+  keyExtractor?: string;
 }
 
-export default function CustomAutocomplete({ name, label, options, onSelect, error, helperText, defaultValue }: Props) {
+export default function CustomAutocomplete({ 
+  name, 
+  label, 
+  options, 
+  onSelect, 
+  error, 
+  helperText, 
+  defaultValue,
+  // Definindo 'licensePlate' como valor padrão para manter compatibilidade
+  keyExtractor = 'licensePlate' 
+}: Props) {
   const [value, setValue] = React.useState<(typeof options)[number] | null>(null);
 
   const {
@@ -28,7 +40,8 @@ export default function CustomAutocomplete({ name, label, options, onSelect, err
   } = useAutocomplete({
     id: 'use-autocomplete',
     options: options,
-    getOptionLabel: (option) => option.licensePlate,
+    // Usando o keyExtractor para obter o label dinamicamente
+    getOptionLabel: (option) => option[keyExtractor] || '',
     value,
     onChange: (event, newValue) => {
       setValue(newValue);
@@ -36,23 +49,40 @@ export default function CustomAutocomplete({ name, label, options, onSelect, err
         onSelect({ [name]: newValue?.id || null });
       }
     },
-    isOptionEqualToValue: (option, value) => option.licensePlate === value?.licensePlate,
+    // Usando o keyExtractor na comparação
+    isOptionEqualToValue: (option, value) => option[keyExtractor] === value?.[keyExtractor],
   });
 
-  React.useEffect(()=>{ if(defaultValue) setValue(options[0])},[defaultValue])
+  React.useEffect(()=>{ 
+    if(defaultValue) setValue(options[0])
+  },[defaultValue])
 
   return (
     <div style={{ marginBottom: 16 }}>
       <Root {...getRootProps()} className={`${focused ? 'Mui-focused' : ''} ${error?'error':''}`}>
-        <Input name={name} placeholder={label ? label + " *" : ""} required {...getInputProps()} />
+        <Input 
+          name={name} 
+          placeholder={label ? label + " *" : ""} 
+          required 
+          {...getInputProps()} 
+        />
       </Root>
-        <span style={{color:'red'}}>{helperText||""}</span>
+      <span style={{color:'red'}}>{helperText||""}</span>
       {groupedOptions.length > 0 && (
         <Listbox {...getListboxProps()} sx={{ zIndex: 999 }}>
           {(groupedOptions as typeof options).map((option, index) => {
             const optionProps = getOptionProps({ option, index });
-            const { key, ...restProps } = optionProps; // Extraindo a key
-            return <Option key={key} {...restProps} value={option.id}>{option.licensePlate}</Option>; // Passando a key diretamente
+            const { key, ...restProps } = optionProps;
+            // Usando o keyExtractor para exibir o valor correto
+            return (
+              <Option 
+                key={key} 
+                {...restProps} 
+                value={option.id}
+              >
+                {option[keyExtractor] || option.label}
+              </Option>
+            );
           })}
         </Listbox>
       )}
