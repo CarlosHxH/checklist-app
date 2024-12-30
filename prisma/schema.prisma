@@ -69,8 +69,8 @@ model Vehicle {
   id           String       @id @default(cuid())
   make         String
   model        String
-  year         Int
-  eixo         Int
+  year         String
+  eixo         String
   licensePlate String      @unique
   inspections  Inspection[]
 

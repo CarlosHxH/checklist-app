@@ -1,4 +1,3 @@
-import { Inspection } from './../../../../prisma/types';
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -16,7 +15,7 @@ export async function GET() {
       
       const data = [
         {
-          title: 'Usuárias',
+          title: 'Usuários',
           value: `${userCount}`,
           interval: 'Últimos 30 dias',
           trend: 'up',
@@ -35,6 +34,15 @@ export async function GET() {
           title: 'Inspeções',
           value: `${inspection}`,
           interval: 'Últimos 30 dias',
+          trend: 'neutral',
+          data: [
+            500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620, 510, 530, 520, 410, 530,
+            520, 610, 530, 520, 610, 530, 420, 510, 430, 520, 510,
+          ],
+        },{
+          title: 'Online',
+          value: `${userCount}`,
+          interval: 'Hoje',
           trend: 'neutral',
           data: [
             500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620, 510, 530, 520, 410, 530,

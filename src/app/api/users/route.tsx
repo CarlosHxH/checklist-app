@@ -54,12 +54,8 @@ export async function PUT(request: NextRequest)
   try
   {
     const body = await request.json();
-
-    const updateData: any = { ...body };
-    if (body.password)
-    {
-      updateData.password = await hash(body.password, 12);
-    }
+    const updateData = { ...body };
+    if (body.password) updateData.password = await hash(body.password, 12);
 
     delete updateData.id;
 

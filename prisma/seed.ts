@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data
-
   await prisma.inspection.deleteMany()
   await prisma.vehicle.deleteMany()
   await prisma.account.deleteMany()
@@ -17,7 +16,7 @@ async function main() {
       data: {
         email: 'admin@gmail.com',
         password: await hash('#5s2024@', 12),
-        name: 'Admin User',
+        name: 'Administrador',
         role: 'ADMIN',
         emailVerified: new Date(),
       },
@@ -48,8 +47,8 @@ async function main() {
       data: {
         make: 'FIAT',
         model: 'Fiorino',
-        year: 2022,
-        eixo: 1,
+        year: '2022',
+        eixo: '1',
         licensePlate: 'HGF9I05'
       },
     }),
@@ -57,8 +56,8 @@ async function main() {
       data: {
         make: 'Volkswagem',
         model: 'Express',
-        year: 2021,
-        eixo: 2,
+        year: '2021',
+        eixo: '2',
         licensePlate: 'XYZ9Q87'
       },
     }),
@@ -66,8 +65,8 @@ async function main() {
       data: {
         make: 'Mercedes',
         model: 'Truck',
-        year: 2021,
-        eixo: 3,
+        year: '2021',
+        eixo: '3',
         licensePlate: 'KYZ1W87'
       },
     }),
@@ -75,8 +74,8 @@ async function main() {
       data: {
         make: 'Mercedes-Benz',
         model: 'Bi-truck',
-        year: 2021,
-        eixo: 4,
+        year: '2021',
+        eixo: '4',
         licensePlate: 'GYH9A17'
       },
     }),

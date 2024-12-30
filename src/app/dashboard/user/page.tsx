@@ -1,6 +1,5 @@
-'use client';
-
-import React from 'react';
+"use client";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -21,55 +20,59 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  TablePagination
-} from '@mui/material';
+  TablePagination,
+} from "@mui/material";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   Search as SearchIcon,
-} from '@mui/icons-material';
-import useSWR from 'swr';
-import { User, UserCreateInput } from '@/types/user';
-import Loading from '@/components/Loading';
+} from "@mui/icons-material";
+import useSWR from "swr";
+import { User, UserCreateInput } from "@/types/user";
+import Loading from "@/components/Loading";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function UsersTable() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
-  const { data: users, error, mutate } = useSWR<User[]>('/api/users', fetcher);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const { data: users, error, mutate } = useSWR<User[]>("/api/users", fetcher);
   const [openDialog, setOpenDialog] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
-  
+
   // Filtros
   const [filters, setFilters] = React.useState({
-    name: '',
-    email: '',
-    role: 'ALL',
+    name: "",
+    email: "",
+    role: "ALL",
   });
-  
+
   // Paginação
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  
+
   const [formData, setFormData] = React.useState<UserCreateInput>({
-    name: '',
-    email: '',
-    password: '',
-    role: 'USER',
+    name: "",
+    email: "",
+    password: "",
+    role: "USER",
   });
 
   // Função para filtrar usuários
   const filteredUsers = React.useMemo(() => {
     if (!users) return [];
-    
+
     return users.filter((user) => {
-      const nameMatch = user.name.toLowerCase().includes(filters.name.toLowerCase());
-      const emailMatch = user.email.toLowerCase().includes(filters.email.toLowerCase());
-      const roleMatch = filters.role === 'ALL' || user.role === filters.role;
-      
+      const nameMatch = user.name
+        .toLowerCase()
+        .includes(filters.name.toLowerCase());
+      const emailMatch = user.email
+        .toLowerCase()
+        .includes(filters.email.toLowerCase());
+      const roleMatch = filters.role === "ALL" || user.role === filters.role;
+
       return nameMatch && emailMatch && roleMatch;
     });
   }, [users, filters]);
@@ -93,7 +96,9 @@ export default function UsersTable() {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -104,16 +109,16 @@ export default function UsersTable() {
       setFormData({
         name: user.name,
         email: user.email,
-        password: '',
+        password: "",
         role: user.role,
       });
     } else {
       setSelectedUser(null);
       setFormData({
-        name: '',
-        email: '',
-        password: '',
-        role: 'USER',
+        name: "",
+        email: "",
+        password: "",
+        role: "USER",
       });
     }
     setOpenDialog(true);
@@ -123,10 +128,10 @@ export default function UsersTable() {
     setOpenDialog(false);
     setSelectedUser(null);
     setFormData({
-      name: '',
-      email: '',
-      password: '',
-      role: 'USER',
+      name: "",
+      email: "",
+      password: "",
+      role: "USER",
     });
   };
 
@@ -142,41 +147,42 @@ export default function UsersTable() {
     e.preventDefault();
     try {
       if (selectedUser) {
-        await fetch('/api/users', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/users", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...formData, id: selectedUser.id }),
         });
       } else {
-        await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
       }
       mutate();
       handleCloseDialog();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error("Error saving user:", error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    
+    if (!confirm("Are you sure you want to delete this user?")) return;
+
     try {
-      await fetch('/api/users', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
       mutate();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error("Error deleting user:", error);
     }
   };
 
-  if (error) return <Typography color="error">Erro ao carregar usuários</Typography>;
+  if (error)
+    return <Typography color="error">Erro ao carregar usuários</Typography>;
   if (!users) return <Loading />;
 
   return (
@@ -199,7 +205,7 @@ export default function UsersTable() {
 
       {/* Filtros */}
       <Paper sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
           <TextField
             name="name"
             label="Filter by Name"
@@ -208,7 +214,9 @@ export default function UsersTable() {
             size="small"
             fullWidth
             InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+              startAdornment: (
+                <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+              ),
             }}
           />
           <TextField
@@ -219,7 +227,9 @@ export default function UsersTable() {
             size="small"
             fullWidth
             InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+              startAdornment: (
+                <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+              ),
             }}
           />
           <TextField
@@ -232,9 +242,9 @@ export default function UsersTable() {
             fullWidth
           >
             <MenuItem value="ALL">All Roles</MenuItem>
-            <MenuItem value="USER">User</MenuItem>
+            <MenuItem value="USER">Usuário</MenuItem>
             <MenuItem value="ADMIN">Admin</MenuItem>
-            <MenuItem value="DRIVER">Driver</MenuItem>
+            <MenuItem value="DRIVER">Motorista</MenuItem>
           </TextField>
         </Stack>
       </Paper>
@@ -243,10 +253,10 @@ export default function UsersTable() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              <TableCell>Nome</TableCell>
               {!isMobile && <TableCell>Email</TableCell>}
               <TableCell>Permissão</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -254,7 +264,19 @@ export default function UsersTable() {
               <TableRow key={user.id}>
                 <TableCell>{user.name}</TableCell>
                 {!isMobile && <TableCell>{user.email}</TableCell>}
-                <TableCell>{user.role}</TableCell>
+                <TableCell>
+                  <TextField
+                    disabled
+                    name="role"
+                    select
+                    fullWidth
+                    value={user.role}
+                  >
+                    <MenuItem value="ADMIN">Admin</MenuItem>
+                    <MenuItem value="USER">Usuário</MenuItem>
+                    <MenuItem value="DRIVER">Motorista</MenuItem>
+                  </TextField>
+                </TableCell>
                 <TableCell align="right">
                   <IconButton
                     color="primary"
@@ -284,10 +306,15 @@ export default function UsersTable() {
         />
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <form onSubmit={handleSubmit}>
           <DialogTitle>
-            {selectedUser ? 'Edit User' : 'Add New User'}
+            {selectedUser ? "Edit User" : "Add New User"}
           </DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 2 }}>
@@ -310,13 +337,17 @@ export default function UsersTable() {
               />
               <TextField
                 name="password"
-                label="Password"
+                label="Senha"
                 type="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 required={!selectedUser}
                 fullWidth
-                helperText={selectedUser ? "Leave blank to keep current password" : ""}
+                helperText={
+                  selectedUser
+                    ? "Deixe em branco para manter a senha atual"
+                    : ""
+                }
               />
               <TextField
                 name="role"
@@ -327,16 +358,16 @@ export default function UsersTable() {
                 required
                 fullWidth
               >
-                <MenuItem value="USER">User</MenuItem>
                 <MenuItem value="ADMIN">Admin</MenuItem>
-                <MenuItem value="DRIVER">Driver</MenuItem>
+                <MenuItem value="USER">Usuário</MenuItem>
+                <MenuItem value="DRIVER">Motorista</MenuItem>
               </TextField>
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleCloseDialog}>Cancelar</Button>
             <Button type="submit" variant="contained">
-              {selectedUser ? 'Update' : 'Create'}
+              {selectedUser ? "Update" : "Create"}
             </Button>
           </DialogActions>
         </form>

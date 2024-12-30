@@ -13,7 +13,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const data: any = { ...body };
+  const data = { ...body };
+  delete data.id;
   if (!data) return NextResponse.json({ message: 'Is are required.' }, { status: 400 });
   try {
     const vehicle = await prisma.vehicle.create({data});
@@ -28,13 +29,13 @@ export async function PUT(request: NextRequest)
   try
   {
     const body = await request.json();
-    const updateData: any = { ...body };
-    delete updateData.id;/*
+    const updateData = { ...body };
+    delete updateData.id;
     const vehicle = await prisma.vehicle.update({
       where: { id: body.id },
       data: updateData,
-    });*/
-    return NextResponse.json(updateData);
+    });
+    return NextResponse.json(vehicle);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update user' },{ status: 500 }
     );

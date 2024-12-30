@@ -10,6 +10,7 @@ import { AppProvider } from '@toolpad/core/nextjs';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { Avatar } from '@mui/material';
 import { FireTruck, Person2 } from '@mui/icons-material';
+import { redirect } from 'next/navigation';
 
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
@@ -52,20 +53,22 @@ export default function DashboardPagesLayout({
   
   // Use state to handle client-side navigation
   const [mounted, setMounted] = React.useState(false);
-
+  
   const authentication = React.useMemo(() => {return { signIn, signOut }}, []);
   
   // Handle hydration mismatch by waiting for mount
   React.useEffect(() => { setMounted(true) }, []);
-
+  
   // Memoize navigation to prevent unnecessary rerenders
   const navigation = React.useMemo(() => createNavigation(), []);
-
+  
   // Return null or loading state during SSR
   if (!mounted || status === "loading") {
     return null;
   }
   
+  
+  if (!session || session?.user.role!="ADMIN") redirect('/');
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
       <DashboardLayout>

@@ -6,7 +6,6 @@ import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import StatCard, { StatCardProps } from '@/components/StatCard';
-import HighlightedCard from '@/components/HiglightedCard';
 import SessionsChart from '@/components/SessionsChart';
 import PageViewsBarChart from '@/components/PageViewsBarChart';
 import CustomTreeView from '@/components/CustomTreeView';
@@ -46,10 +45,6 @@ export default function DashboardContent()
                   <StatCard {...card} />
                 </Grid>
               ))}
-
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                <HighlightedCard title={'Online'} value={'1'} interval={'Hoje'} trend={'up'} data={[5,1,3,9,9]} />
-              </Grid>
               
               <Grid size={{ xs: 12, md: 6 }}>
                 <SessionsChart />
