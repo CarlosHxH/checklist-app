@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { Box, Button, TextField, Typography, CircularProgress } from '@mui/material'
+import { useRouter } from 'next/navigation'
 
 export default function LoginForm() {
   // Hydration-safe state
@@ -10,6 +11,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [credentials, setCredentials] = useState({email: '',password: ''})
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
 
   // Ensure component only renders on client
   useEffect(() => {setMounted(true)}, [])
@@ -34,7 +36,7 @@ export default function LoginForm() {
 
       if (result?.error) {
         setError(result.error)
-      } else if (result?.ok) { window.location.href = '/' }
+      } else if (result?.ok) { router.replace('/') }
       setIsLoading(false)
     } catch (err:unknown) {
       console.log(err);
