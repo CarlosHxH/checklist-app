@@ -22,6 +22,7 @@ export async function GET(request: Request,{ params }: { params: Promise<{ userI
   }
 }
 
+
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     await prisma.$disconnect();
   }
 }
+
 
 export async function PUT(request: NextRequest)
 {

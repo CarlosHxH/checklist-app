@@ -17,11 +17,11 @@ export default withAuth(
     return NextResponse.next();
   },{
     callbacks: {
-      //authorized: ({ token }) => token?.role === "admin",
+      //authorized: ({ token }) => token?.role === "ADMIN",
     },
   },
 )
 
 export const config = {
-  matcher: ['/admin/:path*','/dashboard/:path*'], // Rotas protegidas
+  matcher: ['/','/dashboard/:path*'], // Rotas protegidas
 };

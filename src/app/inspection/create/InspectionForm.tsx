@@ -79,9 +79,8 @@ const InspectionForm: React.FC = () => {
       }
 
       const result = await response.json();
-      console.log(result);
       
-      //router.push(`/inspection/${result.id}`);
+      router.push(`/inspection/${result.id}`);
     } catch (error) {
       console.error("Error creating inspection:", error);
     }
