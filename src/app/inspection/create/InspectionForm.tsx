@@ -54,8 +54,6 @@ const InspectionForm: React.FC = () => {
   const handleToggle = (event: { [key: string]: any }) => {
     setFormData((prev) => ({ ...prev, ...event }));
     
-    console.log(event);
-    
     if (event?.vehicleId) {
       const eixo = vehicles.find((e: any) => e.id === event?.vehicleId)?.eixo || 0;
       let data = {};
@@ -81,7 +79,9 @@ const InspectionForm: React.FC = () => {
       }
 
       const result = await response.json();
-      router.push(`/inspection/${result.id}`);
+      console.log(result);
+      
+      //router.push(`/inspection/${result.id}`);
     } catch (error) {
       console.error("Error creating inspection:", error);
     }

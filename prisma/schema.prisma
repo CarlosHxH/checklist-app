@@ -89,7 +89,7 @@ model Inspection {
   nivelAgua                        String
   nivelOleo                        String
 
-  eixo                             Int
+  eixo                             String
   dianteira                        String?
   descricaoDianteira               String?
   tracao                           String?
