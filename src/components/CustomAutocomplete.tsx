@@ -1,34 +1,34 @@
-import * as React from 'react';
 import { useAutocomplete } from '@mui/base/useAutocomplete';
 import { styled } from '@mui/system';
+import { useEffect, useState, ChangeEvent } from 'react';
 
-interface Props {
-  name: string;
-  label?: string | null;
-  options: {
-    id: string;
-    [key: string]: string 
-  }[];
-  error?: boolean | string | null;
-  helperText?: string;
-  onSelect?: (event: { [key: string]: string | null }) => void;
-  defaultValue?: string | boolean | undefined;
-  // Novo prop para especificar qual campo usar como label
-  keyExtractor?: string;
+interface Option {
+  id: string;
+  [key: string]: string;
 }
 
-export default function CustomAutocomplete({ 
-  name, 
-  label, 
-  options, 
-  onSelect, 
-  error, 
-  helperText, 
+interface AutocompleteProps {
+  name: string;
+  label?: string;
+  options: Option[];
+  error?: boolean | string;
+  helperText?: string;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  defaultValue?: string | boolean;
+  keyExtractor?: keyof Option;
+}
+
+export default function CustomAutocomplete({
+  name,
+  label,
+  options,
+  onChange,
+  error,
+  helperText,
   defaultValue,
-  // Definindo 'licensePlate' como valor padrão para manter compatibilidade
-  keyExtractor = 'licensePlate' 
-}: Props) {
-  const [value, setValue] = React.useState<(typeof options)[number] | null>(null);
+  keyExtractor = 'licensePlate',
+}: AutocompleteProps) {
+  const [value, setValue] = useState<Option | null>(null);
 
   const {
     getRootProps,
@@ -38,58 +38,128 @@ export default function CustomAutocomplete({
     groupedOptions,
     focused,
   } = useAutocomplete({
-    id: 'use-autocomplete',
-    options: options,
-    // Usando o keyExtractor para obter o label dinamicamente
-    getOptionLabel: (option) => option[keyExtractor] || '',
+    options,
+    getOptionLabel: (option: Option) => option[keyExtractor] || '',
     value,
-    onChange: (event, newValue) => {
+    onChange: (_, newValue) => {
       setValue(newValue);
-      if (onSelect) {
-        onSelect({ [name]: newValue?.id || null });
+      if (onChange) {
+        onChange({
+          target: {
+            name,
+            value: newValue?.id ?? null,
+            type: 'text',
+            checked: false,
+            valueAsNumber: 0,
+            valueAsDate: null
+          }
+        } as ChangeEvent<HTMLInputElement>);
       }
     },
-    // Usando o keyExtractor na comparação
-    isOptionEqualToValue: (option, value) => option[keyExtractor] === value?.[keyExtractor],
+    isOptionEqualToValue: (option, value) => 
+      option?.[keyExtractor] === value?.[keyExtractor],
   });
 
-  React.useEffect(()=>{ 
-    if(defaultValue) setValue(options[0])
-  },[defaultValue])
+  useEffect(() => {
+    if (defaultValue && options.length) setValue(options[0]);
+  }, [defaultValue, options]);
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <Root {...getRootProps()} className={`${focused ? 'Mui-focused' : ''} ${error?'error':''}`}>
-        <Input 
-          name={name} 
-          placeholder={label ? label + " *" : ""} 
-          required 
-          {...getInputProps()} 
+    <div style={{ marginBottom: '1rem', position: 'relative' }}>
+      <StyledRoot {...getRootProps()} $focused={focused} $error={!!error}>
+        <StyledInput
+          {...getInputProps()}
+          name={name}
+          placeholder={label ? `${label} *` : ''}
+          required
         />
-      </Root>
-      <span style={{color:'red'}}>{helperText||""}</span>
+      </StyledRoot>
+      {helperText && <ErrorText>{helperText}</ErrorText>}
       {groupedOptions.length > 0 && (
-        <Listbox {...getListboxProps()} sx={{ zIndex: 999 }}>
-          {(groupedOptions as typeof options).map((option, index) => {
-            const optionProps = getOptionProps({ option, index });
-            const { key, ...restProps } = optionProps;
-            // Usando o keyExtractor para exibir o valor correto
-            return (
-              <Option 
-                key={key} 
-                {...restProps} 
-                value={option.id}
-              >
-                {option[keyExtractor] || option.label}
-              </Option>
-            );
-          })}
-        </Listbox>
+        <StyledListbox {...getListboxProps()}>
+          {(groupedOptions as Option[]).map((option, index) => (
+            <StyledOption
+              {...getOptionProps({ option, index })}
+              key={option.id}
+              value={option.id}
+            >
+              {option[keyExtractor]}
+            </StyledOption>
+          ))}
+        </StyledListbox>
       )}
     </div>
   );
 }
 
+const StyledRoot = styled('div')<{ $focused?: boolean; $error?: boolean }>`
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid ${({ $error }) => ($error ? 'red' : '#DAE2ED')};
+  padding: 8px;
+  display: flex;
+  background: white;
+  
+  ${({ $focused }) => $focused && `
+    border-color: #3399FF;
+    box-shadow: 0 0 0 3px rgba(51, 153, 255, 0.2);
+  `}
+
+  &:hover {
+    border-color: #3399FF;
+  }
+`;
+
+const StyledInput = styled('input')`
+  font-size: 0.875rem;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 4px;
+`;
+
+const StyledListbox = styled('ul')`
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+  background: white;
+  border: 1px solid #DAE2ED;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  list-style: none;
+`;
+
+const StyledOption = styled('li')`
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &[aria-selected="true"] {
+    background-color: #DAECFF;
+    color: #003A75;
+  }
+
+  &:hover {
+    background-color: #F3F6F9;
+  }
+`;
+
+const ErrorText = styled('span')`
+  color: red;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: block;
+`;
+
+
+
+
+
+/*
 
 const blue = {
   100: '#DAECFF',
@@ -130,7 +200,7 @@ const Root = styled('div')(
   padding-right: 5px;
   overflow: hidden;
   width: 100%;
-  padding: 8px;
+  padding: 5px;
 
   &.Mui-focused {
     border-color: ${blue[400]};
@@ -160,7 +230,7 @@ const Input = styled('input')(
   background: inherit;
   border: none;
   border-radius: inherit;
-  padding: 8px 12px;
+  padding: 5px 5px;
   outline: 0;
   flex: 1 0 auto;
 `,
@@ -225,4 +295,4 @@ const Option = styled('li')(
     color: ${theme.palette.mode === 'dark' ? blue[100] : blue[900]};
   }
   `,
-);
+);*/

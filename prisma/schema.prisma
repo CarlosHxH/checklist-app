@@ -83,13 +83,14 @@ model Inspection {
   userId                           String
   vehicleId                        String
   dataInspecao                     DateTime
+  status                           String?
 
   crlvEmDia                        String
   certificadoTacografoEmDia        String
   nivelAgua                        String
   nivelOleo                        String
 
-  eixo                             String
+  eixo                             String?
   dianteira                        String?
   descricaoDianteira               String?
   tracao                           String?

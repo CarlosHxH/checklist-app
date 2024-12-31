@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { styled } from "@mui/system";
 import { Box, Chip } from "@mui/material";
 import Image from "next/image";
@@ -37,7 +37,8 @@ interface Props {
   label: string;
   name: string;
   value?: string;
-  onChange: (event: { [key: string]: any }) => void;
+  //onChange: (event: { [key: string]: any }) => void;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 const FileUploader = ({ label, name, value, onChange }: Props) => {
@@ -61,7 +62,20 @@ const FileUploader = ({ label, name, value, onChange }: Props) => {
     setFileName(""); // Clear the file name
   };
 
-  React.useEffect(()=>onChange({[name]:base64String}),[base64String, fileName])
+  React.useEffect(()=>{
+    if (onChange) {
+      onChange({
+        target: {
+          name,
+          value: base64String ?? null,
+          type: 'text',
+          checked: false,
+          valueAsNumber: 0,
+          valueAsDate: null
+        }
+      } as ChangeEvent<HTMLInputElement>);
+    }
+  },[base64String, fileName])
 
   return (
     <Container>

@@ -1,61 +1,76 @@
 "use client";
-import React, { useState } from "react";
-import {ToggleButtonGroup,Box,Typography,ToggleButton} from "@mui/material";
-import { styled } from "@mui/system";
+import React from "react";
+import { ToggleButtonGroup, Box, Typography, ToggleButton, styled } from "@mui/material";
 
 interface ButtonLabelProps {
   label: string;
   name: string;
   value?: string;
   options: string[];
-  error?: boolean | string | null;
-  helperText?: string | null;
-  onChange?: (event: React.MouseEvent<HTMLElement>, value: string) => void;
+  error?: boolean | string;
+  helperText?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
+const StyledToggleButton = styled(ToggleButton)({
   border: "1px solid #ccc",
   borderRadius: "8px",
-  padding: "5px 5px",
+  padding: "5px",
   width: "100%",
   "&:hover": {
     backgroundColor: "#999",
     color: "#fff",
-    fontWeight: "bolder",
+    fontWeight: "bold",
   },
   "&.Mui-selected": {
     backgroundColor: "#0070f3",
     color: "white",
     "&:hover": {
       backgroundColor: "#0070f3",
-      color: "#fff",
     },
   },
-}));
+});
 
-const ButtonLabel: React.FC<ButtonLabelProps> = ({label,name,value,options,error,helperText,onChange}) => {
-  const [selectedValue, setSelectedValue] = useState<string>(value || "");
-
-  const handleAlignment = (event: React.MouseEvent<HTMLElement>, newValue: string | null ) => {
-    if (newValue !== null) {
-      setSelectedValue(newValue);
-      if (onChange) {
-        onChange(event, newValue);
+export default function ButtonLabel({ 
+  label, 
+  name, 
+  value = "", 
+  options, 
+  error, 
+  helperText, 
+  onChange 
+}: ButtonLabelProps) {
+  const handleChange = (event: React.MouseEvent<HTMLElement>, newValue: string | null) => {
+    if (!newValue || !onChange) return;
+    
+    onChange({
+      target: {
+        name,
+        value: newValue,
+        type: 'button',
+        checked: false,
+        valueAsNumber: 0,
+        valueAsDate: null
       }
-    }
+    } as React.ChangeEvent<HTMLInputElement>);
   };
 
-  const renderButton = (val: string) => (<StyledToggleButton name={name} key={val} value={val} aria-label={val}>{val}</StyledToggleButton>);
-
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", mb: 2 }}>
-      <Typography variant="body1" color="#444" sx={{ mt: "auto", mr: 1, alignItems: "center" }}>{label}</Typography>
-      <ToggleButtonGroup value={selectedValue} exclusive onChange={handleAlignment} aria-label="Toggle">
-        {options.map(renderButton)}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
+      <Typography variant="body1" color="#444">{label}</Typography>
+      <ToggleButtonGroup 
+        value={value} 
+        exclusive 
+        onChange={handleChange} 
+        aria-label={label}
+      >
+        {options.map(option => (
+          <StyledToggleButton key={option} value={option}>
+            {option}
+          </StyledToggleButton>
+        ))}
       </ToggleButtonGroup>
-      {error && <span style={{ color: "red" }}>{helperText || ""}</span>}
+      {error && <Typography color="error" variant="caption">{helperText}</Typography>}
     </Box>
   );
-};
-
-export default ButtonLabel;
+}

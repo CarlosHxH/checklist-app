@@ -308,7 +308,6 @@ const InspectionForm: React.FC = () => {
             <FileUploader name={"fotoVeiculo"} value={formData.fotoVeiculo} onChange={handleToggle} label={"Foto do veiculo de frente"}/>
           </Grid>
 
-
           <Grid item xs={12}>
             <Button fullWidth type="submit" variant="contained" color="primary">
               Salvar
