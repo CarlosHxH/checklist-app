@@ -1,17 +1,17 @@
 "use client";
-import React, { useState } from "react";
-import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { fetcher } from "@/lib/ultils";
-import useSWR from "swr";
-import CustomAutocomplete from "@/components/CustomAutocomplete";
-import ButtonLabel from "@/components/ButtonLabel";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import FileUploader from "@/components/FileUploader";
-import Loading from "@/components/Loading";
-import { InspectionSchema } from "@/lib/InspectionSchema";
 import { z } from "zod";
+import useSWR from "swr";
+import { fetcher } from "@/lib/ultils";
+import React, { useState } from "react";
+import Loading from "@/components/Loading";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import ButtonLabel from "@/components/ButtonLabel";
+import FileUploader from "@/components/FileUploader";
+import { InspectionSchema } from "@/lib/InspectionSchema";
 import { InspectionFormData } from "@/lib/formDataTypes";
+import CustomAutocomplete from "@/components/CustomAutocomplete";
+import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
 
 const InspectionForm: React.FC = () => {
   const router = useRouter();
@@ -150,7 +150,6 @@ const InspectionForm: React.FC = () => {
               value={formData.nivelAgua}
               options={["NORMAL", "BAIXO", "CRITICO"]}
               onChange={onChange}
-
               error={!!errors.nivelAgua}
               helperText={errors.nivelAgua}
             />
@@ -163,7 +162,6 @@ const InspectionForm: React.FC = () => {
               value={formData.nivelOleo}
               options={["NORMAL", "BAIXO", "CRITICO"]}
               onChange={onChange}
-
               error={!!errors.nivelOleo}
               helperText={errors.nivelOleo}
             />
@@ -178,7 +176,6 @@ const InspectionForm: React.FC = () => {
               options={["BOM", "RUIM"]}
               onChange={onChange}
               value={formData.dianteira}
-
               error={!!errors.dianteira}
               helperText={errors.dianteira}
             />
@@ -191,7 +188,6 @@ const InspectionForm: React.FC = () => {
                 multiline
                 fullWidth
                 rows={2}
-
                 error={!!errors.descricaoDianteira}
                 helperText={errors.descricaoDianteira}
               />)}
@@ -205,7 +201,6 @@ const InspectionForm: React.FC = () => {
                 value={formData.tracao}
                 options={["BOM", "RUIM"]}
                 onChange={onChange}
-
                 error={!!errors.tracao}
                 helperText={errors.tracao}
               />
@@ -218,7 +213,6 @@ const InspectionForm: React.FC = () => {
                   fullWidth
                   rows={2}
                   onChange={onChange}
-
                   error={!!errors.descricaoTracao}
                   helperText={errors.descricaoTracao}
                 />
@@ -234,7 +228,6 @@ const InspectionForm: React.FC = () => {
                 value={formData.truck}
                 options={["BOM", "RUIM"]}
                 onChange={onChange}
-
                 error={!!errors.truck}
                 helperText={errors.truck}
               />
@@ -247,7 +240,6 @@ const InspectionForm: React.FC = () => {
                   fullWidth
                   rows={2}
                   onChange={onChange}
-
                   error={!!errors.descricaoTruck}
                   helperText={errors.descricaoTruck}
                 />
@@ -262,7 +254,6 @@ const InspectionForm: React.FC = () => {
                 value={formData.quartoEixo}
                 options={["BOM", "RUIM"]}
                 onChange={onChange}
-
                 error={!!errors.quartoEixo}
                 helperText={errors.quartoEixo}
               />
@@ -291,7 +282,6 @@ const InspectionForm: React.FC = () => {
               options={["NÃO", "SIM"]}
               value={formData.avariasCabine}
               onChange={onChange}
-
               error={!!errors.avariasCabine}
               helperText={errors.avariasCabine}
             />
@@ -350,19 +340,19 @@ const InspectionForm: React.FC = () => {
                 value={formData.descricaoParteEletrica}
                 error={!!errors.descricaoParteEletrica}
                 helperText={errors.descricaoParteEletrica}
-                multiline fullWidth rows={2} />
+                multiline fullWidth rows={2} disabled />
             )}
           </Grid>
 
           <Grid item xs={12} md={12}>
             <Divider>Foto do veiculo</Divider>
             <FileUploader
-              label={"Foto Veiculo"}
+              label={"Foto do veiculo de frente"}
               name={"fotoVeiculo"}
               value={formData.fotoVeiculo}
-              onChange={onChange}
               error={!!errors.fotoVeiculo}
               helperText={errors.fotoVeiculo}
+              onChange={onChange}
             />
           </Grid>
 

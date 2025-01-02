@@ -14,10 +14,9 @@ import Loading from '@/components/Loading';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 
-export default function DashboardContent()
-{
-  const { data } = useSWR('/api/admin', fetcher)
-  if (!data) return <Loading />
+export default function DashboardContent() {
+  const { data, isLoading } = useSWR('/api/admin', fetcher)
+  if (isLoading) return <Loading />
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -31,7 +30,7 @@ export default function DashboardContent()
           overflow: 'auto',
         })}
       >
-        <Stack spacing={2} sx={{alignItems: 'center',mx: 3,pb: 5,mt: { xs: 8, md: 0 }}}>
+        <Stack spacing={2} sx={{ alignItems: 'center', mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}>
           <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
             {/* cards */}
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
@@ -45,25 +44,32 @@ export default function DashboardContent()
                   <StatCard {...card} />
                 </Grid>
               ))}
-              
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SessionsChart />
+
+              {false && (
+                <>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SessionsChart />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <PageViewsBarChart />
+                  </Grid>
+                </>
+              )}
               </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <PageViewsBarChart />
-              </Grid>
-            </Grid>
-            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-              Detalhes
-            </Typography>
-            <Grid container spacing={2} columns={12}>
-              <Grid size={{ xs: 12, lg: 6 }}>
-                <Stack gap={2} direction={{ xs: 'column', sm: 'row' }}>
-                  <CustomTreeView />
-                  <ChartUserByCountry />
-                </Stack>
-              </Grid>
-            </Grid>
+            {false && (
+              <>
+                <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+                  Detalhes
+                </Typography>
+                <Grid container spacing={2} columns={12}>
+                  <Grid size={{ xs: 12, lg: 6 }}>
+                    <Stack gap={2} direction={{ xs: 'column', sm: 'row' }}>
+                      <CustomTreeView />
+                      <ChartUserByCountry />
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </>)}
           </Box>
         </Stack>
       </Box>

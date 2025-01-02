@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Grid, Typography, Paper } from "@mui/material";
+import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import { useRouter, useParams } from "next/navigation";
 import Loading from "@/components/Loading";
@@ -254,8 +254,14 @@ const EditInspectionPage: React.FC = () => {
             )}
           </Grid>
 
-          <Grid item xs={12}>
-            <FileUploader name={"fotoVeiculo"} value={formData.fotoVeiculo} onChange={handleChange} label={"Foto do veiculo de frente"}/>
+          <Grid item xs={12} md={12}>
+            <Divider>Foto do veiculo</Divider>
+            <FileUploader
+              label={"Foto do veiculo de frente"}
+              name={"fotoVeiculo"}
+              value={formData.fotoVeiculo}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12}>
             <Button fullWidth type="submit" variant="contained" color="primary">

@@ -1,12 +1,12 @@
 // components/InspectionModal.tsx
 import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField, Input } from "@mui/material";
-import { DataType, InspectionFormData } from "./types";
 import ButtonLabel from "@/components/ButtonLabel";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import FileUploader from "@/components/FileUploader";
-import { InspectionSchema } from '@/lib/InspectionSchema';
+import { InspectionFormData, InspectionSchema } from '@/lib/InspectionSchema';
 import { z } from "zod";
+import { DataType } from "@/lib/formDataTypes";
 
 interface InspectionModalProps {
     open: boolean;

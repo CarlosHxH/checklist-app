@@ -40,9 +40,10 @@ interface Props {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void | null;
   error?: boolean | string | null;
   helperText?: string | null;
+  disabled?: boolean;
 }
 
-const FileUploader = ({ label, name, value, error, helperText, onChange }: Props) => {
+const FileUploader = ({ label, name, value, error, helperText, onChange, disabled }: Props) => {
   const [base64String, setBase64String] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
 
@@ -97,12 +98,12 @@ const FileUploader = ({ label, name, value, error, helperText, onChange }: Props
             src={value}
             alt={name}
           />
-          <Chip
+          {!(!!disabled)&&<Chip
             label={`${fileName}`}
             onDelete={handleRemoveFile}
             color="error"
             style={{position: "absolute",bottom: -15,right: 0}}
-          />
+          />}
         </span>
       )}
       {error && <Typography color="error" variant="caption">{helperText}</Typography>}

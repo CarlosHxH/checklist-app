@@ -6,26 +6,31 @@ import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { useSession } from "next-auth/react";
 
-interface Props
-{
+interface Props {
   title: string;
   showBackButton?: boolean;
   onBackClick?: () => void;
 }
 
-export default function SimpleAppBar({ title, showBackButton = false, onBackClick }: Props) {
+const ResponsiveAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
   const router = useRouter();
   const { data: session } = useSession();
-  
-  const handleNext = () =>router.push(session?.user.role==="ADMIN"?"/dashboard":"/");
-  const handleBack = () =>{
-    if (onBackClick) onBackClick();
-    else router.back();
+
+  const handleNext = () => {
+    router.push(session?.user.role === "ADMIN" ? "/dashboard" : "/");
+  };
+
+  const handleBack = () => {
+    if (onBackClick) {
+      onBackClick();
+    } else {
+      router.back();
+    }
   };
 
   return (
     <>
-      <AppBar component={'nav'}>
+      <AppBar component="nav">
         <Container maxWidth="xl">
           <Toolbar>
             {showBackButton && (
@@ -33,11 +38,16 @@ export default function SimpleAppBar({ title, showBackButton = false, onBackClic
                 <ArrowBackIcon />
               </IconButton>
             )}
-            <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>
               {title}
             </Typography>
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex' }}>
-              <Chip sx={{color:'#fff'}} avatar={<Avatar alt="" src={session?.user.image||""} />} label={session?.user.name} variant="outlined"/>
+              <Chip
+                sx={{ color: '#fff' }}
+                avatar={<Avatar alt={session?.user.name || ""} src={session?.user.image || ""} />}
+                label={session?.user.name}
+                variant="outlined"
+              />
               <LogoutButton />
             </Box>
           </Toolbar>
@@ -46,4 +56,6 @@ export default function SimpleAppBar({ title, showBackButton = false, onBackClic
       <Toolbar />
     </>
   );
-}
+};
+
+export default ResponsiveAppBar;
