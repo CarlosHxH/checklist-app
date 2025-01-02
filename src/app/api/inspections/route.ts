@@ -17,7 +17,6 @@ export async function GET(request: Request) {
   }
 }
 
-
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();

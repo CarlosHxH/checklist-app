@@ -85,7 +85,7 @@ const InspectionForm: React.FC = () => {
       const result = await response.json();
       console.log(result);
 
-      //router.push(`/inspection/${result.id}`);
+      router.push(`/inspection/${result.id}`);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.errors.reduce((acc, curr) => ({

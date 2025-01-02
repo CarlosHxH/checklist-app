@@ -26,15 +26,9 @@ const EditInspectionPage: React.FC = () => {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
   };
-  const handleToggle = (event: { [key: string]: any }) => {
-    setFormData((prev: any) => ({ ...prev, ...event }));
-  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(formData);
-    
-    
     try {
       const response = await fetch(`/api/inspections/${id}`, {
         method: "PUT",
@@ -45,9 +39,7 @@ const EditInspectionPage: React.FC = () => {
       if (!response.ok) {
         throw new Error("Failed to update inspection ");
       }
-
       const result = await response.json();
-
       router.push(`/inspection/${result.id}`);
     } catch (error) {
       console.error("Error updating inspection:", error);
@@ -110,7 +102,7 @@ const EditInspectionPage: React.FC = () => {
             <ButtonLabel
               label={"Nível de Água"}
               name={"nivelAgua"}
-              options={["Normal", "Baixo", "Critico"]}
+              options={["NORMAL", "BAIXO", "CRITICO"]}
               value={formData.nivelAgua}
               onChange={handleChange}
             />
@@ -119,7 +111,7 @@ const EditInspectionPage: React.FC = () => {
             <ButtonLabel
               label={"Nível de Óleo"}
               name={"nivelOleo"}
-              options={["Normal", "Baixo", "Critico"]}
+              options={["NORMAL", "BAIXO", "CRITICO"]}
               value={formData.nivelOleo}
               onChange={handleChange}
             />
@@ -263,7 +255,7 @@ const EditInspectionPage: React.FC = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <FileUploader name={"fotoVeiculo"} value={formData.fotoVeiculo} onChange={handleToggle} label={"Foto do veiculo de frente"}/>
+            <FileUploader name={"fotoVeiculo"} value={formData.fotoVeiculo} onChange={handleChange} label={"Foto do veiculo de frente"}/>
           </Grid>
           <Grid item xs={12}>
             <Button fullWidth type="submit" variant="contained" color="primary">
