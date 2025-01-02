@@ -9,7 +9,8 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { AppProvider } from '@toolpad/core/nextjs';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { Avatar } from '@mui/material';
-import { FireTruck, Person2 } from '@mui/icons-material';
+import { Person2 } from '@mui/icons-material';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { redirect } from 'next/navigation';
 
 // Move navigation configuration outside component to prevent recreation
@@ -29,7 +30,7 @@ const createNavigation = (): Navigation => [
   },{
     segment: 'dashboard/vehicle',
     title: 'Veiculos',
-    icon: <FireTruck />,
+    icon: <LocalShippingIcon />,
   }
 ];
 
