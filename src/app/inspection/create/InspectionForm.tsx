@@ -11,47 +11,23 @@ import FileUploader from "@/components/FileUploader";
 import Loading from "@/components/Loading";
 import { InspectionSchema } from "@/lib/InspectionSchema";
 import { z } from "zod";
+import { InspectionFormData } from "@/lib/formDataTypes";
 
 const InspectionForm: React.FC = () => {
+  const router = useRouter();
   const { data: session } = useSession();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const { data: vehicles } = useSWR(`/api/vehicles`, fetcher);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<InspectionFormData>>({
     userId: session?.user.id,
     vehicleId: "",
     dataInspecao: new Date().toISOString(),
-    status: "",
-
-    crlvEmDia: "",
-    certificadoTacografoEmDia: "",
-    nivelAgua: "",
-    nivelOleo: "",
-
-    eixo: 0,
-    dianteira: null,
-    descricaoDianteira: null,
-    tracao: null,
-    descricaoTracao: null,
-    truck: null,
-    descricaoTruck: null,
-    quartoEixo: null,
-    descricaoQuartoEixo: null,
-
-    avariasCabine: null,
-    descricaoAvariasCabine: null,
-
-    bauPossuiAvarias: null,
-    descricaoAvariasBau: null,
-
-    funcionamentoParteEletrica: null,
-    descricaoParteEletrica: null,
-    fotoVeiculo: null,
+    eixo: "0",
   });
 
-  const router = useRouter();
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     if (name === "vehicleId") {
       const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
@@ -60,32 +36,26 @@ const InspectionForm: React.FC = () => {
       if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
       if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
       if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
-
       data = { ...data, eixo };
       setFormData((prev) => ({ ...prev, ...data }));
     }
     setFormData(prev => ({ ...prev, [name]: value }));
-    console.log(formData);
   };
 
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       const validatedData = InspectionSchema.parse(formData);
-
-      const response = await fetch("/api/inspections", {
+      setErrors({});
+      const url = '/api/inspections';
+      const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validatedData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...validatedData }),
       });
-      if (!response.ok) {
-        throw new Error("Failed to create inspection");
-      }
-      const result = await response.json();
-      console.log(result);
-
-      router.push(`/inspection/${result.id}`);
+      const res = await response.json();
+      router.push(`/inspection/${res.id}`);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.errors.reduce((acc, curr) => ({
@@ -103,33 +73,33 @@ const InspectionForm: React.FC = () => {
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       <form onSubmit={handleSubmit}>
-        <Typography variant="h4" gutterBottom>
-          Criar inspeção
-        </Typography>
-
-        <Grid item xs={12}><Divider>Dados do usuario</Divider></Grid>
-
-        <Grid item xs={12} md={12}>
-          <ButtonLabel
-            label={"Viagem"}
-            name={"status"}
-            value={formData?.status}
-            onChange={handleChange}
-            options={["INICIO", "FINAL"]}
-            error={!!errors.status}
-            helperText={errors.status}
-          />
-        </Grid>
+        <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
 
         <Grid container spacing={3}>
+
+          <Grid item xs={12}><Divider>Dados do usuario</Divider></Grid>
+
+          <Grid item xs={12} md={12}>
+            <ButtonLabel
+              label={"Viagem"}
+              name={"status"}
+              value={formData?.status}
+              onChange={onChange}
+              options={["INICIO", "FINAL"]}
+              error={!!errors.status}
+              helperText={errors.status}
+            />
+          </Grid>
+
           <Grid item xs={12} md={6}>
             <CustomAutocomplete
               label={"Placa"}
-              onChange={handleChange}
+              onChange={onChange}
               options={vehicles}
               name={"vehicleId"}
             />
           </Grid>
+
           <Grid item xs={12} md={6}>
             <TextField
               required
@@ -146,53 +116,56 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} mb={-3}><Divider>Documentos</Divider></Grid>
-          {/* CRLV */}
+
           <Grid item xs={12} md={6}>
             <ButtonLabel
-              label={"CRLV em dia"}
+              label={"CRLV em dia?"}
               name={"crlvEmDia"}
-              options={["SIM", "NÃO"]}
               value={formData.crlvEmDia}
-              onChange={handleChange}
+              options={["SIM", "NÃO"]}
+              onChange={onChange}
+              error={!!errors.crlvEmDia}
+              helperText={errors.crlvEmDia}
             />
           </Grid>
 
-          {/* CRLV */}
           <Grid item xs={12} md={6}>
             <ButtonLabel
-              label={"Certificado Tacógrafo em Dia"}
+              label={"Cert. Tacografo em Dia?"}
               name={"certificadoTacografoEmDia"}
-              options={["SIM", "NÃO"]}
               value={formData.certificadoTacografoEmDia}
-              onChange={handleChange}
+              options={["SIM", "NÃO"]}
+              onChange={onChange}
+              error={!!errors.certificadoTacografoEmDia}
+              helperText={errors.certificadoTacografoEmDia}
             />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={12}
-            style={{ borderBottom: "1px solid #444" }}
-          />
 
           <Grid item xs={12} mb={-3}><Divider>Niveis</Divider></Grid>
 
           <Grid item xs={12} md={6}>
             <ButtonLabel
-              label={"Nível de Água"}
+              label={"Nivel Agua"}
               name={"nivelAgua"}
-              options={["NORMAL", "Baixo", "Critico"]}
               value={formData.nivelAgua}
-              onChange={handleChange}
+              options={["NORMAL", "BAIXO", "CRITICO"]}
+              onChange={onChange}
+
+              error={!!errors.nivelAgua}
+              helperText={errors.nivelAgua}
             />
           </Grid>
+
           <Grid item xs={12} md={6}>
             <ButtonLabel
-              label={"Nível de Óleo"}
+              label={"Nivel Oleo"}
               name={"nivelOleo"}
-              options={["NORMAL", "Baixo", "Critico"]}
               value={formData.nivelOleo}
-              onChange={handleChange}
+              options={["NORMAL", "BAIXO", "CRITICO"]}
+              onChange={onChange}
+
+              error={!!errors.nivelOleo}
+              helperText={errors.nivelOleo}
             />
           </Grid>
 
@@ -203,30 +176,38 @@ const InspectionForm: React.FC = () => {
               label={"DIANTEIRA"}
               name={"dianteira"}
               options={["BOM", "RUIM"]}
-              onChange={handleChange}
-              value={formData?.dianteira}
+              onChange={onChange}
+              value={formData.dianteira}
+
+              error={!!errors.dianteira}
+              helperText={errors.dianteira}
             />
             {formData.dianteira === "RUIM" && (
               <TextField
                 label={"Qual Defeito?"}
                 name="descricaoDianteira"
-                value={formData?.descricaoDianteira}
-                onChange={handleChange}
+                value={formData.descricaoDianteira}
+                onChange={onChange}
                 multiline
                 fullWidth
                 rows={2}
-              />
-            )}
+
+                error={!!errors.descricaoDianteira}
+                helperText={errors.descricaoDianteira}
+              />)}
           </Grid>
 
-          {formData.eixo > 1 && (
+          {Number(formData.eixo) > 1 && (
             <Grid item xs={12} md={6}>
               <ButtonLabel
                 label={"TRAÇÃO"}
                 name={"tracao"}
-                options={["BOM", "RUIM"]}
-                onChange={handleChange}
                 value={formData.tracao}
+                options={["BOM", "RUIM"]}
+                onChange={onChange}
+
+                error={!!errors.tracao}
+                helperText={errors.tracao}
               />
               {formData.tracao === "RUIM" && (
                 <TextField
@@ -236,20 +217,26 @@ const InspectionForm: React.FC = () => {
                   multiline
                   fullWidth
                   rows={2}
-                  onChange={handleChange}
+                  onChange={onChange}
+
+                  error={!!errors.descricaoTracao}
+                  helperText={errors.descricaoTracao}
                 />
               )}
             </Grid>
           )}
 
-          {formData.eixo > 2 && (
+          {Number(formData.eixo) > 2 && (
             <Grid item xs={12} md={6}>
               <ButtonLabel
                 label={"TRUCK"}
                 name={"truck"}
-                options={["BOM", "RUIM"]}
-                onChange={handleChange}
                 value={formData.truck}
+                options={["BOM", "RUIM"]}
+                onChange={onChange}
+
+                error={!!errors.truck}
+                helperText={errors.truck}
               />
               {formData.truck === "RUIM" && (
                 <TextField
@@ -259,50 +246,63 @@ const InspectionForm: React.FC = () => {
                   multiline
                   fullWidth
                   rows={2}
-                  onChange={handleChange}
+                  onChange={onChange}
+
+                  error={!!errors.descricaoTruck}
+                  helperText={errors.descricaoTruck}
                 />
               )}
             </Grid>
           )}
-          {formData.eixo > 3 && (
+          {Number(formData.eixo) > 3 && (
             <Grid item xs={12} md={6}>
               <ButtonLabel
                 label={"Quarto Eixo"}
                 name={"quartoEixo"}
-                options={["BOM", "RUIM"]}
-                onChange={handleChange}
                 value={formData.quartoEixo}
+                options={["BOM", "RUIM"]}
+                onChange={onChange}
+
+                error={!!errors.quartoEixo}
+                helperText={errors.quartoEixo}
               />
               {formData.quartoEixo === "RUIM" && (
                 <TextField
                   label={"Qual Defeito?"}
                   name="descricaoQuartoEixo"
                   value={formData.descricaoQuartoEixo}
-                  onChange={handleChange}
+                  onChange={onChange}
                   multiline
                   fullWidth
                   rows={2}
+
+                  error={!!errors.descricaoQuartoEixo}
+                  helperText={errors.descricaoQuartoEixo}
                 />
               )}
             </Grid>
           )}
 
           <Grid item xs={12} my={-3}><Divider>Avarias</Divider></Grid>
-
           <Grid item xs={12} md={6}>
             <ButtonLabel
               label={"Avarias na Cabine"}
               name={"avariasCabine"}
               options={["NÃO", "SIM"]}
               value={formData.avariasCabine}
-              onChange={handleChange}
+              onChange={onChange}
+
+              error={!!errors.avariasCabine}
+              helperText={errors.avariasCabine}
             />
             {formData.avariasCabine === "SIM" && (
               <TextField
                 label={"Qual avaria?"}
                 name={'descricaoAvariasCabine'}
-                onChange={handleChange}
+                onChange={onChange}
                 value={formData.descricaoAvariasCabine}
+                error={!!errors.descricaoAvariasCabine}
+                helperText={errors.descricaoAvariasCabine}
                 multiline fullWidth rows={2}
               />
             )}
@@ -314,46 +314,64 @@ const InspectionForm: React.FC = () => {
               name={"bauPossuiAvarias"}
               options={["NÃO", "SIM"]}
               value={formData.bauPossuiAvarias}
-              onChange={handleChange}
+              onChange={onChange}
+
+              error={!!errors.bauPossuiAvarias}
+              helperText={errors.bauPossuiAvarias}
             />
             {formData.bauPossuiAvarias === "SIM" && (
-              <TextField label={"Qual defeito?"} name={'descricaoAvariasBau'} onChange={handleChange} value={formData.descricaoAvariasBau} multiline fullWidth rows={2} />
+              <TextField
+                label={"Qual defeito?"}
+                name={'descricaoAvariasBau'}
+                onChange={onChange}
+                value={formData.descricaoAvariasBau}
+                error={!!errors.descricaoAvariasBau}
+                helperText={errors.descricaoAvariasBau}
+                multiline fullWidth rows={2} />
             )}
           </Grid>
+
           <Grid item xs={12}>
+            <Divider>Eletrica</Divider>
             <ButtonLabel
               label={"Parte Elétrica"}
               name={"funcionamentoParteEletrica"}
               options={["BOM", "RUIM"]}
               value={formData.funcionamentoParteEletrica}
-              onChange={handleChange}
+              onChange={onChange}
+              error={!!errors.funcionamentoParteEletrica}
+              helperText={errors.funcionamentoParteEletrica}
             />
             {formData.funcionamentoParteEletrica === "RUIM" && (
               <TextField
                 label={"Qual defeito?"}
                 name="descricaoParteEletrica"
-                onChange={handleChange}
+                onChange={onChange}
                 value={formData.descricaoParteEletrica}
-                multiline fullWidth rows={2}
-              />
+                error={!!errors.descricaoParteEletrica}
+                helperText={errors.descricaoParteEletrica}
+                multiline fullWidth rows={2} />
             )}
           </Grid>
 
-          <Divider>Eletrica</Divider>
-          <Grid item xs={12}>
+          <Grid item xs={12} md={12}>
+            <Divider>Foto do veiculo</Divider>
             <FileUploader
+              label={"Foto Veiculo"}
               name={"fotoVeiculo"}
-              value={formData?.fotoVeiculo}
-              onChange={handleChange}
-              label={"Foto do veiculo de frente"}
+              value={formData.fotoVeiculo}
+              onChange={onChange}
+              error={!!errors.fotoVeiculo}
+              helperText={errors.fotoVeiculo}
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} md={12}>
             <Button fullWidth type="submit" variant="contained" color="primary">
               Salvar
             </Button>
           </Grid>
+
         </Grid>
       </form>
     </Paper>

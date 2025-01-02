@@ -17,6 +17,27 @@ export async function GET(request: Request) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const data = { ...body };
+    if(!!data.id) delete data.id;
+    const validatedData = InspectionSchema.parse(data);
+    
+    const inspection = await prisma.inspection.create({
+      data: { ...validatedData }
+    });
+    return NextResponse.json(inspection);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 400 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -32,27 +53,6 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 400 }
-    );
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const data = { ...body };
-    delete data.id;
-    const validatedData = InspectionSchema.parse(data);
-    
-    const inspection = await prisma.inspection.create({
-      data: { ...validatedData }
-    });
-    return NextResponse.json(inspection);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 400 }
     );
   } finally {

@@ -27,9 +27,7 @@ export const InspectionModal = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            console.log({ formData });
             const validatedData = InspectionSchema.parse(formData);
-
             setErrors({});
             const mode = !!validatedData.id;
             const url = '/api/inspections';
@@ -43,14 +41,12 @@ export const InspectionModal = ({
             console.log(res);
             onClose();
             if (callback) callback(response);
-
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const formattedErrors = error.errors.reduce((acc, curr) => ({
                     ...acc,
                     [curr.path[0]]: curr.message
                 }), {});
-                console.log({ formattedErrors });
                 setErrors(formattedErrors);
             }
         }
@@ -64,9 +60,7 @@ export const InspectionModal = ({
                 </DialogTitle>
                 <DialogContent>
                     <Grid container spacing={3}>
-
                         <Grid item xs={12}><Divider>Dados do usuario</Divider></Grid>
-
                         <Grid item xs={12} md={12}>
                             <ButtonLabel
                                 label={"Viagem"}

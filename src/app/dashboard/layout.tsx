@@ -39,11 +39,7 @@ const BRANDING = {
   title: '5sTransportes',
 } as const;
 
-export default function DashboardPagesLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardPagesLayout({children}: {children: React.ReactNode;}) {
   const { data: session, status } = useSession();
   // Use o estado para lidar com a navegação do lado do cliente
   const [mounted, setMounted] = React.useState(false);
@@ -54,8 +50,6 @@ export default function DashboardPagesLayout({
   const navigation = React.useMemo(() => createNavigation(), []);
   // Retornar o estado nulo ou de carregamento durante a SSR
   if (!mounted || status === "loading") return null;
-  
-  
   if (!session || session?.user.role!="ADMIN") redirect('/');
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>

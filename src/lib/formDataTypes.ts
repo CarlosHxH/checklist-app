@@ -34,7 +34,7 @@ export type InspectionType = {
     certificadoTacografoEmDia: string; // "SIM" | "NÃO" (ou boolean)
     nivelAgua: string; // "Normal" | "Baixo" | "Alto" (ou enum)
     nivelOleo: string; // "Normal" | "Baixo" | "Alto" (ou enum)
-    eixo: string;
+    eixo: string | number;
     dianteira: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoDianteira: string;
     tracao: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
@@ -80,6 +80,7 @@ export type InspectionFormData  = {
     funcionamentoParteEletrica: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoParteEletrica: string;
     fotoVeiculo: string;
+    
 }
 
 export type DataType = {
