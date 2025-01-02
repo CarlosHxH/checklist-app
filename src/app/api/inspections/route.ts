@@ -9,7 +9,7 @@ export async function GET(request: Request,{ params }: { params: Promise<{ userI
       const inspections = await prisma.inspection.findMany({
         where: { userId },
         include: { vehicle: true },
-        orderBy: { dataInspecao: "desc" },
+        orderBy: { dataInspecao: "desc" }
       });
       return NextResponse.json(inspections, { status: 200 });
     } else {
@@ -23,12 +23,60 @@ export async function GET(request: Request,{ params }: { params: Promise<{ userI
 }
 
 
+export async function PUT(request: NextRequest)
+{
+  try
+  {
+    const body = await request.json();
+    const updateData = { ...body };
+    delete updateData.id;
+    
+    const inspection = await prisma.inspection.update({
+      where: { id: body.id },
+      data: {
+        ...updateData,
+        updatedAt: new Date()
+      }
+    });
+    return NextResponse.json(inspection);
+  } catch (error) {
+    console.error('Error updating inspection:', error);
+    return NextResponse.json(
+      { error: 'Failed to update inspection' },
+      { status: 400 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    if (!data || typeof data !== 'object') {
-      throw new Error('Invalid payload');
-    }
+    const body = await request.json();
+    const data = { ...body };
+    delete data.id;
+
+    const inspection = await prisma.inspection.create({
+      data: {
+        ...data,
+        createdAt: new Date()
+      }
+    });
+    return NextResponse.json(inspection);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create inspection' },
+      { status: 400 }
+    );
+  }
+}
+
+
+
+/*
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const data = { ...body };
+    delete data.id;
     const inspections = await prisma.inspection.create({ data });
     return NextResponse.json(inspections, { status: 201 });
   } catch (error) {
@@ -59,7 +107,7 @@ export async function PUT(request: NextRequest)
     );
   }
 }
-
+*/
 export async function DELETE(request: NextRequest)
 {
   try

@@ -5,7 +5,7 @@ import {
   } from "@mui/material";
   import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
   import { InspectionType } from "./types";
-import { formatDate } from "@/lib/ultils";
+import { formatDate, stringToDate } from "@/lib/ultils";
   
   interface InspectionTableProps {
     inspections: InspectionType[];
@@ -49,7 +49,7 @@ import { formatDate } from "@/lib/ultils";
                   <TableCell>{inspection.user?.name}</TableCell>
                   <TableCell>{inspection.vehicle.licensePlate}</TableCell>
                   {!isMobile && <TableCell>{inspection.vehicle.model}</TableCell>}
-                  {!isMobile && <TableCell>{formatDate(inspection.vehicle.createdAt)}</TableCell>}
+                  {!isMobile && <TableCell>{formatDate(stringToDate(inspection.dataInspecao))}</TableCell>}
                   <TableCell align="right">
                     <IconButton color="primary" onClick={() => onEdit(inspection)}>
                       <EditIcon />

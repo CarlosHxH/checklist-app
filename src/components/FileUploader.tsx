@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { styled } from "@mui/system";
-import { Box, Chip } from "@mui/material";
+import { Box, Chip, Typography } from "@mui/material";
 import Image from "next/image";
 
 // Styled components
@@ -39,9 +39,11 @@ interface Props {
   value?: string;
   //onChange: (event: { [key: string]: any }) => void;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  error?: boolean | string;
+  helperText?: string;
 }
 
-const FileUploader = ({ label, name, value, onChange }: Props) => {
+const FileUploader = ({ label, name, value, error, helperText, onChange }: Props) => {
   const [base64String, setBase64String] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
 
@@ -97,6 +99,7 @@ const FileUploader = ({ label, name, value, onChange }: Props) => {
           />
         </span>
       )}
+      {error && <Typography color="error" variant="caption">{helperText}</Typography>}
     </Container>
   );
 };

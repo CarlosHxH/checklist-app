@@ -16,8 +16,8 @@ interface Props
 export default function SimpleAppBar({ title, showBackButton = false, onBackClick }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
-
-  const handleNext = () =>router.push("/dashboard");
+  
+  const handleNext = () =>router.push(session?.user.role==="ADMIN"?"/dashboard":"/");
   const handleBack = () =>{
     if (onBackClick) onBackClick();
     else router.back();

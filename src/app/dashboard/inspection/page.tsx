@@ -9,7 +9,7 @@ import { fetcher, today } from "@/lib/ultils";
 import SearchBar from "./SearchBar";
 import Loading from "@/components/Loading";
 
-const DEFAULT_FORM_DATA: InspectionFormData = {
+const DEFAULT_FORM_DATA: Partial<InspectionFormData> = {
   id: "",
   userId: "",
   vehicleId: "",
@@ -22,12 +22,6 @@ const DEFAULT_FORM_DATA: InspectionFormData = {
   eixo: '0',
   dianteira: "",
   descricaoDianteira: "",
-  tracao: "",
-  descricaoTracao: "",
-  truck: "",
-  descricaoTruck: "",
-  quartoEixo: "",
-  descricaoQuartoEixo: "",
   avariasCabine: "",
   descricaoAvariasCabine: "",
   bauPossuiAvarias: "",
@@ -39,7 +33,7 @@ const DEFAULT_FORM_DATA: InspectionFormData = {
 
 export default function InspectionManager() {
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [formData, setFormData] = React.useState<InspectionFormData>(DEFAULT_FORM_DATA);
+  const [formData, setFormData] = React.useState<Partial<InspectionFormData>>(DEFAULT_FORM_DATA);
   const [filter, setFilter] = React.useState("");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -50,9 +44,7 @@ export default function InspectionManager() {
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    
     setFormData(prev => ({ ...prev, [name]: value }));
-    console.log({ name, value });
   };
 
   const handleToggle = (event: Partial<InspectionFormData>) => {
@@ -84,6 +76,10 @@ export default function InspectionManager() {
     ins.user?.name.toLowerCase().includes(filter.toLowerCase()) ||
     ins.vehicle.licensePlate.toLowerCase().includes(filter.toLowerCase())
   ) || [];
+
+  const callback = async (e:Response)=>{
+    mutate()
+  }
   
 
   return (
@@ -95,6 +91,7 @@ export default function InspectionManager() {
         formData={formData}
         onToggle={handleToggle}
         onChange={handleFormChange}
+        callback={callback}
       />
 
       <SearchBar

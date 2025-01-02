@@ -5,6 +5,9 @@ export const fetcher = (url: string) => fetch(url).then(r => r.json());
 export const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
 };
+export const stringToDate = (isoString: string) => {
+    return isoString.slice(0, 16);
+};
 
 export const today = () => new Date().toISOString().split('T')[0]
 export type AnyObject = { [key: string]: any };

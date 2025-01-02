@@ -1,27 +1,58 @@
 // components/InspectionModal.tsx
+import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField, Input } from "@mui/material";
 import { DataType, InspectionFormData } from "./types";
 import ButtonLabel from "@/components/ButtonLabel";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import FileUploader from "@/components/FileUploader";
+import { InspectionSchema } from './InspectionSchema';
+import { stringToDate } from "@/lib/ultils";
+import { z } from "zod";
 
 interface InspectionModalProps {
   open: boolean;
   onClose: () => void;
   data: DataType;
-  formData: InspectionFormData;
+  formData: Partial<InspectionFormData>;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onToggle: (event: Partial<InspectionFormData>) => void;
+  callback?: (event: Response) => void;
 }
 
 export const InspectionModal = ({
-  open, onClose, data, formData, onChange, onToggle
+  open, onClose, data, formData, onChange, onToggle, callback
 }: InspectionModalProps) => {
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();    
-  };
 
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const validatedData = InspectionSchema.parse(formData);
+      setErrors({});
+      const mode = !!validatedData.id;
+      const url = '/api/inspections';
+      const method = mode ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...validatedData }),
+      });
+      const res = await response.json();
+      onClose();
+      if (callback) callback(response);
+
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const formattedErrors = error.errors.reduce((acc, curr) => ({
+          ...acc,
+          [curr.path[0]]: curr.message
+        }), {});
+        setErrors(formattedErrors);
+      }
+    }
+  };
+  
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
@@ -32,41 +63,104 @@ export const InspectionModal = ({
           <Grid container spacing={3}>
 
             <Grid item xs={12}><Divider>Dados do usuario</Divider></Grid>
-
             <Grid item xs={12} md={6} sx={{ mt: 4 }}>
-              <Input name="dataInspecao" type="datetime-local" value={formData.dataInspecao||''} onChange={onChange} required fullWidth />
+              <Input
+                name="dataInspecao"
+                type="datetime-local"
+                value={stringToDate(formData?.dataInspecao||"")}
+                onChange={console.log}
+                required
+                fullWidth
+                error={!!errors.dataInspecao}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <ButtonLabel label={"Viagem"} name={"status"} value={formData?.status} options={["INICIO", "FINAL"]} />
+              <ButtonLabel
+                label={"Viagem"}
+                name={"status"}
+                value={formData?.status}
+                onChange={onChange}
+                options={["INICIO", "FINAL"]}
+                error={!!errors.status}
+                helperText={errors.status}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <CustomAutocomplete keyExtractor="name" defaultValue={formData.userId} label={"Usuário"} onChange={onChange} options={data?.user} name={"userId"} />
+              <CustomAutocomplete
+                keyExtractor="name"
+                defaultValue={formData.userId}
+                label={"Usuário"}
+                onChange={onChange}
+                options={data?.user}
+                name={"userId"}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <CustomAutocomplete keyExtractor="licensePlate" defaultValue={formData.vehicleId} label={"Veiculo"} onChange={onChange} options={data?.vehicle} name={"vehicleId"} />
+              <CustomAutocomplete
+                keyExtractor="licensePlate"
+                defaultValue={formData.vehicleId}
+                label={"Veiculo"}
+                onChange={onChange}
+                options={data?.vehicle}
+                name={"vehicleId"}
+              />
             </Grid>
 
             <Grid item xs={12} mb={-3}><Divider>Documentos</Divider></Grid>
 
             <Grid item xs={12} md={6}>
-              <ButtonLabel label={"CRLV em dia?"} name={"crlvEmDia"} value={formData.crlvEmDia} options={["SIM", "NÃO"]} onChange={onChange} />
+              <ButtonLabel
+                label={"CRLV em dia?"}
+                name={"crlvEmDia"}
+                value={formData.crlvEmDia}
+                options={["SIM", "NÃO"]}
+                onChange={onChange}
+                error={!!errors.crlvEmDia}
+                helperText={errors.crlvEmDia}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <ButtonLabel label={"Cert. Tacografo em Dia?"} name={"certificadoTacografoEmDia"} value={formData.certificadoTacografoEmDia} options={["SIM", "NÃO"]} onChange={onChange} />
+              <ButtonLabel
+                label={"Cert. Tacografo em Dia?"}
+                name={"certificadoTacografoEmDia"}
+                value={formData.certificadoTacografoEmDia}
+                options={["SIM", "NÃO"]}
+                onChange={onChange}
+                error={!!errors.certificadoTacografoEmDia}
+                helperText={errors.certificadoTacografoEmDia}
+              />
             </Grid>
 
             <Grid item xs={12} mb={-3}><Divider>Niveis</Divider></Grid>
 
             <Grid item xs={12} md={6}>
-              <ButtonLabel label={"Nivel Agua"} name={"nivelAgua"} value={formData.nivelAgua} options={["Normal", "BAIXO", "CRITICO"]} onChange={onChange} />
+              <ButtonLabel
+                label={"Nivel Agua"}
+                name={"nivelAgua"}
+                value={formData.nivelAgua}
+                options={["NORMAL", "BAIXO", "CRITICO"]}
+                onChange={onChange}
+
+                error={!!errors.nivelAgua}
+                helperText={errors.nivelAgua}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <ButtonLabel label={"Nivel Oleo"} name={"nivelOleo"} value={formData.nivelOleo} options={["Normal", "BAIXO", "CRITICO"]} onChange={onChange} />
+              <ButtonLabel
+                label={"Nivel Oleo"}
+                name={"nivelOleo"}
+                value={formData.nivelOleo}
+                options={["NORMAL", "BAIXO", "CRITICO"]}
+                onChange={onChange}
+
+                error={!!errors.nivelOleo}
+                helperText={errors.nivelOleo}
+              />
             </Grid>
 
             <Grid item xs={12} mb={-3}><Divider>Situação dos Pneus</Divider></Grid>
@@ -78,6 +172,9 @@ export const InspectionModal = ({
                 options={["BOM", "RUIM"]}
                 onChange={onChange}
                 value={formData.dianteira}
+
+                error={!!errors.dianteira}
+                helperText={errors.dianteira}
               />
               {formData.dianteira === "RUIM" && (
                 <TextField
@@ -88,12 +185,24 @@ export const InspectionModal = ({
                   multiline
                   fullWidth
                   rows={2}
+
+                  error={!!errors.descricaoDianteira}
+                  helperText={errors.descricaoDianteira}
                 />)}
             </Grid>
 
             {Number(formData.eixo) > 1 && (
               <Grid item xs={12} md={6}>
-                <ButtonLabel label={"TRAÇÃO"} name={"tracao"} value={formData.tracao} options={["BOM", "RUIM"]} onChange={onChange} />
+                <ButtonLabel
+                  label={"TRAÇÃO"}
+                  name={"tracao"}
+                  value={formData.tracao}
+                  options={["BOM", "RUIM"]}
+                  onChange={onChange}
+
+                  error={!!errors.tracao}
+                  helperText={errors.tracao}
+                />
                 {formData.tracao === "RUIM" && (
                   <TextField
                     label={"Qual Defeito?"}
@@ -103,6 +212,9 @@ export const InspectionModal = ({
                     fullWidth
                     rows={2}
                     onChange={onChange}
+
+                    error={!!errors.descricaoTracao}
+                    helperText={errors.descricaoTracao}
                   />
                 )}
               </Grid>
@@ -110,7 +222,16 @@ export const InspectionModal = ({
 
             {Number(formData.eixo) > 2 && (
               <Grid item xs={12} md={6}>
-                <ButtonLabel label={"TRUCK"} name={"truck"} value={formData.truck} options={["BOM", "RUIM"]} onChange={onChange} />
+                <ButtonLabel
+                  label={"TRUCK"}
+                  name={"truck"}
+                  value={formData.truck}
+                  options={["BOM", "RUIM"]}
+                  onChange={onChange}
+
+                  error={!!errors.truck}
+                  helperText={errors.truck}
+                />
                 {formData.truck === "RUIM" && (
                   <TextField
                     label={"Qual Defeito"}
@@ -120,6 +241,9 @@ export const InspectionModal = ({
                     fullWidth
                     rows={2}
                     onChange={onChange}
+
+                    error={!!errors.descricaoTruck}
+                    helperText={errors.descricaoTruck}
                   />
                 )}
               </Grid>
@@ -132,6 +256,9 @@ export const InspectionModal = ({
                   value={formData.quartoEixo}
                   options={["BOM", "RUIM"]}
                   onChange={onChange}
+
+                  error={!!errors.quartoEixo}
+                  helperText={errors.quartoEixo}
                 />
                 {formData.quartoEixo === "RUIM" && (
                   <TextField
@@ -142,6 +269,9 @@ export const InspectionModal = ({
                     multiline
                     fullWidth
                     rows={2}
+
+                    error={!!errors.descricaoQuartoEixo}
+                    helperText={errors.descricaoQuartoEixo}
                   />
                 )}
               </Grid>
@@ -155,9 +285,20 @@ export const InspectionModal = ({
                 options={["NÃO", "SIM"]}
                 value={formData.avariasCabine}
                 onChange={onChange}
+
+                error={!!errors.avariasCabine}
+                helperText={errors.avariasCabine}
               />
               {formData.avariasCabine === "SIM" && (
-                <TextField label={"Qual avaria?"} name={'descricaoAvariasCabine'} onChange={onChange} value={formData.descricaoAvariasCabine} multiline fullWidth rows={2} />
+                <TextField
+                  label={"Qual avaria?"}
+                  name={'descricaoAvariasCabine'}
+                  onChange={onChange}
+                  value={formData.descricaoAvariasCabine}
+                  error={!!errors.descricaoAvariasCabine}
+                  helperText={errors.descricaoAvariasCabine}
+                  multiline fullWidth rows={2}
+                />
               )}
             </Grid>
 
@@ -168,9 +309,19 @@ export const InspectionModal = ({
                 options={["NÃO", "SIM"]}
                 value={formData.bauPossuiAvarias}
                 onChange={onChange}
+
+                error={!!errors.bauPossuiAvarias}
+                helperText={errors.bauPossuiAvarias}
               />
               {formData.bauPossuiAvarias === "SIM" && (
-                <TextField label={"Qual defeito?"} name={'descricaoAvariasBau'} onChange={onChange} value={formData.descricaoAvariasBau} multiline fullWidth rows={2} />
+                <TextField
+                  label={"Qual defeito?"}
+                  name={'descricaoAvariasBau'}
+                  onChange={onChange}
+                  value={formData.descricaoAvariasBau}
+                  error={!!errors.descricaoAvariasBau}
+                  helperText={errors.descricaoAvariasBau}
+                  multiline fullWidth rows={2} />
               )}
             </Grid>
 
@@ -182,15 +333,31 @@ export const InspectionModal = ({
                 options={["BOM", "RUIM"]}
                 value={formData.funcionamentoParteEletrica}
                 onChange={onChange}
+                error={!!errors.funcionamentoParteEletrica}
+                helperText={errors.funcionamentoParteEletrica}
               />
               {formData.funcionamentoParteEletrica === "RUIM" && (
-                <TextField label={"Qual defeito?"} name="descricaoParteEletrica" onChange={onChange} value={formData.descricaoParteEletrica} multiline fullWidth rows={2} />
+                <TextField
+                  label={"Qual defeito?"}
+                  name="descricaoParteEletrica"
+                  onChange={onChange}
+                  value={formData.descricaoParteEletrica}
+                  error={!!errors.descricaoParteEletrica}
+                  helperText={errors.descricaoParteEletrica}
+                  multiline fullWidth rows={2} />
               )}
             </Grid>
 
             <Grid item xs={12} md={12}>
               <Divider>Foto do veiculo</Divider>
-              <FileUploader label={"Foto Veiculo"} name={"fotoVeiculo"} value={formData.fotoVeiculo} onChange={onChange} />
+              <FileUploader
+                label={"Foto Veiculo"}
+                name={"fotoVeiculo"}
+                value={formData.fotoVeiculo}
+                onChange={onChange}
+                error={!!errors.fotoVeiculo}
+                helperText={errors.fotoVeiculo}
+              />
             </Grid>
           </Grid>
         </DialogContent>

@@ -61,7 +61,7 @@ export default function CustomAutocomplete({
   });
 
   useEffect(() => {
-    if (defaultValue && options.length) setValue(options[0]);
+    if (defaultValue && options.length) setValue(options.filter(e=>e.id===defaultValue)[0]);
   }, [defaultValue, options]);
 
   return (
