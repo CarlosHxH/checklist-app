@@ -34,13 +34,12 @@ const UploadButton = styled("label")({
 });
 
 interface Props {
-  label: string;
+  label: string | React.ReactNode | null;
   name: string;
-  value?: string;
-  //onChange: (event: { [key: string]: any }) => void;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
-  error?: boolean | string;
-  helperText?: string;
+  value?: string | null;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void | null;
+  error?: boolean | string | null;
+  helperText?: string | null;
 }
 
 const FileUploader = ({ label, name, value, error, helperText, onChange }: Props) => {
@@ -79,16 +78,23 @@ const FileUploader = ({ label, name, value, error, helperText, onChange }: Props
     }
   },[base64String, fileName])
 
+
+  React.useMemo(()=>{
+    if (value) {
+      setBase64String(value);
+    }
+  },[value])
+
   return (
     <Container>
       <Input accept="image/*" id={"fileUpload"+name||""} type="file" onChange={handleFileChange}/>
       <UploadButton htmlFor={"fileUpload"+name||""}>{label}</UploadButton>
-      {(value) && (
+      {!!value && (
         <span style={{ position: "relative" }}>
           <Image
             height={100}
             width={100}
-            src={value || ""}
+            src={value}
             alt={name}
           />
           <Chip

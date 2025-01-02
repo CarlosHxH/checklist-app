@@ -5,30 +5,16 @@ import useSWR from "swr";
 import { DataType, InspectionFormData, InspectionType } from "./types";
 import { InspectionModal } from "./InspectionModal";
 import { InspectionTable } from "./InspectionTable";
-import { fetcher, today } from "@/lib/ultils";
-import SearchBar from "./SearchBar";
+import { fetcher } from "@/lib/ultils";
+import SearchBar from "@/components/SearchBar";
 import Loading from "@/components/Loading";
 
 const DEFAULT_FORM_DATA: Partial<InspectionFormData> = {
   id: "",
   userId: "",
   vehicleId: "",
-  status: "",
-  dataInspecao: today(),
-  crlvEmDia: "",
-  certificadoTacografoEmDia: "",
-  nivelAgua: "",
-  nivelOleo: "",
-  eixo: '0',
-  dianteira: "",
-  descricaoDianteira: "",
-  avariasCabine: "",
-  descricaoAvariasCabine: "",
-  bauPossuiAvarias: "",
-  descricaoAvariasBau: "",
-  funcionamentoParteEletrica: "",
-  descricaoParteEletrica: "",
-  fotoVeiculo: "",
+  dataInspecao: new Date().toISOString(),
+  eixo: "0",
 };
 
 export default function InspectionManager() {
@@ -39,12 +25,25 @@ export default function InspectionManager() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections',fetcher);
+  const vehicles = data?.vehicle || [];
   
   if(!data) return <Loading/>;
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+    if (name === "vehicleId") {
+      const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
+      let data = {};
+      const eixoNumber = Number(formData.eixo) || 0;
+      if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
+      if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
+      if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
+
+      data = { ...data, eixo };
+      setFormData((prev) => ({ ...prev, ...data }));
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(formData);
   };
 
   const handleToggle = (event: Partial<InspectionFormData>) => {
@@ -89,7 +88,6 @@ export default function InspectionManager() {
         onClose={() => setOpenDialog(false)}
         data={data}
         formData={formData}
-        onToggle={handleToggle}
         onChange={handleFormChange}
         callback={callback}
       />

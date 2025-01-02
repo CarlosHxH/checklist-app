@@ -80,6 +80,7 @@ export type InspectionFormData  = {
     funcionamentoParteEletrica: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoParteEletrica: string;
     fotoVeiculo: string;
+    
 }
 
 export type DataType = {

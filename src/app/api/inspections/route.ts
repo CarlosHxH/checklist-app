@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { InspectionSchema } from '@/lib/InspectionSchema';
 
 
-export async function GET(request: Request,{ params }: { params: Promise<{ userId: string }> }) {
+export async function GET(request: Request) {
   try {
-    const userId = (await params).userId;
-    if (userId) {
-      const inspections = await prisma.inspection.findMany({
-        where: { userId },
-        include: { vehicle: true },
-        orderBy: { dataInspecao: "desc" }
-      });
-      return NextResponse.json(inspections, { status: 200 });
-    } else {
-      throw "Usuário não autenticado!";
-    }
+    const inspections = await prisma.inspection.findMany({
+      include: { vehicle: true },
+      orderBy: { dataInspecao: "desc" }
+    });
+    return NextResponse.json(inspections, { status: 200 });
   } catch (error) {
     return NextResponse.json(error, { status: 500 });
   } finally {
@@ -23,91 +18,49 @@ export async function GET(request: Request,{ params }: { params: Promise<{ userI
 }
 
 
-export async function PUT(request: NextRequest)
-{
-  try
-  {
+export async function PUT(request: NextRequest) {
+  try {
     const body = await request.json();
     const updateData = { ...body };
     delete updateData.id;
+    const validatedData = InspectionSchema.parse(updateData);
     
     const inspection = await prisma.inspection.update({
       where: { id: body.id },
-      data: {
-        ...updateData,
-        updatedAt: new Date()
-      }
-    });
-    return NextResponse.json(inspection);
-  } catch (error) {
-    console.error('Error updating inspection:', error);
-    return NextResponse.json(
-      { error: 'Failed to update inspection' },
-      { status: 400 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const data = { ...body };
-    delete data.id;
-
-    const inspection = await prisma.inspection.create({
-      data: {
-        ...data,
-        createdAt: new Date()
-      }
+      data: { ...validatedData }
     });
     return NextResponse.json(inspection);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to create inspection' },
+      { error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 400 }
-    );
-  }
-}
-
-
-
-/*
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const data = { ...body };
-    delete data.id;
-    const inspections = await prisma.inspection.create({ data });
-    return NextResponse.json(inspections, { status: 201 });
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error", error },
-      { status: 500 }
     );
   } finally {
     await prisma.$disconnect();
   }
 }
 
-
-export async function PUT(request: NextRequest)
-{
-  try
-  {
+export async function POST(request: NextRequest) {
+  try {
     const body = await request.json();
-    const updateData = { ...body };
-    delete updateData.id;
-    const inspection = await prisma.inspection.update({
-      where: { id: body.id },
-      data: updateData,
+    const data = { ...body };
+    delete data.id;
+    const validatedData = InspectionSchema.parse(data);
+    
+    const inspection = await prisma.inspection.create({
+      data: { ...validatedData }
     });
     return NextResponse.json(inspection);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update user' },{ status: 500 }
+    return NextResponse.json(
+      { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 400 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
-*/
+
 export async function DELETE(request: NextRequest)
 {
   try

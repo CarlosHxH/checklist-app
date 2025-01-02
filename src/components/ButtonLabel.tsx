@@ -5,7 +5,7 @@ import { ToggleButtonGroup, Box, Typography, ToggleButton, styled } from "@mui/m
 interface ButtonLabelProps {
   label: string;
   name: string;
-  value?: string;
+  value?: string | null;
   options: string[];
   error?: boolean | string;
   helperText?: string;
