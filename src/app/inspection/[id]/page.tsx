@@ -48,10 +48,10 @@ const ViewInspectionPage: React.FC = () => {
     </Card>
   );
 
-  const StatusChip: React.FC<{ status: string | boolean }> = ({ status }) => {
+  const StatusChip: React.FC<{ status: string | boolean, color?: 'success' | 'error' }> = ({ status, color }) => {
     const config = { label: status, color: "error" } as any;
-    if ([true, "BOM", "SIM"].includes(status)) config.color = "success";
-    return <Chip label={config.label} color={config.color} size="small" />;
+    if ([true, "BOM", "SIM","NORMAL"].includes(status)) config.color = "success";
+    return <Chip label={config.label} color={color||config.color} size="small" />;
   };
 
   return (
@@ -168,7 +168,7 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Avarias na Cabine:</Typography>
-                <StatusChip status={inspectionData.avariasCabine} />
+                <StatusChip status={inspectionData.avariasCabine}/>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Avarias Cabine:</Typography>

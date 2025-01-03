@@ -1,0 +1,48 @@
+/* FileUpload.module.css */
+
+.fileUploadButton {
+    display: inline-block;
+    background-color: #0070f3; /* Cor de fundo do botão */
+    color: white; /* Cor do texto */
+    padding: 10px 20px; /* Espaçamento interno */
+    border: none; /* Remove a borda */
+    border-radius: 5px; /* Bordas arredondadas */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    font-size: 16px; /* Tamanho da fonte */
+    text-align: center; /* Centraliza o texto */
+    position: relative; /* Para posicionar o input de arquivo */
+    margin-bottom: 20px; /* Espaçamento inferior */
+    & input{
+        display: none;
+    }
+  }
+  
+  .removeButton {
+    position: absolute;
+    right: 5px; /* Ajuste a distância do lado direito */
+    bottom: 5; /* Centraliza verticalmente */
+    transform: translateY(-50%); /* Ajusta para centralizar corretamente */
+    background-color: #e96a6ac0; /* Cor de fundo vermelha */
+    color: white; /* Cor do texto branca */
+    border: none; /* Remove a borda */
+    border-radius: 50%; /* Estilo de bolha */
+    width: 18px; /* Largura do botão */
+    height: 18px; /* Altura do botão */
+    font-size: 20px; /* Tamanho da fonte */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    display: flex; /* Flexbox para centralizar o texto */
+    align-items: center; /* Centraliza verticalmente */
+    justify-content: center; /* Centraliza horizontalmente */
+    transition: 1s;
+    &:hover {
+      transition: 1s;
+      background-color: #e64343;
+      transform: scale(-1);
+    }
+  }
+
+.preview {
+    overflow: auto;
+    display:flex;
+    
+}
