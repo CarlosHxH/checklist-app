@@ -49,7 +49,7 @@ export const InspectionTable = ({
                 <TableCell>{inspection.user?.name}</TableCell>
                 <TableCell>{inspection.vehicle.licensePlate}</TableCell>
                 {!isMobile && <TableCell>{inspection.vehicle.model}</TableCell>}
-                {!isMobile && <TableCell>{formatDate(stringToDate(inspection.dataInspecao))}</TableCell>}
+                {!isMobile && <TableCell>{formatDate(inspection.dataInspecao)}</TableCell>}
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => onEdit(inspection)}>
                     <EditIcon />
