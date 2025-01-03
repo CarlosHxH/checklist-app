@@ -17,6 +17,7 @@ interface InspectionTableProps {
   onDelete: (id: string) => void;
 }
 
+
 export const InspectionTable = ({
   inspections,
   page,
@@ -29,6 +30,7 @@ export const InspectionTable = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  
   return (
     <TableContainer component={Paper}>
       <Table>
