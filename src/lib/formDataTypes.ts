@@ -28,13 +28,13 @@ export type InspectionType = {
     id: string;
     userId: string;
     vehicleId: string;
-    status: string;
-    dataInspecao: string; // ou Date
+    status?: string;
+    dataInspecao: Date; // ou Date
     crlvEmDia: string; // "SIM" | "NÃO" (ou boolean)
     certificadoTacografoEmDia: string; // "SIM" | "NÃO" (ou boolean)
     nivelAgua: string; // "Normal" | "Baixo" | "Alto" (ou enum)
     nivelOleo: string; // "Normal" | "Baixo" | "Alto" (ou enum)
-    eixo: string | number;
+    eixo: string;
     dianteira: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoDianteira: string;
     tracao: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
@@ -58,8 +58,8 @@ export type InspectionFormData  = {
     id: string;
     userId: string;
     vehicleId: string;
-    status: string;
-    dataInspecao: string; // ou Date
+    status?: string;
+    dataInspecao: Date; // ou Date
     crlvEmDia: string; // "SIM" | "NÃO" (ou boolean)
     certificadoTacografoEmDia: string; // "SIM" | "NÃO" (ou boolean)
     nivelAgua: string; // "Normal" | "Baixo" | "Alto" (ou enum)
@@ -84,7 +84,7 @@ export type InspectionFormData  = {
 }
 
 export type DataType = {
-    vehicle: InspectionFormData[];
+    vehicle: VehicleType[];
     inspections: InspectionType[];
     user: VehicleType[];
 }

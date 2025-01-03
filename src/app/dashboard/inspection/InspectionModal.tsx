@@ -4,7 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divide
 import ButtonLabel from "@/components/ButtonLabel";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import FileUploader from "@/components/FileUploader";
-import { InspectionFormData, InspectionSchema } from '@/lib/InspectionSchema';
+import { InspectionSchema } from '@/lib/InspectionSchema';
 import { z } from "zod";
 import { DataType } from "@/lib/formDataTypes";
 
@@ -12,14 +12,13 @@ interface InspectionModalProps {
     open: boolean;
     onClose: () => void;
     data: DataType;
-    formData: Partial<InspectionFormData>;
+    formData: any;
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onToggle?: (event: Partial<InspectionFormData>) => void;
     callback?: (event: Response) => void;
 }
 
 export const InspectionModal = ({
-    open, onClose, data, formData, onChange, onToggle, callback
+    open, onClose, data, formData, onChange, callback
 }: InspectionModalProps) => {
 
     const [errors, setErrors] = React.useState<Record<string, string>>({});

@@ -2,18 +2,19 @@
 import React from "react";
 import { Stack, Typography } from "@mui/material";
 import useSWR from "swr";
-import { DataType, InspectionFormData, InspectionType } from "./types";
 import { InspectionModal } from "./InspectionModal";
 import { InspectionTable } from "./InspectionTable";
 import { fetcher } from "@/lib/ultils";
 import SearchBar from "@/components/SearchBar";
 import Loading from "@/components/Loading";
+import { DataType, InspectionFormData, InspectionType } from "@/lib/formDataTypes";
 
 const DEFAULT_FORM_DATA: Partial<InspectionFormData> = {
   id: "",
   userId: "",
   vehicleId: "",
-  dataInspecao: new Date().toISOString(),
+  status: "INICIO" as "INICIO" | "FINAL",
+  dataInspecao: new Date(),
   eixo: "0",
 };
 
@@ -44,10 +45,6 @@ export default function InspectionManager() {
     }
     setFormData(prev => ({ ...prev, [name]: value }));
     console.log(formData);
-  };
-
-  const handleToggle = (event: Partial<InspectionFormData>) => {
-    setFormData(prev => ({ ...prev, ...event }));
   };
 
   const handleDelete = async (id: string) => {
