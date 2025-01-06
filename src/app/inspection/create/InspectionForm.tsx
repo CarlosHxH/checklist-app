@@ -22,7 +22,6 @@ const InspectionForm: React.FC = () => {
   const [formData, setFormData] = useState<Partial<InspectionFormData>>({
     userId: session?.user.id,
     vehicleId: "",
-    dataInspecao: new Date(),
     eixo: "0",
   });
 
