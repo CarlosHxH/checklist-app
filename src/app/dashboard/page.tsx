@@ -16,6 +16,7 @@ import { fetcher } from '@/lib/ultils';
 
 export default function DashboardContent() {
   const { data, isLoading } = useSWR('/api/admin', fetcher)
+  
   if (isLoading) return <Loading />
 
   return (
@@ -55,7 +56,7 @@ export default function DashboardContent() {
                   </Grid>
                 </>
               )}
-              </Grid>
+            </Grid>
             {false && (
               <>
                 <Typography component="h2" variant="h6" sx={{ mb: 2 }}>

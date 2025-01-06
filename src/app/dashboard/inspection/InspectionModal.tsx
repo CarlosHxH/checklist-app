@@ -118,7 +118,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         body: JSON.stringify(validatedData),
       });
       const res = await response.json();
-      console.log({res});
+      if(!response.ok) throw new z.ZodError([res]);
       
       setErrors({});
       onClose();

@@ -61,7 +61,6 @@ const InspectionForm: React.FC = () => {
           ...acc,
           [curr.path[0]]: curr.message
         }), {});
-        console.log({ formattedErrors });
         setErrors(formattedErrors);
       }
     }

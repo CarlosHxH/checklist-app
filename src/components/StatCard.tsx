@@ -45,7 +45,16 @@ function AreaGradient({ color, id }: { color: string; id: string }) {
 
 export default function StatCard({ title, value, interval, trend, data }: StatCardProps) {
   const theme = useTheme();
-  const daysInWeek = getDaysInMonth(12, 2024);
+
+  const { currentYear, currentMonth } = React.useMemo(() => {
+    const currentDate = new Date();
+    return {
+      currentYear: currentDate.getFullYear(),
+      currentMonth: currentDate.getMonth() + 1
+    };
+  }, []);
+
+  const daysInWeek = getDaysInMonth(currentMonth, currentYear);
 
   const trendColors = {
     up: theme.palette.mode === 'light' ? theme.palette.success.main : theme.palette.success.dark,

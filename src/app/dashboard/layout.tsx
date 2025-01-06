@@ -15,19 +15,19 @@ import { redirect } from 'next/navigation';
 
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
-  { kind: 'header', title: "Menu"},{
+  { kind: 'header', title: "Menu" }, {
     segment: 'dashboard',
     title: 'Dashboard',
     icon: <DashboardIcon />,
-  },{ kind: 'header', title: 'Adicionar' },{
+  }, { kind: 'header', title: 'Adicionar' }, {
     segment: 'dashboard/inspection',
     title: 'Inspeções',
     icon: <BarChartIcon />,
-  },{
+  }, {
     segment: 'dashboard/user',
     title: 'Usuários',
     icon: <Person2 />,
-  },{
+  }, {
     segment: 'dashboard/vehicle',
     title: 'Veiculos',
     icon: <LocalShippingIcon />,
@@ -35,22 +35,22 @@ const createNavigation = (): Navigation => [
 ];
 
 const BRANDING = {
-  logo:<Avatar src={"/favicon/icon.png"} alt={''}/>,
+  logo: <Avatar src={"/favicon/icon.png"} alt={''} />,
   title: '5sTransportes',
 } as const;
 
-export default function DashboardPagesLayout({children}: {children: React.ReactNode;}) {
+export default function DashboardPagesLayout({ children }: { children: React.ReactNode; }) {
   const { data: session, status } = useSession();
   // Use o estado para lidar com a navegação do lado do cliente
   const [mounted, setMounted] = React.useState(false);
-  const authentication = React.useMemo(() => {return { signIn, signOut }}, []);
+  const authentication = React.useMemo(() => { return { signIn, signOut } }, []);
   // Handle hydration mismatch Esperando pelo Monte
   React.useEffect(() => { setMounted(true) }, []);
   // Memoize navigation to prevent unnecessary rerenders
   const navigation = React.useMemo(() => createNavigation(), []);
   // Retornar o estado nulo ou de carregamento durante a SSR
   if (!mounted || status === "loading") return null;
-  if (!session || session?.user.role!="ADMIN") redirect('/');
+  if (!session || !["ADMIN", "USER"].some(role => session?.user.role?.includes(role))) redirect('/');
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
       <DashboardLayout>
