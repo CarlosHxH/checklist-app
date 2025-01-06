@@ -14,7 +14,6 @@ const DEFAULT_FORM_DATA: Partial<InspectionFormData> = {
   userId: "",
   vehicleId: "",
   status: "INICIO" as "INICIO" | "FINAL",
-  dataInspecao: new Date(),
   eixo: "0",
 };
 
@@ -70,13 +69,12 @@ export default function InspectionManager() {
 
   const filteredInspections = data?.inspections.filter(ins => 
     ins.user?.name.toLowerCase().includes(filter.toLowerCase()) ||
-    ins.vehicle.licensePlate.toLowerCase().includes(filter.toLowerCase())
+    ins.vehicle?.licensePlate.toLowerCase().includes(filter.toLowerCase())
   ) || [];
 
   const callback = async (e:Response)=>{
     mutate()
   }
-  
 
   return (
     <Stack spacing={2}>
@@ -84,7 +82,7 @@ export default function InspectionManager() {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         data={data}
-        formData={formData}
+        formData={formData as any}
         onChange={handleFormChange}
         callback={callback}
       />

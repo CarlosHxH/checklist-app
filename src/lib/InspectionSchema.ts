@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const InspectionSchema = z.object({
   id: z.string().optional(),
-  dataInspecao: z.string().transform(str => new Date(str)),
+  //dataInspecao: z.date().optional().nullable(),//string().transform(str => new Date(str)),
   status: z.enum(["INICIO", "FINAL"]).optional().nullable(),
   userId: z.string().min(1),
   vehicleId: z.string().min(1),

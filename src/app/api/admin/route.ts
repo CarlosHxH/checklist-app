@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { InspectionSchema } from '@/lib/InspectionSchema';
 
 export async function GET() {
   try {
@@ -48,4 +49,79 @@ export async function GET() {
     } finally {
       await prisma.$disconnect();
     }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    //delete data.id; // Remove ID to let Prisma auto-generate it
+    const newData = { ...data };
+    delete newData.id;
+
+    if (!data.dataInspecao) delete data.dataInspecao;
+    
+    const validatedData = InspectionSchema.parse(newData);
+    
+    const inspection = await prisma.inspection.create({
+      data: validatedData,
+      include: {
+        user: true,
+        vehicle: true
+      }
+    });
+
+    return NextResponse.json(inspection);
+  } catch (error) {
+    console.error('Error creating inspection:', error);
+    return NextResponse.json(
+      { error: 'Failed to create inspection' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const data = await request.json();
+    const { id, ...updateData } = data;
+    
+    if (!!updateData.dataInspecao) delete updateData.dataInspecao;
+    
+    const validatedData = InspectionSchema.parse(updateData);
+    
+    const inspection = await prisma.inspection.update({
+      where: { id },
+      data: validatedData,
+      include: {
+        user: true,
+        vehicle: true
+      }
+    });
+
+    return NextResponse.json(inspection);
+  } catch (error) {
+    console.error('Error updating inspection:', error);
+    return NextResponse.json(
+      { error: 'Failed to update inspection' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json();
+    
+    await prisma.inspection.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting inspection:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete inspection' },
+      { status: 500 }
+    );
+  }
 }

@@ -29,7 +29,7 @@ export type InspectionType = {
     userId: string;
     vehicleId: string;
     status?: string;
-    dataInspecao: Date; // ou Date
+    dataInspecao: string; // ou Date
     crlvEmDia: string; // "SIM" | "NÃO" (ou boolean)
     certificadoTacografoEmDia: string; // "SIM" | "NÃO" (ou boolean)
     nivelAgua: string; // "Normal" | "Baixo" | "Alto" (ou enum)
@@ -59,7 +59,7 @@ export type InspectionFormData  = {
     userId: string;
     vehicleId: string;
     status?: string;
-    dataInspecao: Date; // ou Date
+    dataInspecao: string; // ou Date
     crlvEmDia: string; // "SIM" | "NÃO" (ou boolean)
     certificadoTacografoEmDia: string; // "SIM" | "NÃO" (ou boolean)
     nivelAgua: string; // "Normal" | "Baixo" | "Alto" (ou enum)
@@ -80,7 +80,6 @@ export type InspectionFormData  = {
     funcionamentoParteEletrica: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoParteEletrica: string;
     fotoVeiculo: string;
-    
 }
 
 export type DataType = {

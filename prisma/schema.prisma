@@ -97,7 +97,7 @@ model Inspection {
   vehicleId                        String
   vehicleKey                       String?
 
-  dataInspecao                     DateTime?
+  dataInspecao                     DateTime?  @default(now())
   status                           String?
 
   crlvEmDia                        String?

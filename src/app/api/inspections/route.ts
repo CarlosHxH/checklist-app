@@ -20,10 +20,10 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const data = { ...body };
-    if(!!data.id) delete data.id;
+    const data = { ...body};
+    delete data.id;
+    delete data.dataInspecao;
     const validatedData = InspectionSchema.parse(data);
-    
     const inspection = await prisma.inspection.create({
       data: { ...validatedData }
     });

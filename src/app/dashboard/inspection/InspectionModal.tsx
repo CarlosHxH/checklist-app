@@ -1,6 +1,5 @@
-// components/InspectionModal.tsx
 import React from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField, Input } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField } from "@mui/material";
 import ButtonLabel from "@/components/ButtonLabel";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import FileUploader from "@/components/FileUploader";
@@ -8,351 +7,366 @@ import { InspectionSchema } from '@/lib/InspectionSchema';
 import { z } from "zod";
 import { DataType } from "@/lib/formDataTypes";
 
-interface InspectionModalProps {
-    open: boolean;
-    onClose: () => void;
-    data: DataType;
-    formData: any;
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    callback?: (event: Response) => void;
+type Status = "INICIO" | "FINAL";
+type Condition = "BOM" | "RUIM";
+type YesNo = "SIM" | "NÃO";
+type Level = "NORMAL" | "BAIXO" | "CRITICO";
+
+interface FormFields {
+  id?: string;
+  status: Status;
+  userId: string;
+  vehicleId: string;
+  crlvEmDia: YesNo;
+  certificadoTacografoEmDia: YesNo;
+  nivelAgua: Level;
+  nivelOleo: Level;
+  dianteira: Condition;
+  descricaoDianteira?: string;
+  tracao?: Condition;
+  descricaoTracao?: string;
+  truck?: Condition;
+  descricaoTruck?: string;
+  quartoEixo?: Condition;
+  descricaoQuartoEixo?: string;
+  avariasCabine: YesNo;
+  descricaoAvariasCabine?: string;
+  bauPossuiAvarias: YesNo;
+  descricaoAvariasBau?: string;
+  funcionamentoParteEletrica: Condition;
+  descricaoParteEletrica?: string;
+  fotoVeiculo: string;
+  eixo: number;
 }
 
-export const InspectionModal = ({
-    open, onClose, data, formData, onChange, callback
-}: InspectionModalProps) => {
+interface InspectionModalProps {
+  open: boolean;
+  onClose: () => void;
+  data: DataType;
+  formData: FormFields;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  callback?: (event: Response) => void;
+}
 
-    const [errors, setErrors] = React.useState<Record<string, string>>({});
+const SectionDivider: React.FC<{title: string}> = ({title}) => (
+  <Grid item xs={12} mb={-3}><Divider>{title}</Divider></Grid>
+);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const validatedData = InspectionSchema.parse(formData);
-            setErrors({});
-            const mode = !!validatedData.id;
-            const url = '/api/inspections';
-            const method = mode ? 'PUT' : 'POST';
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...validatedData }),
-            });
-            const res = await response.json();
-            console.log(res);
-            onClose();
-            if (callback) callback(response);
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const formattedErrors = error.errors.reduce((acc, curr) => ({
-                    ...acc,
-                    [curr.path[0]]: curr.message
-                }), {});
-                setErrors(formattedErrors);
-            }
-        }
-    };
+const DefectTextField: React.FC<{
+  label: string;
+  name: keyof FormFields;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+}> = ({label, name, value, onChange, error}) => (
+  <TextField
+    label={label}
+    name={name}
+    value={value}
+    onChange={onChange}
+    error={!!error}
+    helperText={error}
+    multiline
+    fullWidth
+    rows={2}
+  />
+);
 
-    return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <form onSubmit={handleSubmit}>
-                <DialogTitle>
-                    {formData.id ? "Editar inspeção" : "Adicione nova inspeção"}
-                </DialogTitle>
-                <DialogContent>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12}><Divider>Dados do usuario</Divider></Grid>
-                        <Grid item xs={12} md={12}>
-                            <ButtonLabel
-                                label={"Viagem"}
-                                name={"status"}
-                                value={formData?.status}
-                                onChange={onChange}
-                                options={["INICIO", "FINAL"]}
-                                error={!!errors.status}
-                                helperText={errors.status}
-                            />
-                        </Grid>
+const AxleSection: React.FC<{
+  label: string;
+  name: keyof FormFields;
+  descriptionName: keyof FormFields;
+  value: Condition;
+  formData: FormFields;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+}> = ({label, name, descriptionName, value, formData, onChange, errors}) => (
+  <Grid item xs={12} md={6}>
+    <ButtonLabel
+      label={label}
+      name={name}
+      value={value}
+      options={["BOM", "RUIM"]}
+      onChange={onChange}
+      error={!!errors[name]}
+      helperText={errors[name]}
+    />
+    {value === "RUIM" && (
+      <DefectTextField
+        label="Qual Defeito?"
+        name={descriptionName}
+        value={formData[descriptionName] as string || ''}
+        onChange={onChange}
+        error={errors[descriptionName]}
+      />
+    )}
+  </Grid>
+);
 
-                        <Grid item xs={12} md={6}>
-                            <CustomAutocomplete
-                                keyExtractor="name"
-                                label={"Usuário"}
-                                options={data?.user}
-                                name={"userId"}
-                                onChange={onChange}
-                                defaultValue={formData.userId}
-                            />
-                        </Grid>
+export const InspectionModal: React.FC<InspectionModalProps> = ({
+  open, onClose, data, formData, onChange, callback
+}) => {
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-                        <Grid item xs={12} md={6}>
-                            <CustomAutocomplete
-                                keyExtractor="licensePlate"
-                                label={"Veiculo"}
-                                options={data?.vehicle}
-                                name={"vehicleId"}
-                                onChange={onChange}
-                                defaultValue={formData.vehicleId}
-                            />
-                        </Grid>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const validatedData = InspectionSchema.parse(formData);
+      const response = await fetch('/api/inspections', {
+        method: formData.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validatedData),
+      });
+      const res = await response.json();
+      console.log({res});
+      
+      setErrors({});
+      onClose();
+      callback?.(response);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const formattedErrors = error.errors.reduce((acc, curr) => ({
+          ...acc,
+          [curr.path[0]]: curr.message
+        }), {});
+        setErrors(formattedErrors);
+        console.log({formattedErrors});
+        
+      }
+    }
+  };
 
-                        <Grid item xs={12} mb={-3}><Divider>Documentos</Divider></Grid>
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <form onSubmit={handleSubmit}>
+        <DialogTitle>
+          {formData.id ? "Editar inspeção" : "Adicione nova inspeção"}
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={3}>
+            <SectionDivider title="Dados do usuario" />
+            
+            <Grid item xs={12} md={12}>
+              <ButtonLabel
+                label="Viagem"
+                name="status"
+                value={formData.status}
+                onChange={onChange}
+                options={["INICIO", "FINAL"]}
+                error={!!errors.status}
+                helperText={errors.status}
+              />
+            </Grid>
 
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"CRLV em dia?"}
-                                name={"crlvEmDia"}
-                                value={formData.crlvEmDia}
-                                options={["SIM", "NÃO"]}
-                                onChange={onChange}
-                                error={!!errors.crlvEmDia}
-                                helperText={errors.crlvEmDia}
-                            />
-                        </Grid>
+            <Grid item xs={12} md={6}>
+              <CustomAutocomplete
+                keyExtractor="name"
+                label="Usuário"
+                options={data?.user}
+                name="userId"
+                onChange={onChange}
+                defaultValue={formData.userId}
+              />
+            </Grid>
 
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"Cert. Tacografo em Dia?"}
-                                name={"certificadoTacografoEmDia"}
-                                value={formData.certificadoTacografoEmDia}
-                                options={["SIM", "NÃO"]}
-                                onChange={onChange}
-                                error={!!errors.certificadoTacografoEmDia}
-                                helperText={errors.certificadoTacografoEmDia}
-                            />
-                        </Grid>
+            <Grid item xs={12} md={6}>
+              <CustomAutocomplete
+                keyExtractor="licensePlate"
+                label="Veiculo"
+                options={data?.vehicle}
+                name="vehicleId"
+                onChange={onChange}
+                defaultValue={formData.vehicleId}
+              />
+            </Grid>
 
-                        <Grid item xs={12} mb={-3}><Divider>Niveis</Divider></Grid>
+            <SectionDivider title="Documentos" />
 
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"Nivel Agua"}
-                                name={"nivelAgua"}
-                                value={formData.nivelAgua}
-                                options={["NORMAL", "BAIXO", "CRITICO"]}
-                                onChange={onChange}
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="CRLV em dia?"
+                name="crlvEmDia"
+                value={formData.crlvEmDia}
+                options={["SIM", "NÃO"]}
+                onChange={onChange}
+                error={!!errors.crlvEmDia}
+                helperText={errors.crlvEmDia}
+              />
+            </Grid>
 
-                                error={!!errors.nivelAgua}
-                                helperText={errors.nivelAgua}
-                            />
-                        </Grid>
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="Cert. Tacografo em Dia?"
+                name="certificadoTacografoEmDia"
+                value={formData.certificadoTacografoEmDia}
+                options={["SIM", "NÃO"]}
+                onChange={onChange}
+                error={!!errors.certificadoTacografoEmDia}
+                helperText={errors.certificadoTacografoEmDia}
+              />
+            </Grid>
 
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"Nivel Oleo"}
-                                name={"nivelOleo"}
-                                value={formData.nivelOleo}
-                                options={["NORMAL", "BAIXO", "CRITICO"]}
-                                onChange={onChange}
+            <SectionDivider title="Niveis" />
 
-                                error={!!errors.nivelOleo}
-                                helperText={errors.nivelOleo}
-                            />
-                        </Grid>
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="Nivel Agua"
+                name="nivelAgua"
+                value={formData.nivelAgua}
+                options={["NORMAL", "BAIXO", "CRITICO"]}
+                onChange={onChange}
+                error={!!errors.nivelAgua}
+                helperText={errors.nivelAgua}
+              />
+            </Grid>
 
-                        <Grid item xs={12} mb={-3}><Divider>Situação dos Pneus</Divider></Grid>
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="Nivel Oleo"
+                name="nivelOleo"
+                value={formData.nivelOleo}
+                options={["NORMAL", "BAIXO", "CRITICO"]}
+                onChange={onChange}
+                error={!!errors.nivelOleo}
+                helperText={errors.nivelOleo}
+              />
+            </Grid>
 
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"DIANTEIRA"}
-                                name={"dianteira"}
-                                options={["BOM", "RUIM"]}
-                                onChange={onChange}
-                                value={formData.dianteira}
+            <SectionDivider title="Situação dos Pneus" />
 
-                                error={!!errors.dianteira}
-                                helperText={errors.dianteira}
-                            />
-                            {formData.dianteira === "RUIM" && (
-                                <TextField
-                                    label={"Qual Defeito?"}
-                                    name="descricaoDianteira"
-                                    value={formData.descricaoDianteira}
-                                    onChange={onChange}
-                                    multiline
-                                    fullWidth
-                                    rows={2}
+            <AxleSection
+              label="DIANTEIRA"
+              name="dianteira"
+              descriptionName="descricaoDianteira"
+              value={formData.dianteira}
+              formData={formData}
+              onChange={onChange}
+              errors={errors}
+            />
 
-                                    error={!!errors.descricaoDianteira}
-                                    helperText={errors.descricaoDianteira}
-                                />)}
-                        </Grid>
+            {Number(formData.eixo) > 1 && (
+              <AxleSection
+                label="TRAÇÃO"
+                name="tracao"
+                descriptionName="descricaoTracao"
+                value={formData.tracao as Condition}
+                formData={formData}
+                onChange={onChange}
+                errors={errors}
+              />
+            )}
 
-                        {Number(formData.eixo) > 1 && (
-                            <Grid item xs={12} md={6}>
-                                <ButtonLabel
-                                    label={"TRAÇÃO"}
-                                    name={"tracao"}
-                                    value={formData.tracao}
-                                    options={["BOM", "RUIM"]}
-                                    onChange={onChange}
+            {Number(formData.eixo) > 2 && (
+              <AxleSection
+                label="TRUCK"
+                name="truck"
+                descriptionName="descricaoTruck"
+                value={formData.truck as Condition}
+                formData={formData}
+                onChange={onChange}
+                errors={errors}
+              />
+            )}
 
-                                    error={!!errors.tracao}
-                                    helperText={errors.tracao}
-                                />
-                                {formData.tracao === "RUIM" && (
-                                    <TextField
-                                        label={"Qual Defeito?"}
-                                        name="descricaoTracao"
-                                        value={formData.descricaoTracao}
-                                        multiline
-                                        fullWidth
-                                        rows={2}
-                                        onChange={onChange}
+            {Number(formData.eixo) > 3 && (
+              <AxleSection
+                label="Quarto Eixo"
+                name="quartoEixo"
+                descriptionName="descricaoQuartoEixo"
+                value={formData.quartoEixo as Condition}
+                formData={formData}
+                onChange={onChange}
+                errors={errors}
+              />
+            )}
 
-                                        error={!!errors.descricaoTracao}
-                                        helperText={errors.descricaoTracao}
-                                    />
-                                )}
-                            </Grid>
-                        )}
+            <SectionDivider title="Avarias" />
 
-                        {Number(formData.eixo) > 2 && (
-                            <Grid item xs={12} md={6}>
-                                <ButtonLabel
-                                    label={"TRUCK"}
-                                    name={"truck"}
-                                    value={formData.truck}
-                                    options={["BOM", "RUIM"]}
-                                    onChange={onChange}
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="Avarias na Cabine"
+                name="avariasCabine"
+                options={["NÃO", "SIM"]}
+                value={formData.avariasCabine}
+                onChange={onChange}
+                error={!!errors.avariasCabine}
+                helperText={errors.avariasCabine}
+              />
+              {formData.avariasCabine === "SIM" && (
+                <DefectTextField
+                  label="Qual avaria?"
+                  name="descricaoAvariasCabine"
+                  value={formData.descricaoAvariasCabine || ''}
+                  onChange={onChange}
+                  error={errors.descricaoAvariasCabine}
+                />
+              )}
+            </Grid>
 
-                                    error={!!errors.truck}
-                                    helperText={errors.truck}
-                                />
-                                {formData.truck === "RUIM" && (
-                                    <TextField
-                                        label={"Qual Defeito"}
-                                        name="descricaoTruck"
-                                        value={formData.descricaoTruck}
-                                        multiline
-                                        fullWidth
-                                        rows={2}
-                                        onChange={onChange}
+            <Grid item xs={12} md={6}>
+              <ButtonLabel
+                label="Avarias no Baú"
+                name="bauPossuiAvarias"
+                options={["NÃO", "SIM"]}
+                value={formData.bauPossuiAvarias}
+                onChange={onChange}
+                error={!!errors.bauPossuiAvarias}
+                helperText={errors.bauPossuiAvarias}
+              />
+              {formData.bauPossuiAvarias === "SIM" && (
+                <DefectTextField
+                  label="Qual defeito?"
+                  name="descricaoAvariasBau"
+                  value={formData.descricaoAvariasBau || ''}
+                  onChange={onChange}
+                  error={errors.descricaoAvariasBau}
+                />
+              )}
+            </Grid>
 
-                                        error={!!errors.descricaoTruck}
-                                        helperText={errors.descricaoTruck}
-                                    />
-                                )}
-                            </Grid>
-                        )}
-                        {Number(formData.eixo) > 3 && (
-                            <Grid item xs={12} md={6}>
-                                <ButtonLabel
-                                    label={"Quarto Eixo"}
-                                    name={"quartoEixo"}
-                                    value={formData.quartoEixo}
-                                    options={["BOM", "RUIM"]}
-                                    onChange={onChange}
+            <SectionDivider title="Eletrica" />
+            
+            <Grid item xs={12}>
+              <ButtonLabel
+                label="Parte Elétrica"
+                name="funcionamentoParteEletrica"
+                options={["BOM", "RUIM"]}
+                value={formData.funcionamentoParteEletrica}
+                onChange={onChange}
+                error={!!errors.funcionamentoParteEletrica}
+                helperText={errors.funcionamentoParteEletrica}
+              />
+              {formData.funcionamentoParteEletrica === "RUIM" && (
+                <DefectTextField
+                  label="Qual defeito?"
+                  name="descricaoParteEletrica"
+                  value={formData.descricaoParteEletrica || ''}
+                  onChange={onChange}
+                  error={errors.descricaoParteEletrica}
+                />
+              )}
+            </Grid>
 
-                                    error={!!errors.quartoEixo}
-                                    helperText={errors.quartoEixo}
-                                />
-                                {formData.quartoEixo === "RUIM" && (
-                                    <TextField
-                                        label={"Qual Defeito?"}
-                                        name="descricaoQuartoEixo"
-                                        value={formData.descricaoQuartoEixo}
-                                        onChange={onChange}
-                                        multiline
-                                        fullWidth
-                                        rows={2}
-
-                                        error={!!errors.descricaoQuartoEixo}
-                                        helperText={errors.descricaoQuartoEixo}
-                                    />
-                                )}
-                            </Grid>
-                        )}
-
-                        <Grid item xs={12} my={-3}><Divider>Avarias</Divider></Grid>
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"Avarias na Cabine"}
-                                name={"avariasCabine"}
-                                options={["NÃO", "SIM"]}
-                                value={formData.avariasCabine}
-                                onChange={onChange}
-
-                                error={!!errors.avariasCabine}
-                                helperText={errors.avariasCabine}
-                            />
-                            {formData.avariasCabine === "SIM" && (
-                                <TextField
-                                    label={"Qual avaria?"}
-                                    name={'descricaoAvariasCabine'}
-                                    onChange={onChange}
-                                    value={formData.descricaoAvariasCabine}
-                                    error={!!errors.descricaoAvariasCabine}
-                                    helperText={errors.descricaoAvariasCabine}
-                                    multiline fullWidth rows={2}
-                                />
-                            )}
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                            <ButtonLabel
-                                label={"Avarias no Baú"}
-                                name={"bauPossuiAvarias"}
-                                options={["NÃO", "SIM"]}
-                                value={formData.bauPossuiAvarias}
-                                onChange={onChange}
-
-                                error={!!errors.bauPossuiAvarias}
-                                helperText={errors.bauPossuiAvarias}
-                            />
-                            {formData.bauPossuiAvarias === "SIM" && (
-                                <TextField
-                                    label={"Qual defeito?"}
-                                    name={'descricaoAvariasBau'}
-                                    onChange={onChange}
-                                    value={formData.descricaoAvariasBau}
-                                    error={!!errors.descricaoAvariasBau}
-                                    helperText={errors.descricaoAvariasBau}
-                                    multiline fullWidth rows={2} />
-                            )}
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <Divider>Eletrica</Divider>
-                            <ButtonLabel
-                                label={"Parte Elétrica"}
-                                name={"funcionamentoParteEletrica"}
-                                options={["BOM", "RUIM"]}
-                                value={formData.funcionamentoParteEletrica}
-                                onChange={onChange}
-                                error={!!errors.funcionamentoParteEletrica}
-                                helperText={errors.funcionamentoParteEletrica}
-                            />
-                            {formData.funcionamentoParteEletrica === "RUIM" && (
-                                <TextField
-                                    label={"Qual defeito?"}
-                                    name="descricaoParteEletrica"
-                                    onChange={onChange}
-                                    value={formData.descricaoParteEletrica}
-                                    error={!!errors.descricaoParteEletrica}
-                                    helperText={errors.descricaoParteEletrica}
-                                    multiline fullWidth rows={2} />
-                            )}
-                        </Grid>
-
-                        <Grid item xs={12} md={12}>
-                            <Divider>Foto do veiculo</Divider>
-                            <FileUploader
-                                label={"Foto Veiculo"}
-                                name={"fotoVeiculo"}
-                                value={formData.fotoVeiculo}
-                                onChange={onChange}
-                                error={!!errors.fotoVeiculo}
-                                helperText={errors.fotoVeiculo}
-                            />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={onClose}>Cancelar</Button>
-                    <Button type="submit" variant="contained">
-                        {!!formData.id ? "Atualizar" : "Criar"}
-                    </Button>
-                </DialogActions>
-            </form>
-        </Dialog>
-    );
+            <Grid item xs={12}>
+              <Divider>Foto do veiculo</Divider>
+              <FileUploader
+                label="Foto Veiculo"
+                name="fotoVeiculo"
+                value={formData.fotoVeiculo}
+                onChange={onChange}
+                error={!!errors.fotoVeiculo}
+                helperText={errors.fotoVeiculo}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button type="submit" variant="contained">
+            {formData.id ? "Atualizar" : "Criar"}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
 };
