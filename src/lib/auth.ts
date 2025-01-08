@@ -71,6 +71,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const email = credentials.email.toLowerCase().trim();
+          console.log("Buscando usuário no banco de dados");
 
           const user = await prisma.user.findUnique({
             where: { email },
@@ -86,6 +87,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
+          console.log("Resultado da busca:", user ? "Usuário encontrado" : "Usuário não encontrado");
+          
           if (!user) {
             throw new AuthError("Credenciais inválidas", "INVALID_CREDENTIALS");
           }
@@ -146,6 +149,11 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
+          console.error("Erro na autenticação:", {
+            error,
+            message: (error as Error).message,
+            stack: (error as Error).stack
+          });
           console.error("Erro na autenticação:", error);
           if (error instanceof AuthError) {
             throw new Error(error.message);
