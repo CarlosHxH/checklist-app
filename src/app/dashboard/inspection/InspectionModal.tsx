@@ -170,7 +170,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
 
             <Grid item xs={12} md={6}>
               <CustomAutocomplete
-                keyExtractor="licensePlate"
+                keyExtractor="plate"
                 label="Veiculo"
                 options={data?.vehicle}
                 name="vehicleId"

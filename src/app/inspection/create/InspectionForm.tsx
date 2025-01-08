@@ -33,8 +33,14 @@ const InspectionForm: React.FC = () => {
       let data = {};
       const eixoNumber = Number(formData.eixo) || 0;
       if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
+      else {delete formData.quartoEixo; delete formData.descricaoQuartoEixo;}
+
       if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
+      else {delete formData.truck; delete formData.descricaoTruck;}
+
       if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
+      else {delete formData.tracao; delete formData.descricaoTracao;}
+      
       data = { ...data, eixo };
       setFormData((prev) => ({ ...prev, ...data }));
     }

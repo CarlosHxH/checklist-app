@@ -7,13 +7,13 @@ CREATE TABLE "new_Vehicle" (
     "model" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "eixo" INTEGER NOT NULL,
-    "licensePlate" TEXT NOT NULL,
+    "plate" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME
 );
-INSERT INTO "new_Vehicle" ("createdAt", "eixo", "id", "licensePlate", "make", "model", "updatedAt", "year") SELECT "createdAt", "eixo", "id", "licensePlate", "make", "model", "updatedAt", "year" FROM "Vehicle";
+INSERT INTO "new_Vehicle" ("createdAt", "eixo", "id", "plate", "make", "model", "updatedAt", "year") SELECT "createdAt", "eixo", "id", "plate", "make", "model", "updatedAt", "year" FROM "Vehicle";
 DROP TABLE "Vehicle";
 ALTER TABLE "new_Vehicle" RENAME TO "Vehicle";
-CREATE UNIQUE INDEX "Vehicle_licensePlate_key" ON "Vehicle"("licensePlate");
+CREATE UNIQUE INDEX "Vehicle_plate_key" ON "Vehicle"("plate");
 PRAGMA foreign_keys=ON;
 PRAGMA defer_foreign_keys=OFF;

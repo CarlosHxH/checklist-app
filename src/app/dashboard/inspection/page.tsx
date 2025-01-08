@@ -68,7 +68,7 @@ export default function InspectionManager() {
 
   const filteredInspections = data?.inspections.filter(ins => 
     ins.user?.name.toLowerCase().includes(filter.toLowerCase()) ||
-    ins.vehicle?.licensePlate.toLowerCase().includes(filter.toLowerCase())
+    ins.vehicle?.plate.toLowerCase().includes(filter.toLowerCase())
   ) || [];
 
   const callback = async (e:Response)=>{

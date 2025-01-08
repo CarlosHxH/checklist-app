@@ -62,7 +62,7 @@ const EditInspectionPage: React.FC = () => {
               fullWidth
               label="Placa"
               name="vehicleId"
-              value={formData?.vehicle?.licensePlate}
+              value={formData?.vehicle?.plate}
               onChange={handleChange}
               disabled
             />

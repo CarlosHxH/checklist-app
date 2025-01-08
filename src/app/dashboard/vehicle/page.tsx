@@ -36,7 +36,7 @@ type Vehicle = {
   model: string;
   year: number;
   eixo: number;
-  licensePlate: string;
+  plate: string;
   id: string;
 };
 
@@ -62,7 +62,7 @@ export default function VehiclesTable() {
     model: '',
     year: 0,
     eixo: 0,
-    licensePlate: '',
+    plate: '',
     id: '', // Adicione um campo id para o formulário
   });
 
@@ -113,7 +113,7 @@ export default function VehiclesTable() {
         model: '',
         year: 0,
         eixo: 0,
-        licensePlate: '',
+        plate: '',
         id: '',
       });
     }
@@ -128,7 +128,7 @@ export default function VehiclesTable() {
       model: '',
       year: 0,
       eixo: 0,
-      licensePlate: '',
+      plate: '',
       id: '',
     });
   };
@@ -257,7 +257,7 @@ export default function VehiclesTable() {
                 <TableCell>{vehicle.model}</TableCell>
                 <TableCell>{vehicle.year}</TableCell>
                 <TableCell>{vehicle.eixo}</TableCell>
-                <TableCell>{vehicle.licensePlate}</TableCell>
+                <TableCell>{vehicle.plate}</TableCell>
                 <TableCell align="right">
                   <IconButton
                     color="primary"
@@ -329,9 +329,9 @@ export default function VehiclesTable() {
                 fullWidth
               />
               <TextField
-                name="licensePlate"
+                name="plate"
                 label="Placa"
-                value={formData.licensePlate}
+                value={formData.plate}
                 onChange={handleInputChange}
                 required
                 fullWidth

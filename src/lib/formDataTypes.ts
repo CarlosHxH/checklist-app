@@ -4,7 +4,7 @@ export type VehicleType = {
     model: string;
     year: string;
     eixo: string;
-    licensePlate: string;
+    plate: string;
     createdAt: string; // ou Date, se você preferir converter para um objeto Date
     updatedAt: string; // ou Date
 };
@@ -50,8 +50,8 @@ export type InspectionType = {
     funcionamentoParteEletrica: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoParteEletrica: string;
     fotoVeiculo: string;
-    vehicle: VehicleType;
-    user: UserType;
+    vehicle?: VehicleType;
+    user?: UserType;
 };
 
 export type InspectionFormData  = {
@@ -80,10 +80,12 @@ export type InspectionFormData  = {
     funcionamentoParteEletrica: string; // "RUIM" | "BOM" | "REGULAR" (ou enum)
     descricaoParteEletrica: string;
     fotoVeiculo: string;
+    vehicle?: VehicleType[];
+    user?: UserType[];
 }
 
 export type DataType = {
-    vehicle: VehicleType[];
-    inspections: InspectionType[];
-    user: VehicleType[];
+    vehicle?: VehicleType[];
+    inspections?: InspectionType[];
+    user?: UserType[];
 }

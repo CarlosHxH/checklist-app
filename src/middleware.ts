@@ -9,16 +9,19 @@ export default withAuth(async function middleware(req: NextRequest) {
   const isDashboardRoute = req.nextUrl.pathname.startsWith("/dashboard");
   const isAdmin = token && token.role === "ADMIN";
   
-  if (isDashboardRoute && !isAdmin) {
-    // Redireciona para a página de login se não for admin tentando acessar /dashboard
-    return NextResponse.redirect(new URL("/api/auth/signin", req.url));
-  }
+
 
   // Verifique se o token existe
   if (!token) {
     // Redirecione para a página de login se não estiver autenticado
     return NextResponse.redirect(new URL("/api/auth/signin", req.url));
   }
+
+  if (isDashboardRoute && !isAdmin) {
+    // Redireciona para a página de login se não for admin tentando acessar /dashboard
+    return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+  }
+  
   // Se o token existir, continue com a requisição
   return NextResponse.next();
 },

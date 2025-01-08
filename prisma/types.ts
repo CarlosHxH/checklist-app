@@ -33,7 +33,7 @@ export interface User {
     make: string;
     model: string;
     year: number;
-    licensePlate: string;
+    plate: string;
     userId: string;
     user: User;
     inspections: Inspection[];

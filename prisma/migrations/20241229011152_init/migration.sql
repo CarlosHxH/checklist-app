@@ -54,7 +54,7 @@ CREATE TABLE "Vehicle" (
     "model" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "eixo" INTEGER NOT NULL,
-    "licensePlate" TEXT NOT NULL,
+    "plate" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -105,4 +105,4 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Vehicle_licensePlate_key" ON "Vehicle"("licensePlate");
+CREATE UNIQUE INDEX "Vehicle_plate_key" ON "Vehicle"("plate");

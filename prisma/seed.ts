@@ -49,7 +49,7 @@ async function main() {
         model: 'Fiorino',
         year: '2022',
         eixo: '1',
-        licensePlate: 'HGF9I05'
+        plate: 'HGF9I05'
       },
     }),
     prisma.vehicle.create({
@@ -58,7 +58,7 @@ async function main() {
         model: 'Express',
         year: '2021',
         eixo: '2',
-        licensePlate: 'XYZ9Q87'
+        plate: 'XYZ9Q87'
       },
     }),
     prisma.vehicle.create({
@@ -67,7 +67,7 @@ async function main() {
         model: 'Truck',
         year: '2021',
         eixo: '3',
-        licensePlate: 'KYZ1W87'
+        plate: 'KYZ1W87'
       },
     }),
     prisma.vehicle.create({
@@ -76,7 +76,7 @@ async function main() {
         model: 'Bi-truck',
         year: '2021',
         eixo: '4',
-        licensePlate: 'GYH9A17'
+        plate: 'GYH9A17'
       },
     }),
   ])

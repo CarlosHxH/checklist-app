@@ -11,7 +11,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import { fetcher } from "@/lib/ultils"; // Certifique-se de que você tenha um fetcher configurado
+import { fetcher } from "@/lib/ultils";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import CustomFab from "@/components/CustomFab";
 import Image from "next/image";
@@ -48,16 +48,18 @@ const ViewInspectionPage: React.FC = () => {
     </Card>
   );
 
-  const StatusChip: React.FC<{ status: string | boolean, color?: 'success' | 'error' }> = ({ status, color }) => {
-    const config = { label: status, color: "error" } as any;
-    if ([true, "BOM", "SIM","NORMAL"].includes(status)) config.color = "success";
-    return <Chip label={config.label} color={color||config.color} size="small" />;
+  const getStatusChip = (status: string | boolean) => {
+    let config = { label: status, color: "error" } as any;
+    if ([true, "BOM", "SIM", "NORMAL"].includes(status)) config = { label: "OK", color: "success" };
+    else config = { label: "Pendente", color: "error" }
+    return <Chip label={status || config.label} color={config.color} size="small" />;
   };
+
 
   return (
     <Box>
       <ResponsiveAppBar
-        title={`Inspeção ${inspectionData?.vehicle?.licensePlate || ""}`}
+        title={`Inspeção ${inspectionData?.vehicle?.plate || ""}`}
         onBackClick={() => router.push("/")}
         showBackButton
       />
@@ -75,7 +77,7 @@ const ViewInspectionPage: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Veículo:</Typography>
                 <Typography>
-                  {inspectionData.vehicle.licensePlate}{" "}
+                  {inspectionData.vehicle.plate}{" "}
                   {inspectionData.vehicle.model}
                 </Typography>
               </Grid>
@@ -92,13 +94,13 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">CRLV em Dia:</Typography>
-                <StatusChip status={inspectionData.crlvEmDia} />
+                {getStatusChip(inspectionData.crlvEmDia)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">
                   Certificado Tacógrafo em Dia:
                 </Typography>
-                <StatusChip status={inspectionData.certificadoTacografoEmDia} />
+                {getStatusChip(inspectionData.certificadoTacografoEmDia)}
               </Grid>
             </Grid>
           </Section>
@@ -108,11 +110,11 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Nível de Água:</Typography>
-                <StatusChip status={inspectionData.nivelAgua} />
+                {getStatusChip(inspectionData.nivelAgua)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Nível de Óleo:</Typography>
-                <StatusChip status={inspectionData.nivelOleo} />
+                {getStatusChip(inspectionData.nivelOleo)}
               </Grid>
             </Grid>
           </Section>
@@ -122,7 +124,7 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Dianteira:</Typography>
-                <StatusChip status={inspectionData.dianteira} />
+                {getStatusChip(inspectionData.dianteira)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Dianteira:</Typography>
@@ -132,7 +134,7 @@ const ViewInspectionPage: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Tração:</Typography>
-                <StatusChip status={inspectionData.tracao} />
+                {getStatusChip(inspectionData.tracao)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Tração:</Typography>
@@ -142,7 +144,7 @@ const ViewInspectionPage: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Truck:</Typography>
-                <StatusChip status={inspectionData.truck} />
+                {getStatusChip(inspectionData.truck)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Truck:</Typography>
@@ -152,7 +154,7 @@ const ViewInspectionPage: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Quarto Eixo:</Typography>
-                <StatusChip status={inspectionData.quartoEixo} />
+                {getStatusChip(inspectionData.quartoEixo)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Quarto Eixo:</Typography>
@@ -168,7 +170,7 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Avarias na Cabine:</Typography>
-                <StatusChip status={inspectionData.avariasCabine}/>
+                {getStatusChip(inspectionData.avariasCabine)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Avarias Cabine:</Typography>
@@ -178,7 +180,7 @@ const ViewInspectionPage: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Avarias no Baú:</Typography>
-                <StatusChip status={inspectionData.bauPossuiAvarias} />
+                {getStatusChip(inspectionData.bauPossuiAvarias)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Avarias Baú:</Typography>
@@ -196,9 +198,7 @@ const ViewInspectionPage: React.FC = () => {
                 <Typography variant="h6">
                   Funcionamento Parte Elétrica:
                 </Typography>
-                <StatusChip
-                  status={inspectionData.funcionamentoParteEletrica}
-                />
+                {getStatusChip(inspectionData.funcionamentoParteEletrica)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Parte Elétrica:</Typography>
@@ -215,7 +215,7 @@ const ViewInspectionPage: React.FC = () => {
                 <Image
                   width={100}
                   height={100}
-                  src={inspectionData?.fotoVeiculo || "/placeholder.png"}
+                  src={inspectionData?.fotoVeiculo || "/assets/img/placeholder.png"}
                   alt={""}
                 />
               </Grid>

@@ -26,7 +26,7 @@ export default function CustomAutocomplete({
   error,
   helperText,
   defaultValue,
-  keyExtractor = 'licensePlate',
+  keyExtractor = 'plate',
 }: AutocompleteProps) {
   const [value, setValue] = useState<Option | null>(null);
 

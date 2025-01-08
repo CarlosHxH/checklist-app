@@ -4,7 +4,7 @@ export interface InspectionFormData
   fotoTacografo: string | undefined;
   vehicle: {
     id: string;
-    licensePlate: string;
+    plate: string;
     model: string;
   };
   placa: string;

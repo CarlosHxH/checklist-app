@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import { TokenPayload } from "@/types/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET || "sua-chave-secreta";
-console.log(JWT_SECRET);
 
 export const generateToken = (userId: string, email: string): string => {
   const expiresIn = "12h";

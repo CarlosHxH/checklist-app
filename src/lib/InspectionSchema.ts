@@ -7,28 +7,27 @@ export const InspectionSchema = z.object({
   userId: z.string().min(1),
   vehicleId: z.string().min(1),
   
-  crlvEmDia: z.enum(["SIM", "NÃO"]).optional().nullable(),
+  crlvEmDia: z.string().optional().nullable(),
   certificadoTacografoEmDia: z.enum(["SIM", "NÃO"]).optional().nullable(),
   nivelAgua: z.enum(["NORMAL", "BAIXO", "CRITICO"]).optional().nullable(),
   nivelOleo: z.enum(["NORMAL", "BAIXO", "CRITICO"]).optional().nullable(),
   
   eixo: z.string(),
-  dianteira: z.enum(["BOM", "RUIM"]).optional().nullable(),
+  dianteira: z.string().optional().nullable(),
   descricaoDianteira: z.string().optional().nullable(),
-  tracao: z.enum(["BOM", "RUIM"]).optional().nullable(),
+  tracao: z.string().optional().nullable(),
   descricaoTracao: z.string().optional().nullable(),
-  truck: z.enum(["BOM", "RUIM"]).optional().nullable(),
+  truck: z.string().optional().nullable(),
   descricaoTruck: z.string().optional().nullable(),
-  quartoEixo: z.enum(["BOM", "RUIM"]).optional().nullable(),
+  quartoEixo: z.string().optional().nullable(),
   descricaoQuartoEixo: z.string().optional().nullable(),
   
-  avariasCabine: z.enum(["SIM", "NÃO"]).optional().nullable(),
+  avariasCabine: z.string().optional().nullable(),
   descricaoAvariasCabine: z.string().optional().nullable(),
-  bauPossuiAvarias: z.enum(["SIM", "NÃO"]).optional().nullable(),
+  bauPossuiAvarias: z.string().optional().nullable(),
   descricaoAvariasBau: z.string().optional().nullable(),
-  funcionamentoParteEletrica: z.enum(["BOM", "RUIM"]).optional().nullable(),
+  funcionamentoParteEletrica: z.string().optional().nullable(),
   descricaoParteEletrica: z.string().optional().nullable(),
-  
   fotoVeiculo: z.string().nullable(),
 });
 

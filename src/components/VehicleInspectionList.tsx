@@ -16,7 +16,6 @@ import { Edit as EditIcon, Visibility as ViewIcon } from "@mui/icons-material";
 import { fetcher, formatDate } from "@/lib/ultils";
 import useSWR from "swr";
 import Loading from "./Loading";
-import { api } from "@/utils/api";
 
 interface Props {
   onEdit?: (id: string) => void;
@@ -25,7 +24,7 @@ interface Props {
 }
 interface VehicleInspection {
   id: string;
-  licensePlate: string;
+  plate: string;
   model: string;
   crlvEmDia: boolean;
   certificadoTacografoEmDia: boolean;
@@ -34,7 +33,7 @@ interface VehicleInspection {
   funcionamentoParteEletrica: boolean;
   dataInspecao: string;
   vehicle: {
-    licensePlate: string;
+    plate: string;
     model: string;
   };
 }
@@ -45,19 +44,18 @@ export default function VehicleInspectionList({
   userId,
 }: Props) {
   const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher);
-  
-  const getStatusChip = (status: string| boolean) => {
-    const label = status === "SIM" || status === "BOM" ? "OK" : "Pendente"
-    const color = status === "SIM" || status === "Bom" ? "success" : "error"
-    return (<Chip label={label} color={color} size="small"/>)
+
+  const getStatusChip = (status: string | boolean) => {
+    let config = { label: status, color: "error" } as any;
+    if ([true, "BOM", "SIM", "NORMAL"].includes(status)) config = { label: "OK", color: "success" };
+    else config = { label: "Pendente", color: "error" }
+    return <Chip label={config.label} color={config.color} size="small" />;
   };
 
   if (data?.length === 0) {
     return (
       <Card sx={{ m: 5, p: 5, bgcolor: "#fff", height: 50 }}>
-        <Typography color="textPrimary">
-          Nenhuma inspeção encontrada.
-        </Typography>
+        <Typography color="textPrimary">Nenhuma inspeção encontrada.</Typography>
       </Card>
     );
   }
@@ -77,7 +75,7 @@ export default function VehicleInspectionList({
                     {/* Main Info */}
                     <Grid item xs={12} sm={6}>
                       <Typography variant="h6" gutterBottom>
-                        {inspection.vehicle.licensePlate} -{" "}
+                        {inspection.vehicle.plate} -{" "}
                         {inspection.vehicle.model}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
