@@ -150,9 +150,6 @@ export default function VehiclesTable() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...formData, id: selectedVehicle.id }),
         });
-        const res = await response.json()
-        console.log(res);
-        
         if (!response.ok) throw new Error('Failed to update vehicle');
       } else {
         const response = await fetch('/api/vehicles', {
@@ -160,8 +157,6 @@ export default function VehiclesTable() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
-        const res = await response.json()
-        console.log(res);
         if (!response.ok) throw new Error('Failed to create vehicle');
       }
       mutate();

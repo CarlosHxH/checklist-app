@@ -6,10 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
 import BottonLabel from "@/components/ButtonLabel";
+import Loading from "@/components/Loading";
 
 interface InspectionFormData
 {
-  placa: string;
+  licensePlate: string;
   modelo: string;
   crlvEmDia: boolean;
   certificadoTacografoEmDia: boolean;
@@ -43,6 +44,7 @@ export default function EditInspection()
     const { name, value, type, checked } = event.target;
     setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
+
   const handleToggle = (event: { [key: string]: any }) => {
     setFormData((prev) => ({ ...prev, ...event }));
   };
@@ -57,8 +59,6 @@ export default function EditInspection()
       // Simulating API call to save data
       await new Promise((resolve) => setTimeout(resolve, 1000));
       // Replace with your actual API call
-      console.log("Saving inspection:", formData);
-
       router.push(`/inspection/${id}`);
     } catch (error)
     {
@@ -86,14 +86,7 @@ export default function EditInspection()
 
   if (error) return <div>Failed to load</div>;
 
-  if (isLoading || !formData)
-  {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (isLoading || !formData) <Loading />;
 
 
   return (
@@ -115,7 +108,7 @@ export default function EditInspection()
                   fullWidth
                   label="Placa"
                   name="placa"
-                  value={formData.placa}
+                  value={""}
                   onChange={handleChange}
                 />
               </Grid>
@@ -125,7 +118,7 @@ export default function EditInspection()
                   fullWidth
                   label="Modelo"
                   name="modelo"
-                  value={formData.modelo}
+                  value={""}
                   onChange={handleChange}
                 />
               </Grid>
@@ -140,7 +133,7 @@ export default function EditInspection()
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.crlvEmDia}
+                      checked={true}
                       onChange={handleChange}
                       name="crlvEmDia"
                     />
@@ -158,7 +151,7 @@ export default function EditInspection()
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.certificadoTacografoEmDia}
+                      checked={true}
                       onChange={handleChange}
                       name="certificadoTacografoEmDia"
                     />
@@ -206,7 +199,7 @@ export default function EditInspection()
                   fullWidth
                   label="Nível de Óleo"
                   name="nivelOleo"
-                  value={formData.nivelOleo}
+                  value={""}
                   onChange={handleChange}
                 />
               </Grid>
@@ -244,7 +237,7 @@ export default function EditInspection()
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.avariasCabine}
+                      checked={true}
                       onChange={handleChange}
                       name="avariasCabine"
                     />
@@ -257,7 +250,7 @@ export default function EditInspection()
                       fullWidth
                       label="Descrição das Avarias na Cabine"
                       name="descricaoAvariasCabine"
-                      value={formData.descricaoAvariasCabine}
+                      value={""}
                       onChange={handleChange}
                       multiline
                       rows={3}
@@ -279,14 +272,14 @@ export default function EditInspection()
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.bauPossuiAvarias}
+                      checked={true}
                       onChange={handleChange}
                       name="bauPossuiAvarias"
                     />
                   }
                   label="Baú possui avarias"
                 />
-                {formData.bauPossuiAvarias && (
+                {true && (
                   <>
                     <TextField
                       fullWidth
@@ -319,20 +312,20 @@ export default function EditInspection()
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.funcionamentoParteEletrica}
+                      checked={true}
                       onChange={handleChange}
                       name="funcionamentoParteEletrica"
                     />
                   }
                   label="Funcionamento da Parte Elétrica"
                 />
-                {!formData.funcionamentoParteEletrica && (
+                {true && (
                   <>
                     <TextField
                       fullWidth
                       label="Motivo do Problema na Parte Elétrica"
                       name="motivoParteEletricaRuim"
-                      value={formData.motivoParteEletricaRuim}
+                      value={""}
                       onChange={handleChange}
                       multiline
                       rows={3}
@@ -362,7 +355,7 @@ export default function EditInspection()
                   fullWidth
                   label="Sugestão"
                   name="sugestao"
-                  value={formData.sugestao}
+                  value={""}
                   onChange={handleChange}
                   multiline
                   rows={4}

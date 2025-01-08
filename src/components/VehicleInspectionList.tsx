@@ -16,6 +16,7 @@ import { Edit as EditIcon, Visibility as ViewIcon } from "@mui/icons-material";
 import { fetcher, formatDate } from "@/lib/ultils";
 import useSWR from "swr";
 import Loading from "./Loading";
+import { api } from "@/utils/api";
 
 interface Props {
   onEdit?: (id: string) => void;
@@ -44,7 +45,7 @@ export default function VehicleInspectionList({
   userId,
 }: Props) {
   const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher);
-
+  
   const getStatusChip = (status: string| boolean) => {
     const label = status === "SIM" || status === "BOM" ? "OK" : "Pendente"
     const color = status === "SIM" || status === "Bom" ? "success" : "error"
@@ -63,7 +64,7 @@ export default function VehicleInspectionList({
 
   return (
     <List>
-      {isLoading && <Loading />}
+      {isLoading || !data && <Loading />}
       {data &&
         data.map((inspection, index) => (
           <React.Fragment key={inspection.id}>
@@ -93,9 +94,7 @@ export default function VehicleInspectionList({
                           gap: 1,
                         }}
                       >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Typography variant="body2" sx={{ minWidth: 120 }}>
                             CRLV: { }
                           </Typography>
@@ -115,7 +114,7 @@ export default function VehicleInspectionList({
                           <Typography variant="body2" sx={{ minWidth: 120 }}>
                             Parte Elétrica:
                           </Typography>
-                          {getStatusChip(inspection.funcionamentoParteEletrica)}
+                          {getStatusChip(!!inspection.funcionamentoParteEletrica)}
                         </Box>
                       </Box>
                     </Grid>

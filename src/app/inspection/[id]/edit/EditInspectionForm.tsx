@@ -12,7 +12,7 @@ import { InspectionFormData } from "./type";
 
 const EditInspectionForm: React.FC = () => {
   const { id } = useParams<{ id: string; tag: string; item: string }>();
-  const { data } = useSWR(`/api/inspections/${id}`, fetcher)
+  const { data, isLoading } = useSWR(`/api/inspections/${id}`, fetcher)
   const [formData, setFormData] = useState<InspectionFormData>(data);
   React.useEffect(() => setFormData(data), [data]);
   const router = useRouter();
@@ -43,9 +43,7 @@ const EditInspectionForm: React.FC = () => {
     }
   };
 
-  console.log(formData);
-  
-  if(!formData) return <Loading/>
+  if(isLoading) return <Loading/>
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>

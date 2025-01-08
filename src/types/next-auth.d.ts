@@ -25,3 +25,38 @@ declare module '@mui/material/styles' {
     };
   }
 }
+
+// Extensão do tipo Session
+declare module "next-auth" {
+  interface Session {
+    user: CustomUser;
+  }
+}
+
+// Extensão do tipo JWT
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+  }
+}
+
+export declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role?: string;
+      email: string;
+      name: string;
+      image?: string;
+    };
+  }
+
+  interface JWT {
+    id: string;
+    role?: string;
+    email: string;
+    name: string;
+    image?: string;
+  }
+}

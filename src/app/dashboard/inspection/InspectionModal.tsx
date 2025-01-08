@@ -131,7 +131,6 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         }), {});
         setErrors(formattedErrors);
         console.log({formattedErrors});
-        
       }
     }
   };

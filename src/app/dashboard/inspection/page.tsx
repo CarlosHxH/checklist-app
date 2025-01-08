@@ -43,7 +43,6 @@ export default function InspectionManager() {
       setFormData((prev) => ({ ...prev, ...data }));
     }
     setFormData(prev => ({ ...prev, [name]: value }));
-    console.log(formData);
   };
 
   const handleDelete = async (id: string) => {

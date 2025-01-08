@@ -1,10 +1,10 @@
-import { NextAuthOptions, User, Session } from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import jwt from 'jsonwebtoken';
 
+// Define tipos personalizados para melhor type safety
 interface CustomUser extends User {
   id: string;
   role?: string;
@@ -13,23 +13,16 @@ interface CustomUser extends User {
   image?: string;
 }
 
+// Erros customizados para autenticação
 class AuthError extends Error {
-  constructor(message: string, public code: string) {
+  constructor(
+    message: string,
+    public code: string
+  ) {
     super(message);
     this.name = "AuthError";
   }
 }
-
-const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'sua-chave-secreta';
-
-// Função para gerar access token
-const generateAccessToken = (userId: string, email: string): string => {
-  return jwt.sign(
-    { userId, email, type: 'access_token' },
-    JWT_SECRET,
-    { expiresIn: '12h' }
-  );
-};
 
 declare module "next-auth" {
   interface Session {
@@ -41,7 +34,22 @@ declare module "next-auth" {
       image?: string;
     };
   }
+
+  interface JWT {
+    id: string;
+    role?: string;
+    email: string;
+    name: string;
+    image?: string;
+  }
 }
+export interface TokenPayload {
+  userId: string;
+  email: string;
+  iat: number;
+  exp: number;
+}
+
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -67,11 +75,16 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials): Promise<CustomUser | null> {
         try {
           if (!credentials?.email || !credentials?.password) {
-            throw new AuthError("Credenciais incompletas", "MISSING_CREDENTIALS");
+            throw new AuthError(
+              "Credenciais incompletas",
+              "MISSING_CREDENTIALS"
+            );
           }
 
+          // Normaliza o email
           const email = credentials.email.toLowerCase().trim();
 
+          // Busca o usuário
           const user = await prisma.user.findUnique({
             where: { email },
             select: {
@@ -94,6 +107,7 @@ export const authOptions: NextAuthOptions = {
             throw new AuthError("Conta desativada", "ACCOUNT_DISABLED");
           }
 
+          // Verifica a senha
           const isValid = await bcrypt.compare(
             credentials.password,
             user.password || ""
@@ -103,33 +117,7 @@ export const authOptions: NextAuthOptions = {
             throw new AuthError("Credenciais inválidas", "INVALID_CREDENTIALS");
           }
 
-          // Gerar access token
-          const access_token = generateAccessToken(user.id, user.email);
-
-          // Atualizar ou criar Account para armazenar tokens
-          await prisma.account.upsert({
-            where: {
-              provider_providerAccountId: {
-                provider: 'credentials',
-                providerAccountId: user.id,
-              },
-            },
-            create: {
-              userId: user.id,
-              type: 'credentials',
-              provider: 'credentials',
-              providerAccountId: user.id,
-              access_token: access_token,
-              expires_at: Math.floor(Date.now() / 1000) + (12 * 60 * 60), // 12 horas em segundos
-              token_type: 'Bearer',
-            },
-            update: {
-              access_token: access_token,
-              expires_at: Math.floor(Date.now() / 1000) + (12 * 60 * 60),
-            },
-          });
-
-          // Atualizar dados do usuário
+          // Atualiza último login
           await prisma.user.update({
             where: { id: user.id },
             data: {
@@ -138,40 +126,39 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
+          // Retorna os dados do usuário sem informações sensíveis
           return {
             id: user.id,
-            name: user.name,
+            name: user?.name,
             email: user.email,
             image: user.image ?? "",
             role: user.role,
           };
         } catch (error) {
+          // Log do erro para monitoramento
           console.error("Erro na autenticação:", error);
+
           if (error instanceof AuthError) {
             throw new Error(error.message);
           }
+
           if (error instanceof PrismaClientKnownRequestError) {
             throw new Error("Erro no servidor. Tente novamente mais tarde.");
           }
+
           throw new Error("Erro inesperado na autenticação");
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      console.log({ token, user, account });
-      
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
-        token.role = (user as CustomUser).role ?? '';
-        token.access_token = (user as any).access_token;
-      }
-      if (account) {
-        token.access_token = account.access_token;
+        token.role = user.role;
       }
       return token;
     },
@@ -182,40 +169,20 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.image = token.image as string;
         session.user.role = token.role as string;
-        
-        // Buscar o token mais recente do usuário
-        const account = await prisma.account.findFirst({
-          where: {
-            userId: token.id as string,
-            provider: 'credentials',
-          },
-          orderBy: { expires_at: 'desc' },
-        });
-
-        if (account?.access_token) {
-          (session.user as any).access_token = account.access_token;
-        }
       }
       return session;
     },
+  },
+  pages: {
+    signIn: "/auth/signin",
   },
   events: {
     async signIn({ user }) {
       console.log(`Usuário logado: ${user.email}`);
     },
     async signOut({ token }) {
-      // Remover tokens ao fazer logout
-      await prisma.account.deleteMany({
-        where: {
-          userId: token.id as string,
-          provider: 'credentials',
-        },
-      });
       console.log(`Usuário deslogado: ${token.email}`);
     },
-  },
-  pages: {
-    signIn: "/auth/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV !== "production",
