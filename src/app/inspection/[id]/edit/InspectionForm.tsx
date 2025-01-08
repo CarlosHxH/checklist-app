@@ -137,7 +137,7 @@ const EditInspectionPage: React.FC = () => {
               <TextField
                 label={"Qual Defeito?"}
                 name="descricaoDianteira"
-                value={formData.descricaoDianteira}
+                value={formData.descricaoDianteira||""}
                 onChange={handleChange}
                 multiline
                 fullWidth
@@ -159,7 +159,7 @@ const EditInspectionPage: React.FC = () => {
                 <TextField
                   label={"Qual Defeito?"}
                   name="descricaoTracao"
-                  value={formData.descricaoTracao}
+                  value={formData.descricaoTracao||""}
                   multiline
                   fullWidth
                   rows={2}
@@ -182,7 +182,7 @@ const EditInspectionPage: React.FC = () => {
                 <TextField
                   label={"Qual Defeito"}
                   name="descricaoTruck"
-                  value={formData.descricaoTruck}
+                  value={formData.descricaoTruck||""}
                   multiline
                   fullWidth
                   rows={2}
@@ -204,7 +204,7 @@ const EditInspectionPage: React.FC = () => {
                 <TextField
                   label={"Qual Defeito?"}
                   name="descricaoQuartoEixo"
-                  value={formData.descricaoQuartoEixo}
+                  value={formData.descricaoQuartoEixo||""}
                   onChange={handleChange}
                   multiline
                   fullWidth
@@ -225,7 +225,13 @@ const EditInspectionPage: React.FC = () => {
               onChange={handleChange}
             />
             {formData.avariasCabine === "SIM" && (
-              <TextField label={"Qual avaria?"} name={'descricaoAvariasCabine'} onChange={handleChange} value={formData.descricaoAvariasCabine} multiline fullWidth rows={2} />
+              <TextField
+                label={"Qual avaria?"}
+                name={'descricaoAvariasCabine'}
+                onChange={handleChange}
+                value={formData.descricaoAvariasCabine||""}
+                multiline fullWidth rows={2}
+              />
             )}
           </Grid>
 
@@ -238,7 +244,13 @@ const EditInspectionPage: React.FC = () => {
               onChange={handleChange}
             />
             {formData.bauPossuiAvarias === "SIM" && (
-              <TextField label={"Qual defeito?"} name={'descricaoAvariasBau'} onChange={handleChange} value={formData.descricaoAvariasBau} multiline fullWidth rows={2} />
+              <TextField
+                label={"Qual defeito?"}
+                name={'descricaoAvariasBau'}
+                onChange={handleChange}
+                value={formData.descricaoAvariasBau||""}
+                multiline fullWidth rows={2}
+              />
             )}
           </Grid>
           <Grid item xs={12} md={12}>
@@ -250,7 +262,13 @@ const EditInspectionPage: React.FC = () => {
               onChange={handleChange}
             />
             {formData.funcionamentoParteEletrica === "RUIM" && (
-              <TextField label={"Qual defeito?"} name="descricaoParteEletrica" onChange={handleChange} value={formData.descricaoParteEletrica} multiline fullWidth rows={2} />
+              <TextField
+                label={"Qual defeito?"}
+                name="descricaoParteEletrica"
+                onChange={handleChange}
+                value={formData.descricaoParteEletrica||""}
+                multiline fullWidth rows={2}
+              />
             )}
           </Grid>
 
