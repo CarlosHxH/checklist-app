@@ -30,6 +30,15 @@ export default withAuth(
   }
 );
 
-export const config = {
+export const configs = {
   matcher: ['/', '/dashboard/:path*'], // Rotas protegidas
+};
+// Defina as rotas que você deseja proteger
+export const config = {
+  matcher: [
+    "/", // Rota inicial
+    "/api/:path*", // Todas as rotas API
+    "/inspection/:path*", // Todas as rotas de inspeção protegidas
+    "/dashboard/:path*", // Todas as rotas do painel protegidas
+  ], // Rotas protegidas
 };
