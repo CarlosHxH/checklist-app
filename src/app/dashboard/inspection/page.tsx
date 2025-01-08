@@ -59,17 +59,17 @@ export default function InspectionManager() {
     }
   };
 
-  const handleOpenDialog = (inspection?: InspectionType) => {
+  const handleOpenDialog = (inspection?: InspectionType|any) => {
     setFormData(inspection || DEFAULT_FORM_DATA);
     setOpenDialog(true);
   };
 
   if (error) return <Typography color="error">Failed to load inspections</Typography>;
 
-  const filteredInspections = data?.inspections.filter(ins => 
+  const filteredInspections = data?.inspections?.filter(ins => 
     ins.user?.name.toLowerCase().includes(filter.toLowerCase()) ||
     ins.vehicle?.plate.toLowerCase().includes(filter.toLowerCase())
-  ) || [];
+  ) ?? [];
 
   const callback = async (e:Response)=>{
     mutate()

@@ -48,8 +48,8 @@ export const InspectionTable = ({
             .map((inspection) => (
               <TableRow key={inspection.id}>
                 <TableCell>{inspection.user?.name}</TableCell>
-                <TableCell>{inspection.vehicle.plate}</TableCell>
-                {!isMobile && <TableCell>{inspection.vehicle.model}</TableCell>}
+                <TableCell>{inspection?.vehicle?.plate}</TableCell>
+                {!isMobile && <TableCell>{inspection?.vehicle?.model}</TableCell>}
                 {!isMobile && <TableCell>{formatDate(inspection.dataInspecao)}</TableCell>}
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => onEdit(inspection)}>

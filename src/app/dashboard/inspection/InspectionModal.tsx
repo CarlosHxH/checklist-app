@@ -161,7 +161,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
               <CustomAutocomplete
                 keyExtractor="name"
                 label="Usuário"
-                options={data?.user}
+                options={data?.user as any}
                 name="userId"
                 onChange={onChange}
                 defaultValue={formData.userId}
@@ -172,7 +172,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
               <CustomAutocomplete
                 keyExtractor="plate"
                 label="Veiculo"
-                options={data?.vehicle}
+                options={data?.vehicle as any}
                 name="vehicleId"
                 onChange={onChange}
                 defaultValue={formData.vehicleId}

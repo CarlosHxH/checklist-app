@@ -6,9 +6,7 @@ export default function InspectionPage() {
   return (
     <div>
       <ResponsiveAppBar title={"5sTransportes"} showBackButton/>
-      <Box component="main" sx={{ flex: 1 }}>
-        <InspectionForm />
-      </Box>
+      <Box component="main" sx={{ flex: 1 }}><InspectionForm /></Box>
     </div>
   );
 }

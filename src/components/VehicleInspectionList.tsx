@@ -46,10 +46,10 @@ export default function VehicleInspectionList({
   const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher);
 
   const getStatusChip = (status: string | boolean) => {
-    let config = { label: status, color: "error" } as any;
-    if ([true, "BOM", "SIM", "NORMAL"].includes(status)) config = { label: "OK", color: "success" };
-    else config = { label: "Pendente", color: "error" }
-    return <Chip label={config.label} color={config.color} size="small" />;
+    let config = { label: status, color: "error" as "error" | "success" };
+    if ([true, "BOM", "SIM", "NORMAL"].includes(status)) config = { label: "OK", color: "success" as "error" | "success" };
+    else config = { label: "Pendente", color: "error" as "error" | "success" }
+    return <Chip label={config.label} color={config?.color} size="small" />;
   };
 
   if (data?.length === 0) {
@@ -66,9 +66,7 @@ export default function VehicleInspectionList({
       {data &&
         data.map((inspection, index) => (
           <React.Fragment key={inspection.id}>
-            <ListItem
-              sx={{ py: 2, px: { xs: 1, sm: 2 }, bgcolor: "background.paper" }}
-            >
+            <ListItem sx={{ py: 2, px: { xs: 1, sm: 2 }, bgcolor: "background.paper" }}>
               <Card sx={{ width: "100%" }}>
                 <CardContent>
                   <Grid container spacing={2}>
