@@ -15,7 +15,8 @@ export default function Home()
 
   const handleView = (id: string) => router.push(`/inspection/${id}`);
   const handleEdit = (id: string) => router.push(`/inspection/${id}/edit`);
-
+  console.log(data);
+  
   return (
     <div>
       <Suspense fallback={<Loading />}>

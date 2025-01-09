@@ -5,6 +5,27 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { generateToken } from "./auth/jwt";
+import { type User } from "@prisma/client";
+
+interface CustomUser extends User {
+  id: string;
+  role: string;
+  email: string;
+  name: string;
+  image: string | null;
+}
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role?: string;
+      email: string;
+      name: string;
+      image?: string;
+    };
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -63,10 +84,10 @@ export const authOptions: NextAuthOptions = {
                 expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
               },
             });
-            console.log("Sucesso ao atualizar account");
+            console.log("Sucesso ao atualizar account: ",user.email);
             
           } catch (error) {
-            console.log("Erro ao atualizar account");
+            console.log("Erro ao atualizar account: ",user.email);
             // continue com a autenticação mesmo se falhar
           }
 
@@ -75,6 +96,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            role: user.role
           };
           
         } catch (error) {
@@ -89,12 +111,14 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.role = (user as CustomUser).role ?? "";
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id;
+        session.user.role = token.role;
       }
       return session;
     }
