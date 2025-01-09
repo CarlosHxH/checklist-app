@@ -58,7 +58,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          
+          /*
           // Atualizar ou criar Account
           try {
             // Gerar access token
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
           } catch (error) {
             console.log("Erro ao atualizar account: ",user.email);
             // continue com a autenticação mesmo se falhar
-          }
+          }*/
 
           // Retornar objeto do usuário (importante!)
           return {
