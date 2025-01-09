@@ -79,17 +79,7 @@ export const authOptions: NextAuthOptions = {
           console.log("Buscando usuário no banco de dados");
 
           const user = await prisma.user.findUnique({
-            where: { email },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              password: true,
-              role: true,
-              image: true,
-              isActive: true,
-              lastLogin: true,
-            },
+            where: { email }
           });
 
           console.log(

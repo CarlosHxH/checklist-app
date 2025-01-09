@@ -47,18 +47,23 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email }
           });
 
-          if (!user || !user.password) {
-            return null;
-          }
+          console.log(
+            "Resultado da busca:",
+            user ? "Usuário encontrado: "+user.email : "Usuário não encontrado"
+          );
 
+          
+          if (!user || !user.password) {
+            throw "Credenciais inválidas";
+          }
           // Verificar senha
           const isPasswordValid = await compare(credentials.password, user.password);
-
+          
           if (!isPasswordValid) {
             return null;
           }
 
-          /*
+
           // Atualizar ou criar Account
           try {
             // Gerar access token
@@ -80,16 +85,16 @@ export const authOptions: NextAuthOptions = {
                 token_type: "Bearer",
               },
               update: {
-                //access_token: access_token,
+                access_token: access_token,
                 expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
               },
             });
-            console.log("Sucesso ao atualizar account: ",user.email);
+            console.log("Sucesso ao atualizar account:",user.email);
             
           } catch (error) {
             console.log("Erro ao atualizar account: ",user.email);
             // continue com a autenticação mesmo se falhar
-          }*/
+          }
 
           // Retornar objeto do usuário (importante!)
           return {
@@ -122,6 +127,21 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     }
+  },
+  events: {
+    async signIn({ user }) {
+      console.log(`Usuário logado: ${user.email}`);
+    },
+    async signOut({ token }) {
+      // Remover tokens ao fazer logout
+      await prisma.account.deleteMany({
+        where: {
+          userId: token.id as string,
+          provider: "credentials",
+        },
+      });
+      console.log(`Usuário deslogado: ${token.email}`);
+    },
   },
   pages: {
     signIn: '/auth/signin',
