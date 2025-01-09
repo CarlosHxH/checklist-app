@@ -1,6 +1,6 @@
 datasource db {
   provider = "mysql"
-  url      = "mysql://checklist:5s2024@localhost:3306/checklist"
+  url      = env("DATABASE_URL")
 }
 
 generator client {

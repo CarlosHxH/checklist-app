@@ -184,6 +184,6 @@ export const authOptions: NextAuthOptions = {
       console.log(`Usuário deslogado: ${token.email}`);
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
   debug: process.env.NODE_ENV !== "production",
 };
