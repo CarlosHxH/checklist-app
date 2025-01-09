@@ -5,9 +5,17 @@ import { headers } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 
-export const generateToken = (userId: string, email: string): string => {
-  const expiresIn = "12h";
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn });
+export const generateToken = (payload: { id: string; email: string }): string => {
+  try {
+    const token = jwt.sign(payload, JWT_SECRET, { 
+      expiresIn: "12h",
+      algorithm: 'HS256'
+    });
+    return token;
+  } catch (error) {
+    console.error("Erro ao gerar token:", error);
+    throw new Error("Falha ao gerar token de acesso");
+  }
 };
 
 export const verifyToken = (token: string): TokenPayload | null => {
@@ -17,6 +25,7 @@ export const verifyToken = (token: string): TokenPayload | null => {
     return null;
   }
 };
+
 export const verifyHeader = async () => {
   try {
     const authorization = (await headers()).get("authorization");

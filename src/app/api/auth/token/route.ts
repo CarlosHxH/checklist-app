@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { generateToken, verifyHeader, verifyToken } from "@/lib/auth/jwt";
+import { generateToken, verifyHeader } from "@/lib/auth/jwt";
 import { cookies, headers } from "next/headers";
 
 const prisma = new PrismaClient();
@@ -25,13 +25,10 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
-      return NextResponse.json(
-        { error: "Credenciais inválidas" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Credenciais inválidas" },{ status: 403 });
     }
-
-    const token = generateToken(user.id, user.email);
+    const { id } = user;
+    const token = generateToken({id, email});
 
     return NextResponse.json({ token });
   } catch (error) {

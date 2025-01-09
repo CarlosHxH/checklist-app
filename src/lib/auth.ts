@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { generateToken } from "@/lib/auth/jwt";
+import { generateToken } from "./auth/jwt";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -20,10 +20,11 @@ export const authOptions: NextAuthOptions = {
           if (!credentials?.email || !credentials?.password) {
             return null;
           }
-          // Formata o email
-          const email = credentials.email.toLowerCase().trim();
+
           // Buscar usuário
-          const user = await prisma.user.findUnique({where: { email }});
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          });
 
           if (!user || !user.password) {
             return null;
@@ -36,10 +37,11 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          
           // Atualizar ou criar Account
           try {
             // Gerar access token
-            const access_token = await generateToken(user.id, user.email||"");
+            const access_token = generateToken({id: user.id, email:user.email});
             await prisma.account.upsert({
               where: {
                 provider_providerAccountId: {
@@ -52,18 +54,20 @@ export const authOptions: NextAuthOptions = {
                 type: "credentials",
                 provider: "credentials",
                 providerAccountId: user.id,
-                access_token: access_token||"",
+                access_token: access_token,
                 expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
                 token_type: "Bearer",
               },
               update: {
-                access_token: access_token,
+                //access_token: access_token,
                 expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
               },
             });
+            console.log("Sucesso ao atualizar account");
+            
           } catch (error) {
-            console.error("Erro ao atualizar account:", error);
-            // Não throw error aqui - continue com a autenticação mesmo se falhar
+            console.log("Erro ao atualizar account");
+            // continue com a autenticação mesmo se falhar
           }
 
           // Retornar objeto do usuário (importante!)
