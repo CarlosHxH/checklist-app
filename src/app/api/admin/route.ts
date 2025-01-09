@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     // Buscando todos os usuários
     const users = await prisma.user.findMany();
     const vehicle = await prisma.vehicle.findMany();
-    const inspection = await prisma.vehicle.count();
+    const inspection = await prisma.inspection.count();
     const occurrences = await getMonthlyOccurrences(year, month);
 
     const chartData = occurrences.map(item => item.count);
