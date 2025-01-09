@@ -122,9 +122,8 @@ export async function PUT(request: Request) {
       include: {
         user: true,
         vehicle: true,
-      },
+      }
     });
-
     return NextResponse.json(inspection);
   } catch (error) {
     console.error("Error updating inspection:", error);
@@ -138,11 +137,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-
-    await prisma.inspection.delete({
-      where: { id },
-    });
-
+    await prisma.inspection.delete({where: { id }});
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting inspection:", error);
