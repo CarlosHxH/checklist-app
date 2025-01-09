@@ -100,8 +100,8 @@ model Inspection {
   dataInspecao                     DateTime?  @default(now())
   status                           String?
 
-  crlvEmDia                        String?
-  certificadoTacografoEmDia        String?
+  crlvEmDia                        Boolean?
+  certificadoTacografoEmDia        Boolean?
   nivelAgua                        String?
   nivelOleo                        String?
 

@@ -96,6 +96,8 @@ const EditInspectionPage: React.FC = () => {
     }
   };
 
+
+
   const renderConditionalTextField = ( condition: boolean, name: string, label: string ) => {
     if (!condition || !formData) return null;
 
@@ -103,7 +105,7 @@ const EditInspectionPage: React.FC = () => {
       <TextField
         label={label}
         name={name}
-        value={formData[name as keyof InspectionFormData] || ""}
+        value={formData[name as keyof InspectionFormData]}
         onChange={handleChange}
         multiline
         fullWidth
@@ -125,7 +127,7 @@ const EditInspectionPage: React.FC = () => {
           label={label}
           name={fieldName}
           options={["BOM", "RUIM"]}
-          value={formData[fieldName as keyof InspectionFormData]}
+          value={String(formData[fieldName as keyof InspectionFormData] || '')}
           onChange={handleChange}
         />
         {renderConditionalTextField(
@@ -174,7 +176,7 @@ const EditInspectionPage: React.FC = () => {
               label="CRLV em dia"
               name="crlvEmDia"
               options={["SIM", "NÃO"]}
-              value={formData.crlvEmDia}
+              value={formData?.crlvEmDia ? "SIM" : "NÃO"}
               onChange={handleChange}
             />
           </Grid>
@@ -183,7 +185,7 @@ const EditInspectionPage: React.FC = () => {
               label="Certificado Tacógrafo em Dia"
               name="certificadoTacografoEmDia"
               options={["SIM", "NÃO"]}
-              value={formData?.certificadoTacografoEmDia}
+              value={formData?.certificadoTacografoEmDia ? "SIM" : "NÃO"}
               onChange={handleChange}
             />
           </Grid>

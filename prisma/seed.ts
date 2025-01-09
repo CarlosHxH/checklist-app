@@ -81,31 +81,6 @@ async function main() {
     }),
   ])
 
-  const data = {
-    userId: "cm56qvyq00002hsvs15o2e7xj",
-    vehicleId: "cm56utvk10006hsc0roitlqpp",
-    dataInspecao: "2024-12-27T19:30:21.018Z",
-    crlvEmDia: "SIM",
-    status: "FINAL",
-    certificadoTacografoEmDia: "SIM",
-    nivelAgua: "NORMAL",
-    nivelOleo: "NORMAL",
-    eixo: "4",
-    dianteira: "RUIM",
-    descricaoDianteira: "11111111",
-    tracao: "RUIM",
-    descricaoTracao: "22222222222",
-    truck: "RUIM",
-    descricaoTruck: "3333333333",
-    quartoEixo: "RUIM",
-    descricaoQuartoEixo: "44444444444",
-    avariasCabine: "SIM",
-    descricaoAvariasCabine: "000000",
-    bauPossuiAvarias: "SIM",
-    descricaoAvariasBau: "99999999999",
-    funcionamentoParteEletrica: "RUIM",
-    descricaoParteEletrica: "888888888888"
-  }
   // Criação de uma inspeção
   const inspection = await Promise.all([
     prisma.inspection.create({
@@ -114,8 +89,8 @@ async function main() {
         vehicleId: vehicles[0].id,
         dataInspecao: new Date(),
         status: 'INICIO',
-        crlvEmDia: "SIM",
-        certificadoTacografoEmDia: "SIM",
+        crlvEmDia: true,
+        certificadoTacografoEmDia: true,
         nivelAgua: "NORMAL",
         nivelOleo: "NORMAL",
         eixo: "4",
