@@ -41,7 +41,7 @@ export default function DashboardContent() {
             <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
 
               {data.map((card: StatCardProps, index: number) => (
-                <Grid key={index} size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                   <StatCard {...card} />
                 </Grid>
               ))}

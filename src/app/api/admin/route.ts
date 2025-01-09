@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { InspectionSchema } from "@/lib/InspectionSchema";
-import { getMonthlyOccurrences } from "@/lib/occurrences";
+import { getMonthlyOccurrences, getMonthlyOccurrencesUsers, getMonthlyOccurrencesVehicles } from "@/lib/occurrences";
+
+const format = async(occurrences:any[])=>{
+  const chartData = occurrences.map(item => item.count);
+  const total = chartData.reduce((acc, curr) => acc + curr, 0);
+  const average = (total / chartData.length).toFixed(1);
+  return {chartData,total,average}
+}
 
 export async function GET(request: Request) {
   try {
@@ -13,61 +20,36 @@ export async function GET(request: Request) {
       searchParams.get("month") || String(new Date().getMonth() + 1)
     );
     // Buscando todos os usuários
-    const users = await prisma.user.findMany();
-    const vehicle = await prisma.vehicle.findMany();
-    const inspection = await prisma.inspection.count();
-    const occurrences = await getMonthlyOccurrences(year, month);
+    const inspection = format(await getMonthlyOccurrences(year, month));
+    const users = format(await getMonthlyOccurrencesUsers(year, month));
+    const vehicle = format(await getMonthlyOccurrencesVehicles(year, month));
 
-    const chartData = occurrences.map(item => item.count);
-    const total = chartData.reduce((acc, curr) => acc + curr, 0);
-    const average = (total / chartData.length).toFixed(1);
-
-    const userCount = users.length;
-    //const userData = users.map(user => {return {createdAt: user.createdAt}});
-    const vehicleCount = vehicle.length;
-    //const vehicleData = vehicle.map(vehicle => {return {createdAt: vehicle.year}});
-
+    const months = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
+      "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ]
     const data = [
       {
         title: "Usuários",
-        value: `${userCount}`,
-        interval: "Últimos 30 dias",
-        trend: "up",
-        data: [
-          500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620,
-          510, 530, 520, 410, 530, 520, 610, 530, 520, 610, 530, 420, 510, 430,
-          520, 510,
-        ],
+        value: `${(await users).total}`,
+        interval: months[month-1],
+        trend: {label:"up",value:(await users).average},
+        data: (await users).chartData,
       },
       {
         title: "Veiculos",
-        value: `${vehicleCount}`,
-        interval: "Últimos 30 dias",
-        trend: "down",
-        data: [
-          500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620,
-          510, 530, 520, 410, 530, 520, 610, 530, 520, 610, 530, 420, 510, 430,
-          520, 510,
-        ],
+        value: `${(await vehicle).total}`,
+        interval: months[month-1],
+        trend: {label:"down",value:(await vehicle).average},
+        data: (await vehicle).chartData,
       },
       {
         title: "Inspeções",
-        value: `${inspection}`,
-        interval: "Últimos 30 dias",
-        trend: "neutral",
-        data: [
-          500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620,
-          510, 530, 520, 410, 530, 520, 610, 530, 520, 610, 530, 420, 510, 430,
-          520, 510,
-        ],
-      },
-      {
-        title: "Ocorrências",
-        value: `${total}`,
-        interval: `Média: ${average}/dia`,
-        trend: "up",
-        data: chartData,
-      },
+        value: `${(await inspection).total}`,
+        interval: months[month-1],
+        trend: {label:"neutral",value:(await vehicle).average},
+        data: (await inspection).chartData,
+      }
     ];
     return NextResponse.json(data);
   } catch (error) {

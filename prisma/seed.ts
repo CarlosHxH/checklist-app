@@ -113,7 +113,7 @@ async function main() {
     }),
   ])
 
-  console.log({ inspection });
+  console.log({ inspection, users });
 }
 
 main()

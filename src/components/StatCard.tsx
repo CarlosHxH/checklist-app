@@ -13,7 +13,7 @@ export type StatCardProps = {
   title: string;
   value: string;
   interval: string;
-  trend: 'up' | 'down' | 'neutral';
+  trend: {label:'up' | 'down' | 'neutral';value:string|number};
   data: number[];
 };
 
@@ -67,10 +67,14 @@ export default function StatCard({ title, value, interval, trend, data }: StatCa
     down: 'error' as const,
     neutral: 'default' as const,
   };
-
-  const color = labelColors[trend];
-  const chartColor = trendColors[trend];
-  const trendValues = { up: '+25%', down: '-25%', neutral: '+5%' };
+  
+  const color = labelColors[trend.label];
+  const chartColor = trendColors[trend.label];
+  const trendValues = { 
+    up: `${(Number(value) * daysInWeek.length / 100).toFixed(2)}%`,
+    down: `${(Number(value) * daysInWeek.length / 100).toFixed(2)}%`, 
+    neutral: `${(Number(value) * daysInWeek.length / 100).toFixed(2)}%`
+  };
 
   return (
     <Card variant="outlined" sx={{ height: '100%', flexGrow: 1 }}>
@@ -84,7 +88,7 @@ export default function StatCard({ title, value, interval, trend, data }: StatCa
               <Typography variant="h4" component="p">
                 {value}
               </Typography>
-              <Chip size="small" color={color} label={trendValues[trend]} />
+              <Chip size="small" color={color} label={trendValues[trend.label]} />
             </Stack>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {interval}
