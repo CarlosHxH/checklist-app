@@ -100,8 +100,8 @@ model Inspection {
   dataInspecao                     DateTime?  @default(now())
   status                           String?
 
-  crlvEmDia                        Boolean?
-  certificadoTacografoEmDia        Boolean?
+  crlvEmDia                        String?
+  certificadoTacografoEmDia        String?
   nivelAgua                        String?
   nivelOleo                        String?
 
@@ -124,7 +124,7 @@ model Inspection {
 
   fotoVeiculo                      String?
 
-  isActive   Boolean?   @default(true)
+  isFinished   Boolean?   @default(false)
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime?  @updatedAt

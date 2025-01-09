@@ -176,7 +176,7 @@ const EditInspectionPage: React.FC = () => {
               label="CRLV em dia"
               name="crlvEmDia"
               options={["SIM", "NÃO"]}
-              value={formData?.crlvEmDia ? "SIM" : "NÃO"}
+              value={formData?.crlvEmDia}
               onChange={handleChange}
             />
           </Grid>
@@ -185,7 +185,7 @@ const EditInspectionPage: React.FC = () => {
               label="Certificado Tacógrafo em Dia"
               name="certificadoTacografoEmDia"
               options={["SIM", "NÃO"]}
-              value={formData?.certificadoTacografoEmDia ? "SIM" : "NÃO"}
+              value={formData.certificadoTacografoEmDia}
               onChange={handleChange}
             />
           </Grid>

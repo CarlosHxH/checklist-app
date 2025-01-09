@@ -8,7 +8,7 @@ export const InspectionSchema = z.object({
   vehicleId: z.string().min(1),
   
   crlvEmDia: z.string().optional().nullable(),
-  certificadoTacografoEmDia: z.enum(["SIM", "NÃO"]).optional().nullable(),
+  certificadoTacografoEmDia: z.string().optional().nullable(),
   nivelAgua: z.enum(["NORMAL", "BAIXO", "CRITICO"]).optional().nullable(),
   nivelOleo: z.enum(["NORMAL", "BAIXO", "CRITICO"]).optional().nullable(),
   
