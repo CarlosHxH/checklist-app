@@ -8,15 +8,17 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import FileUploader from "@/components/FileUploader";
-import { InspectionSchema } from "@/lib/InspectionSchema";
+import { InspectionSchema } from "./InspectionSchema";
 import { InspectionFormData } from "@/lib/formDataTypes";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
+import Swal from 'sweetalert2'
 
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [withErros, setWithErros] = React.useState(false)
   const { data: vehicles } = useSWR(`/api/vehicles`, fetcher);
 
   const [formData, setFormData] = useState<Partial<InspectionFormData>>({
@@ -50,24 +52,37 @@ const InspectionForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     try {
       const validatedData = InspectionSchema.parse(formData);
-      setErrors({});
+      setWithErros(false);
       const url = '/api/inspections';
       const response = await fetch(url, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...validatedData }),
       });
-      const res = await response.json();
-      router.push(`/inspection/${res.id}`);
+      if (response.ok) {
+        const res = await response.json();
+        router.push(`/inspection/${res.id}`);
+      } else {
+        throw new Error("Verifique os campos!")
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.errors.reduce((acc, curr) => ({
           ...acc,
           [curr.path[0]]: curr.message
         }), {});
+        setWithErros(true);
         setErrors(formattedErrors);
+
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<div><p>Algo deu errado!</p><p style="color:red">Preencha todos os campos</p></div>`,
+          footer: '<a href="#">Por que eu tenho esse problema?</a>'
+        });
       }
     }
   };
@@ -361,6 +376,7 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={12}>
+            {withErros && <Typography mx={'auto'} color="error">Campos não preenchidos!</Typography>}
             <Button fullWidth type="submit" variant="contained" color="primary">
               Salvar
             </Button>

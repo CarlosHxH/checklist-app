@@ -23,7 +23,7 @@ export async function GET() {
 
 
 export async function POST(request: Request) {
-  const { username, email, password, name, role } = await request.json();
+  const { username, password, name, role } = await request.json();
   if (!username || !password || !name) {
     return NextResponse.json({ message: 'Usuárion, Senha, e o Nome é necessário.' }, { status: 400 });
   }
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await hash(password, 12);
     const user = await prisma.user.create({
-      data: { username, email, password: hashedPassword, name, role},
+      data: { username, password: hashedPassword, name, role},
       select: {
         id: true,
         username: true,
@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error('Error creating user:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

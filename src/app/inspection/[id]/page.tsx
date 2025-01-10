@@ -33,11 +33,8 @@ const ViewInspectionPage: React.FC = () => {
   }, [id]);
 
   if (!inspectionData) return <Loading />;
-
-  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
-    title,
-    children,
-  }) => (
+  
+  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
     <Card sx={{ mb: 3 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>

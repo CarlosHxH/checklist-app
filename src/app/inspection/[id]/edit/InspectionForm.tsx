@@ -76,7 +76,7 @@ const EditInspectionPage: React.FC = () => {
     try {
       if (!formData) throw new Error("Dados do formulário não disponíveis");
 
-      const response = await fetch(`/api/inspections/${id}`, {
+      const response = await fetch(`/api/inspections`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

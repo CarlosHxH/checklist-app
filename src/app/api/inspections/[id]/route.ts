@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     await prisma.$disconnect();
   }
 }
-
+/*
 export async function PUT(request: Request) {
   try {
     const {
@@ -80,4 +80,4 @@ export async function PUT(request: Request) {
   } finally {
     await prisma.$disconnect();
   }
-}
+}*/

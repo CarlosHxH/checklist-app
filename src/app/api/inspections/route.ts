@@ -20,18 +20,20 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const data = { ...body};
-    delete data.id;
-    delete data.dataInspecao;
-    const validatedData = InspectionSchema.parse(data);
-    const inspection = await prisma.inspection.create({
-      data: { ...validatedData }
-    });
+    const dataForm = { ...body};
+    delete dataForm.id;
+    delete dataForm.dataInspecao;
+
+    const data = InspectionSchema.parse(dataForm);
+
+    const inspection = await prisma.inspection.create({data});
+
     return NextResponse.json(inspection);
   } catch (error) {
+    
     return NextResponse.json(
       { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 400 }
+      { status: 403 }
     );
   } finally {
     await prisma.$disconnect();
@@ -43,12 +45,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const updateData = { ...body };
     delete updateData.id;
-    const validatedData = InspectionSchema.parse(updateData);
+    const data = InspectionSchema.parse(updateData);
     
-    const inspection = await prisma.inspection.update({
-      where: { id: body.id },
-      data: { ...validatedData }
-    });
+    const inspection = await prisma.inspection.update({where: { id: body.id },data});
+
     return NextResponse.json(inspection);
   } catch (error) {
     return NextResponse.json(
