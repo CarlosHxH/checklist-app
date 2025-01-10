@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import {
   Table,
@@ -19,7 +18,8 @@ import {
   Stack,
   Typography,
   useTheme,
-  TablePagination
+  TablePagination,
+  useMediaQuery
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -40,31 +40,35 @@ type Vehicle = {
   id: string;
 };
 
+const DefaultUser = {
+  make: '',
+  model: '',
+  plate: '',
+}
+const DefaultForm = {
+  make: '',
+  model: '',
+  year: 0,
+  eixo: 0,
+  plate: '',
+  id: ''
+}
+
 export default function VehiclesTable() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: vehicles, error, mutate } = useSWR<Vehicle[]>('/api/vehicles', fetcher);
   const [openDialog, setOpenDialog] = React.useState<boolean>(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState<Vehicle | null>(null);
 
   // Filtros
-  const [filters, setFilters] = React.useState({
-    make: '',
-    model: '',
-    year: '',
-  });
+  const [filters, setFilters] = React.useState(DefaultUser);
 
   // Paginação
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const [formData, setFormData] = React.useState<Vehicle>({
-    make: '',
-    model: '',
-    year: 0,
-    eixo: 0,
-    plate: '',
-    id: '', // Adicione um campo id para o formulário
-  });
+  const [formData, setFormData] = React.useState<Vehicle>(DefaultForm);
 
   // Função para filtrar veículos
   const filteredVehicles = React.useMemo(() => {
@@ -73,8 +77,8 @@ export default function VehiclesTable() {
     return vehicles.filter((vehicle) => {
       const makeMatch = vehicle.make.toLowerCase().includes(filters.make.toLowerCase());
       const modelMatch = vehicle.model.toLowerCase().includes(filters.model.toLowerCase());
-      const yearMatch = filters.year ? vehicle.year === parseInt(filters.year) : true;
-      return makeMatch && modelMatch && yearMatch;
+      const plateMatch = vehicle.plate.toLowerCase().includes(filters.plate.toLowerCase());
+      return makeMatch && modelMatch && plateMatch;
     });
   }, [vehicles, filters]);
 
@@ -86,10 +90,7 @@ export default function VehiclesTable() {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFilters((prev) => ({...prev,[name]: value}));
     setPage(0);
   };
 
@@ -108,14 +109,7 @@ export default function VehiclesTable() {
       setFormData(vehicle);
     } else {
       setSelectedVehicle(null);
-      setFormData({
-        make: '',
-        model: '',
-        year: 0,
-        eixo: 0,
-        plate: '',
-        id: '',
-      });
+      setFormData(DefaultForm);
     }
     setOpenDialog(true);
   };
@@ -123,22 +117,12 @@ export default function VehiclesTable() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedVehicle(null);
-    setFormData({
-      make: '',
-      model: '',
-      year: 0,
-      eixo: 0,
-      plate: '',
-      id: '',
-    });
+    setFormData(DefaultForm);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
- setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({...prev,[name]: value,}));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,12 +212,15 @@ export default function VehiclesTable() {
             }}
           />
           <TextField
-            name="year"
-            label="Filtrar por ano"
-            value={filters.year}
+            name="plate"
+            label="Filtrar por placa"
+            value={filters.plate}
             onChange={handleFilterChange}
             size="small"
             fullWidth
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+            }}
           />
         </Stack>
       </Paper>
@@ -244,8 +231,8 @@ export default function VehiclesTable() {
             <TableRow>
               <TableCell>Fabricante</TableCell>
               <TableCell>Modelo</TableCell>
-              <TableCell>Ano</TableCell>
-              <TableCell>eixo</TableCell>
+              {!isMobile&&<TableCell>Ano</TableCell>}
+              {!isMobile&&<TableCell>eixo</TableCell>}
               <TableCell>Placa</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
@@ -255,8 +242,8 @@ export default function VehiclesTable() {
               <TableRow key={vehicle.id}>
                 <TableCell>{vehicle.make}</TableCell>
                 <TableCell>{vehicle.model}</TableCell>
-                <TableCell>{vehicle.year}</TableCell>
-                <TableCell>{vehicle.eixo}</TableCell>
+                {!isMobile&&<TableCell>{vehicle.year}</TableCell>}
+                {!isMobile&&<TableCell>{vehicle.eixo}</TableCell>}
                 <TableCell>{vehicle.plate}</TableCell>
                 <TableCell align="right">
                   <IconButton

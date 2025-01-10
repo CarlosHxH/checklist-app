@@ -71,9 +71,7 @@ export default function InspectionManager() {
     ins.vehicle?.plate.toLowerCase().includes(filter.toLowerCase())
   ) ?? [];
 
-  const callback = async (e:Response)=>{
-    mutate()
-  }
+  const callback = async (e:Response)=> mutate()
 
   return (
     <Stack spacing={2}>

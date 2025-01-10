@@ -33,7 +33,7 @@ import { User, UserCreateInput } from "@/types/user";
 import Loading from "@/components/Loading";
 import { fetcher } from "@/lib/ultils";
 
-const DefaultReset: UserCreateInput = {
+const DefaultForm: UserCreateInput = {
   username: "",
   name: "",
   email: "",
@@ -50,28 +50,24 @@ export default function UsersTable() {
 
   // Filtros
   const [filters, setFilters] = React.useState({
+    user: "",
     name: "",
-    email: "",
-    username: "",
     role: "ALL",
   });
 
   // Paginação
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const [formData, setFormData] = React.useState(DefaultReset);
+  const [formData, setFormData] = React.useState(DefaultForm);
 
   // Função para filtrar usuários
   const filteredUsers = React.useMemo(() => {
     if (!users) return [];
     return users.filter((user) => {
-      const nameMatch = user.name.toLowerCase()
-        .includes(filters.name.toLowerCase());
-      const usernameMatch = user?.username.toLowerCase()
-        .includes(filters.username.toLowerCase());
+      const nameMatch = user.name.toLowerCase().includes(filters.name.toLowerCase());
+      const userMatch = user.username.toLowerCase().includes(filters.user.toLowerCase());
       const roleMatch = filters.role === "ALL" || user.role === filters.role;
-      return nameMatch && usernameMatch && roleMatch || user;
+      return nameMatch && userMatch && roleMatch;
     });
   }, [users, filters]);
 
@@ -83,20 +79,15 @@ export default function UsersTable() {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setPage(0); // Reset para primeira página quando filtrar
+    setFilters((prev) => ({ ...prev, [name]: value }));
+    setPage(0);
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -113,7 +104,7 @@ export default function UsersTable() {
       });
     } else {
       setSelectedUser(null);
-      setFormData(DefaultReset);
+      setFormData(DefaultForm);
     }
     setOpenDialog(true);
   };
@@ -121,15 +112,12 @@ export default function UsersTable() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedUser(null);
-    setFormData(DefaultReset);
+    setFormData(DefaultForm);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,9 +188,9 @@ export default function UsersTable() {
             }}
           />
           <TextField
-            name="username"
+            name="user"
             label="Filtrar por nome de usuario"
-            value={filters.username}
+            value={filters.user}
             onChange={handleFilterChange}
             size="small"
             fullWidth
@@ -293,14 +281,14 @@ export default function UsersTable() {
                 required
                 fullWidth
               />
-                
+
               <TextField
                 name="username"
                 label="Usuário para login"
                 type="text"
                 value={formData.username}
                 onChange={handleInputChange}
-                required fullWidth/>
+                required fullWidth />
               <TextField
                 name="password"
                 label="Senha"
