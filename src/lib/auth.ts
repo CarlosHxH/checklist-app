@@ -10,6 +10,7 @@ import { type User } from "@prisma/client";
 interface CustomUser extends User {
   id: string;
   role: string;
+  username: string;
   email: string;
   name: string;
   image: string | null;
@@ -18,8 +19,10 @@ interface CustomUser extends User {
 declare module "next-auth" {
   interface Session {
     user: {
+      [x: string]: unknown;
       id: string;
       role?: string;
+      username: string;
       email: string;
       name: string;
       image?: string;
@@ -88,16 +91,17 @@ export const authOptions: NextAuthOptions = {
                 expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
               },
             });
-            console.log("Sucesso ao atualizar account:",user.email);
+            console.log("Sucesso ao atualizar account:",user.username);
             
           } catch (error) {
-            console.log("Erro ao atualizar account: ",user.email);
+            console.log("Erro ao atualizar account: ",user.username);
             // continue com a autenticação mesmo se falhar
           }
 
           // Retornar objeto do usuário (importante!)
           return {
             id: user.id,
+            username: user.username,
             email: user.email,
             name: user.name,
             role: user.role
@@ -115,21 +119,23 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.username = (user as CustomUser).username;
         token.role = (user as CustomUser).role ?? "";
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
+        session.user.role = token.role as string;
       }
       return session;
     }
   },
   events: {
     async signIn({ user }) {
-      console.log(`Usuário logado: ${user.email}`);
+      console.log(`Usuário logado: ${(user as CustomUser).username}`);
     },
     async signOut({ token }) {
       // Remover tokens ao fazer logout
@@ -139,7 +145,7 @@ export const authOptions: NextAuthOptions = {
           provider: "credentials",
         },
       });
-      console.log(`Usuário deslogado: ${token.email}`);
+      console.log(`Usuário deslogado: ${token.username}`);
     },
   },
   pages: {

@@ -4,6 +4,7 @@ export interface CustomUser extends User {
   id: string;
   role?: string;
   email: string;
+  username: string;
   name: string;
   image?: string;
 }
@@ -11,6 +12,7 @@ export interface CustomUser extends User {
 export interface TokenPayload {
   userId: string;
   email: string;
+  username: string;
   iat: number;
   exp: number;
 }
@@ -18,8 +20,10 @@ export interface TokenPayload {
 declare module "next-auth" {
   interface Session {
     user: {
+      [x: string]: unknown;
       id: string;
       role?: string;
+      username: string;
       email: string;
       name: string;
       image?: string;
@@ -29,6 +33,7 @@ declare module "next-auth" {
   interface JWT {
     id: string;
     role?: string;
+    username: string;
     email: string;
     name: string;
     image?: string;
