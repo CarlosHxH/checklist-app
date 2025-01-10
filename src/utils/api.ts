@@ -2,7 +2,6 @@
 export const api = {
   async fetch(url: string, options: RequestInit = {}) {
     const token = localStorage.getItem("authToken");
-
     const headers = {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -17,7 +16,6 @@ export const api = {
       window.location.href = "/login";
       return;
     }
-
     return response;
   },
 };

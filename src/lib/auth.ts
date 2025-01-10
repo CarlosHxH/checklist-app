@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { generateToken } from "./auth/jwt";
 import { type User } from "@prisma/client";
+import { hoje } from "./ultils";
 
 interface CustomUser extends User {
   id: string;
@@ -64,7 +65,6 @@ export const authOptions: NextAuthOptions = {
           if (!isPasswordValid) {
             return null;
           }
-
 
           // Atualizar ou criar Account
           try {
@@ -135,7 +135,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user }) {
-      console.log(`Usuário logado: ${(user as CustomUser).username}`);
+      console.log(`${hoje} Usuário logado: ${(user as CustomUser).username}`);
     },
     async signOut({ token }) {
       // Remover tokens ao fazer logout
@@ -145,7 +145,7 @@ export const authOptions: NextAuthOptions = {
           provider: "credentials",
         },
       });
-      console.log(`Usuário deslogado: ${token.username}`);
+      console.log(`${hoje} Usuário deslogado: ${token.username}`);
     },
   },
   pages: {
