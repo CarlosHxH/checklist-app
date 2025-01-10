@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const inspections = await prisma.inspection.findMany({ include: { vehicle: true, user: true } });
     const vehicle = await prisma.vehicle.findMany();
-    const user = await prisma.user.findMany();
+    const user = await prisma.user.findMany( {where: { username:{ not: "admin" }}})
 
     return NextResponse.json({ inspections, vehicle, user });
   } catch (error) {

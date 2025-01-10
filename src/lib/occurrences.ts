@@ -104,14 +104,15 @@ export async function getMonthlyOccurrencesUsers(
   // Buscar todas as ocorrências do mês
   const occurrences = await prisma.user.findMany({
     where: {
+      username: {
+        not: 'admin',
+      },
       createdAt: {
         gte: startDate,
         lt: new Date(year, month, 1) // Primeiro dia do próximo mês
       }
     },
-    select: {
-      createdAt: true
-    }
+    select: { createdAt: true }
   });
   
   // Inicializar array com zeros para todos os dias do mês

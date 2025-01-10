@@ -5,6 +5,7 @@ import { hash } from 'bcryptjs';
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
+      where: { username:{ not: "admin" }},
       select: {
         id: true,
         username: true,
@@ -21,17 +22,14 @@ export async function GET() {
   }
 }
 
-
 export async function POST(request: Request) {
   const { username, password, name, role } = await request.json();
   if (!username || !password || !name) {
     return NextResponse.json({ message: 'Usuárion, Senha, e o Nome é necessário.' }, { status: 400 });
   }
   try {
-
     const existingUser = await prisma.user.findUnique({ where: { username } })
     if (existingUser) throw 'Usuário já existe';
-
     const hashedPassword = await hash(password, 12);
     const user = await prisma.user.create({
       data: { username, password: hashedPassword, name, role},
