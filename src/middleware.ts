@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import withAuth from "next-auth/middleware";
 
 export default withAuth(async function middleware(req: NextRequest) {
+
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
   const isDashboardRoute = req.nextUrl.pathname.startsWith("/dashboard");

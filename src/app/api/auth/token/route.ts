@@ -20,21 +20,18 @@ export async function GET(req: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { username, password } = await request.json();
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { username } });
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return NextResponse.json({ error: "Credenciais inválidas" },{ status: 403 });
     }
     const { id } = user;
-    const token = generateToken({id, email});
+    const token = generateToken({id, username});
 
     return NextResponse.json({ token });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" },{ status: 403 });
   }
 }
