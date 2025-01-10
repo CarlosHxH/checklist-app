@@ -7,6 +7,7 @@ export async function GET() {
     const users = await prisma.user.findMany({
       select: {
         id: true,
+        username: true,
         email: true,
         name: true,
         role: true,
@@ -22,20 +23,21 @@ export async function GET() {
 
 
 export async function POST(request: Request) {
-  const { email, password, name, role } = await request.json();
-  if (!email || !password || !name) {
-    return NextResponse.json({ message: 'Email, password, and name are required.' }, { status: 400 });
+  const { username, email, password, name, role } = await request.json();
+  if (!username || !password || !name) {
+    return NextResponse.json({ message: 'Usuárion, Senha, e o Nome é necessário.' }, { status: 400 });
   }
   try {
 
-    const existingUser = await prisma.user.findUnique({ where: { email } })
-    if (existingUser) throw 'User already exists';
+    const existingUser = await prisma.user.findUnique({ where: { username } })
+    if (existingUser) throw 'Usuário já existe';
 
     const hashedPassword = await hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name, role},
+      data: { username, email, password: hashedPassword, name, role},
       select: {
         id: true,
+        username: true,
         email: true,
         name: true,
         role: true,

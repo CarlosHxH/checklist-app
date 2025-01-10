@@ -31,9 +31,15 @@ import {
 import useSWR from "swr";
 import { User, UserCreateInput } from "@/types/user";
 import Loading from "@/components/Loading";
+import { fetcher } from "@/lib/ultils";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
+const DefaultReset: UserCreateInput = {
+  username: "",
+  name: "",
+  email: "",
+  password: "",
+  role: "USER",
+}
 export default function UsersTable() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -46,6 +52,7 @@ export default function UsersTable() {
   const [filters, setFilters] = React.useState({
     name: "",
     email: "",
+    username: "",
     role: "ALL",
   });
 
@@ -53,27 +60,18 @@ export default function UsersTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const [formData, setFormData] = React.useState<UserCreateInput>({
-    name: "",
-    email: "",
-    password: "",
-    role: "USER",
-  });
+  const [formData, setFormData] = React.useState(DefaultReset);
 
   // Função para filtrar usuários
   const filteredUsers = React.useMemo(() => {
     if (!users) return [];
-
     return users.filter((user) => {
-      const nameMatch = user.name
-        .toLowerCase()
+      const nameMatch = user.name.toLowerCase()
         .includes(filters.name.toLowerCase());
-      const emailMatch = user.email
-        .toLowerCase()
-        .includes(filters.email.toLowerCase());
+      const usernameMatch = user?.username.toLowerCase()
+        .includes(filters.username.toLowerCase());
       const roleMatch = filters.role === "ALL" || user.role === filters.role;
-
-      return nameMatch && emailMatch && roleMatch;
+      return nameMatch && usernameMatch && roleMatch || user;
     });
   }, [users, filters]);
 
@@ -107,19 +105,15 @@ export default function UsersTable() {
     if (user) {
       setSelectedUser(user);
       setFormData({
+        username: user.username,
         name: user.name,
-        email: user.email,
+        email: user?.email,
         password: "",
         role: user.role,
       });
     } else {
       setSelectedUser(null);
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        role: "USER",
-      });
+      setFormData(DefaultReset);
     }
     setOpenDialog(true);
   };
@@ -127,12 +121,7 @@ export default function UsersTable() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedUser(null);
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      role: "USER",
-    });
+    setFormData(DefaultReset);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,9 +200,9 @@ export default function UsersTable() {
             }}
           />
           <TextField
-            name="email"
-            label="Filtrar por e-mail"
-            value={filters.email}
+            name="username"
+            label="Filtrar por nome de usuario"
+            value={filters.username}
             onChange={handleFilterChange}
             size="small"
             fullWidth
@@ -237,7 +226,7 @@ export default function UsersTable() {
           <TableHead>
             <TableRow>
               <TableCell>Nome</TableCell>
-              {!isMobile && <TableCell>Email</TableCell>}
+              {!isMobile && <TableCell>Login</TableCell>}
               <TableCell>Permissão</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
@@ -246,7 +235,7 @@ export default function UsersTable() {
             {paginatedUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.name}</TableCell>
-                {!isMobile && <TableCell>{user.email}</TableCell>}
+                {!isMobile && <TableCell>{user.username}</TableCell>}
                 <TableCell>
                   <TextField
                     disabled
@@ -304,11 +293,12 @@ export default function UsersTable() {
                 required
                 fullWidth
               />
+                
               <TextField
-                name="email"
-                label="Email"
-                type="email"
-                value={formData.email}
+                name="username"
+                label="Usuário para login"
+                type="text"
+                value={formData.username}
                 onChange={handleInputChange}
                 required fullWidth/>
               <TextField

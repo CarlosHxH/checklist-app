@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 
-export const generateToken = (payload: { id: string; email: string }): string => {
+export const generateToken = (payload: { id: string; email?: string, username?: string, role?: string }): string => {
   try {
     const token = jwt.sign(payload, JWT_SECRET, { 
       expiresIn: "12h",

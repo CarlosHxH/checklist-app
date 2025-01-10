@@ -9,7 +9,7 @@ export default function LoginForm() {
   // Hydration-safe state
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [credentials, setCredentials] = useState({email: '',password: ''})
+  const [credentials, setCredentials] = useState({username: '',password: ''})
   const [error, setError] = useState<string | null>(null)
   const router = useRouter();
 
@@ -21,7 +21,7 @@ export default function LoginForm() {
     setError(null)
     setIsLoading(true)
 
-    if (!credentials.email || !credentials.password) {
+    if (!credentials.username || !credentials.password) {
       setError('Por favor, preencha todos os campos')
       setIsLoading(false)
       return
@@ -30,7 +30,7 @@ export default function LoginForm() {
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        email: credentials.email,
+        username: credentials.username,
         password: credentials.password
       })
 
@@ -55,15 +55,15 @@ export default function LoginForm() {
         margin="normal"
         required
         fullWidth
-        id="email"
-        label="Email"
-        name="email"
-        autoComplete="email"
+        id="username"
+        label="Usuário"
+        name="username"
+        autoComplete="username"
         autoFocus
-        value={credentials.email}
+        value={credentials.username}
         onChange={(e) => setCredentials({
           ...credentials, 
-          email: e.target.value
+          username: e.target.value
         })}
       />
       <TextField

@@ -33,18 +33,18 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.email || !credentials?.password) {
+          if (!credentials?.username || !credentials?.password) {
             return null;
           }
 
           // Buscar usuário
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
+            where: { username: credentials.username }
           });
 
           console.log(
@@ -67,7 +67,7 @@ export const authOptions: NextAuthOptions = {
           // Atualizar ou criar Account
           try {
             // Gerar access token
-            const access_token = generateToken({id: user.id, email:user.email});
+            const access_token = generateToken({id: user.id, username:user.username});
             await prisma.account.upsert({
               where: {
                 provider_providerAccountId: {
