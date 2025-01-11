@@ -147,7 +147,7 @@ export default function ChartUserByCountry({ label }: { label: string }) {
               legend: { hidden: true },
             }}
           >
-            <PieCenterLabel primaryText={data[0].total.toString()} secondaryText="Total" />
+            <PieCenterLabel primaryText={data[0].total || "Erro ao carregar o total"} secondaryText="Total" />
           </PieChart>
         </Box>
 

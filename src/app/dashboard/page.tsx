@@ -49,9 +49,6 @@ export default function DashboardContent() {
                 <ChartUserByCountry label={'Inspeções por veiculos'} />
               </Grid>
 
-
-
-
               {false && (
                 <>
                   <Grid size={{ xs: 12, md: 6 }}>

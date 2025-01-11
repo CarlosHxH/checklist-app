@@ -41,7 +41,7 @@ export default function Page() {
     };
 
     fetchInspections();
-  }, []);
+  }, [id]);
 
   if (!id || !rows) return <Loading/>
 
