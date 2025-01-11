@@ -45,9 +45,9 @@ export default function DashboardContent() {
                   <StatCard {...card} />
                 </Grid>
               ))}
-              <Grid size={{ xs: 12, sm: 12, lg: 12 }}>
+              {false&&<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
                 <ChartUserByCountry label={'Inspeções por veiculos'} />
-              </Grid>
+              </Grid>}
 
               {false && (
                 <>

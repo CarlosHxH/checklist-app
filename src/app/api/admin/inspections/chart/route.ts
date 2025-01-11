@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
         value: item._count.vehicleId,
         count: item._count.vehicleId,
         percentage: (item._count.vehicleId / total) * 100,
-        total
       };
     });
 

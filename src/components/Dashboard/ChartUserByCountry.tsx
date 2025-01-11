@@ -91,7 +91,6 @@ type InspectionStatus = {
   value: number;
   count: number;
   percentage: number;
-  total: string;
 };
 export default function ChartUserByCountry({ label }: { label: string }) {
   const [data, setData] = React.useState<InspectionStatus[]>([]);
