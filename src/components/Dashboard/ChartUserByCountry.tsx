@@ -117,6 +117,9 @@ export default function ChartUserByCountry({ label }: { label: string }) {
     return <div>Carregando...</div>;
   }
 
+  const total = data.reduce((acc: number, curr: any) => 
+    acc + (curr._count?.vehicleId || 0), 0);
+
 
   return (
     <Card
@@ -147,7 +150,7 @@ export default function ChartUserByCountry({ label }: { label: string }) {
               legend: { hidden: true },
             }}
           >
-            <PieCenterLabel primaryText={data[0].total || "Erro ao carregar o total"} secondaryText="Total" />
+            <PieCenterLabel primaryText={total.toString() || "Erro ao carregar o total"} secondaryText="Total" />
           </PieChart>
         </Box>
 
