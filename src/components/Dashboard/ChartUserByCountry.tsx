@@ -10,35 +10,9 @@ import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import { useRouter } from 'next/navigation';
 
-import { UsaFlag, BrazilFlag, GlobeFlag } from '@/mocks/CustomIcons';
-
-const data = [
-  { label: 'USA', value: 35000 },
-  { label: 'Brazil', value: 10000 },
-  { label: 'Other', value: 5000 },
-];
-
-const countries = [
-  {
-    name: 'USA',
-    value: 70,
-    flag: <UsaFlag />,
-    color: 'hsl(220, 25%, 45%)',
-  },
-  {
-    name: 'Brazil',
-    value: 20,
-    flag: <BrazilFlag />,
-    color: 'hsl(220, 25%, 30%)',
-  },
-  {
-    name: 'Other',
-    value: 10,
-    flag: <GlobeFlag />,
-    color: 'hsl(220, 25%, 20%)',
-  },
-];
 
 interface StyledTextProps {
   variant: 'primary' | 'secondary';
@@ -46,7 +20,7 @@ interface StyledTextProps {
 
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
-})<StyledTextProps>(({ theme }:any) => ({
+})<StyledTextProps>(({ theme }: any) => ({
   textAnchor: 'middle',
   dominantBaseline: 'central',
   fill: (theme.vars || theme).palette.text.secondary,
@@ -111,7 +85,39 @@ const colors = [
   'hsl(220, 20%, 25%)',
 ];
 
-export default function ChartUserByCountry() {
+type InspectionStatus = {
+  id: string;
+  label: string;
+  value: number;
+  count: number;
+  percentage: number;
+  total: string;
+};
+export default function ChartUserByCountry({ label }: { label: string }) {
+  const [data, setData] = React.useState<InspectionStatus[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await fetch('/api/admin/inspections/chart').then(e => e.json()).then(setData)
+      } catch (error) {
+        console.error('Error fetching inspection data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
+
+
   return (
     <Card
       variant="outlined"
@@ -119,17 +125,12 @@ export default function ChartUserByCountry() {
     >
       <CardContent>
         <Typography component="h2" variant="subtitle2">
-          Users by country
+          {label}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <PieChart
             colors={colors}
-            margin={{
-              left: 80,
-              right: 80,
-              top: 80,
-              bottom: 80,
-            }}
+            margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
             series={[
               {
                 data,
@@ -139,18 +140,20 @@ export default function ChartUserByCountry() {
                 highlightScope: { faded: 'global', highlighted: 'item' },
               },
             ]}
+            onItemClick={(e, d) => router.push('/dashboard/inspection/'+data[d.dataIndex].id)}
             height={260}
             width={260}
             slotProps={{
               legend: { hidden: true },
             }}
           >
-            <PieCenterLabel primaryText="50K" secondaryText="Total" />
+            <PieCenterLabel primaryText={data[0].total.toString()} secondaryText="Total" />
           </PieChart>
         </Box>
-        {countries.map((country, index) => (
+
+        {data.map((d, index) => (
           <Stack key={index} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
-            {country.flag}
+            <LocalShippingIcon />
             <Stack sx={{ gap: 1, flexGrow: 1 }}>
               <Stack
                 direction="row"
@@ -161,19 +164,19 @@ export default function ChartUserByCountry() {
                 }}
               >
                 <Typography variant="body2" sx={{ fontWeight: '500' }}>
-                  {country.name}
+                  {d.label}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {country.value}%
+                  {d.value}%
                 </Typography>
               </Stack>
               <LinearProgress
                 variant="determinate"
                 aria-label="Number of users by country"
-                value={country.value}
+                value={d.value}
                 sx={{
                   [`& .${linearProgressClasses.bar}`]: {
-                    backgroundColor: country.color,
+                    backgroundColor: "blue",
                   },
                 }}
               />

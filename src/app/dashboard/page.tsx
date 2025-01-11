@@ -5,11 +5,12 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import StatCard, { StatCardProps } from '@/components/StatCard';
-import SessionsChart from '@/components/SessionsChart';
-import PageViewsBarChart from '@/components/PageViewsBarChart';
-import CustomTreeView from '@/components/CustomTreeView';
-import ChartUserByCountry from '@/components/ChartUserByCountry';
+
+import StatCard, { StatCardProps } from '@/components/Dashboard/StatCard';
+import SessionsChart from '@/components/Dashboard/SessionsChart';
+import PageViewsBarChart from '@/components/Dashboard/PageViewsBarChart';
+import CustomTreeView from '@/components/Dashboard/CustomTreeView';
+import ChartUserByCountry from '@/components/Dashboard/ChartUserByCountry';
 import Loading from '@/components/Loading';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
@@ -39,12 +40,17 @@ export default function DashboardContent() {
             </Typography>
 
             <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
-
               {data.map((card: StatCardProps, index: number) => (
                 <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                   <StatCard {...card} />
                 </Grid>
               ))}
+              <Grid size={{ xs: 12, sm: 12, lg: 12 }}>
+                <ChartUserByCountry label={'Inspeções por veiculos'} />
+              </Grid>
+
+
+
 
               {false && (
                 <>
@@ -66,7 +72,6 @@ export default function DashboardContent() {
                   <Grid size={{ xs: 12, lg: 6 }}>
                     <Stack gap={2} direction={{ xs: 'column', sm: 'row' }}>
                       <CustomTreeView />
-                      <ChartUserByCountry />
                     </Stack>
                   </Grid>
                 </Grid>
