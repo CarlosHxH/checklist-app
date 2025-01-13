@@ -31,7 +31,6 @@ export default function Page() {
 
   React.useMemo(() => {
     const fetchInspections = async () => {
-      console.log(id);
       const response = await fetch("/api/admin/vehicle", {
         method: "POST",
         body: JSON.stringify({ id }),

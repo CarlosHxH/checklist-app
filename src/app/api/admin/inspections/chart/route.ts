@@ -5,20 +5,13 @@ export async function GET(request: NextRequest) {
   try {
     const inspections = await prisma.inspection.groupBy({
       by: ['vehicleId'],
-      _count: {
-        vehicleId: true,
-      },
+      _count: { vehicleId: true },
     });
 
     const vehicleIds = inspections.map((inspection) => inspection.vehicleId);
     const vehicles = await prisma.vehicle.findMany({
-      where: {
-        id: { in: vehicleIds },
-      },
-      select: {
-        id: true,
-        plate: true,
-      },
+      where: {id: { in: vehicleIds }},
+      select: { id: true, plate: true },
     });
 
     const total = inspections.reduce((acc, curr) => acc + curr._count.vehicleId, 0);
@@ -33,8 +26,8 @@ export async function GET(request: NextRequest) {
         percentage: (item._count.vehicleId / total) * 100,
       };
     });
-
-    return NextResponse.json(formattedData);
+    
+    return NextResponse.json(formattedData,{status:201});
   } catch (error) {
     console.error("Error fetching inspections:", error);
     return NextResponse.json(

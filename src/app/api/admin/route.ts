@@ -1,60 +1,44 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { InspectionSchema } from "@/lib/InspectionSchema";
-import { getMonthlyOccurrences, getMonthlyOccurrencesUsers, getMonthlyOccurrencesVehicles } from "@/lib/occurrences";
+import { getOccurrences } from "@/lib/occurrences";
 
-const format = async(occurrences:any[])=>{
+const months = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
+  "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+]
+
+const format = async(title:string,label:"up"|"down"|"neutral",month:number,occurrences:any[])=>{
   const chartData = occurrences.map(item => item.count);
   const total = chartData.reduce((acc, curr) => acc + curr, 0);
   const average = (total / chartData.length).toFixed(1);
-  return {chartData,total,average}
+  return {
+    title,
+    value: `${total}`,
+    interval: months[month-1],
+    trend: {label,value: average},
+    data: chartData,
+  }
 }
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const year = parseInt(
-      searchParams.get("year") || String(new Date().getFullYear())
-    );
-    const month = parseInt(
-      searchParams.get("month") || String(new Date().getMonth() + 1)
-    );
-    // Buscando todos os usuários
-    const inspection = format(await getMonthlyOccurrences(year, month));
-    const users = format(await getMonthlyOccurrencesUsers(year, month));
-    const vehicle = format(await getMonthlyOccurrencesVehicles(year, month));
+    const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
+    const month = parseInt(searchParams.get("month") || String(new Date().getMonth() + 1));
 
-    const months = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
-      "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ]
-    const data = [
-      {
-        title: "Usuários",
-        value: `${(await users).total}`,
-        interval: months[month-1],
-        trend: {label:"up",value:(await users).average},
-        data: (await users).chartData,
-      },
-      {
-        title: "Veiculos",
-        value: `${(await vehicle).total}`,
-        interval: months[month-1],
-        trend: {label:"down",value:(await vehicle).average},
-        data: (await vehicle).chartData,
-      },
-      {
-        title: "Inspeções",
-        value: `${(await inspection).total}`,
-        interval: months[month-1],
-        trend: {label:"neutral",value:(await vehicle).average},
-        data: (await inspection).chartData,
-      }
-    ];
-    return NextResponse.json(data);
+    const inspections = await getOccurrences(prisma.inspection, year, month);
+    const users = await getOccurrences(prisma.user, year, month,{username:{ not: "admin" }});
+    const vehicles = await getOccurrences(prisma.vehicle, year, month);
+
+    // Buscando todos os usuários
+    const inspection = await format("Inspeções", "up", month, inspections);
+    const user = await format("Usuários", "down", month, users);
+    const vehicle = await format("Veiculos", "neutral", month, vehicles);
+
+    return NextResponse.json([user,inspection,vehicle]);
   } catch (error) {
-    console.error("Erro ao buscar usuários:", error);
-    return NextResponse.json({ error });
+    return NextResponse.json({ error },{status:403});
   } finally {
     await prisma.$disconnect();
   }
