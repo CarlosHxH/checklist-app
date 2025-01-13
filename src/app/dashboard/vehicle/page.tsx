@@ -30,6 +30,8 @@ import {
 import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
+import { VehicleSchema } from './vehicle';
+import { z } from 'zod';
 
 type Vehicle = {
   make: string;
@@ -58,6 +60,10 @@ export default function VehiclesTable() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: vehicles, error, mutate } = useSWR<Vehicle[]>('/api/vehicles', fetcher);
+
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [withErros, setWithErros] = React.useState(false)
+
   const [openDialog, setOpenDialog] = React.useState<boolean>(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState<Vehicle | null>(null);
 
@@ -90,7 +96,7 @@ export default function VehiclesTable() {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({...prev,[name]: value}));
+    setFilters((prev) => ({ ...prev, [name]: value }));
     setPage(0);
   };
 
@@ -122,12 +128,13 @@ export default function VehiclesTable() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({...prev,[name]: value,}));
+    setFormData((prev) => ({ ...prev, [name]: value, }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const isValid = VehicleSchema.parse(formData);
       if (selectedVehicle) {
         const response = await fetch('/api/vehicles', {
           method: 'PUT',
@@ -135,6 +142,7 @@ export default function VehiclesTable() {
           body: JSON.stringify({ ...formData, id: selectedVehicle.id }),
         });
         if (!response.ok) throw new Error('Failed to update vehicle');
+        setErrors({});
       } else {
         const response = await fetch('/api/vehicles', {
           method: 'POST',
@@ -143,10 +151,18 @@ export default function VehiclesTable() {
         });
         if (!response.ok) throw new Error('Failed to create vehicle');
       }
+      setErrors({});
       mutate();
       handleCloseDialog();
     } catch (error) {
-      console.error('Error saving vehicle:', error);
+      if (error instanceof z.ZodError) {
+        const formattedErrors = error.errors.reduce((acc, curr) => ({
+          ...acc,
+          [curr.path[0]]: curr.message
+        }), {});
+        setErrors(formattedErrors);
+        console.log({ formattedErrors });
+      }
     }
   };
 
@@ -231,8 +247,8 @@ export default function VehiclesTable() {
             <TableRow>
               <TableCell>Fabricante</TableCell>
               <TableCell>Modelo</TableCell>
-              {!isMobile&&<TableCell>Ano</TableCell>}
-              {!isMobile&&<TableCell>eixo</TableCell>}
+              {!isMobile && <TableCell>Ano</TableCell>}
+              {!isMobile && <TableCell>eixo</TableCell>}
               <TableCell>Placa</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
@@ -242,8 +258,8 @@ export default function VehiclesTable() {
               <TableRow key={vehicle.id}>
                 <TableCell>{vehicle.make}</TableCell>
                 <TableCell>{vehicle.model}</TableCell>
-                {!isMobile&&<TableCell>{vehicle.year}</TableCell>}
-                {!isMobile&&<TableCell>{vehicle.eixo}</TableCell>}
+                {!isMobile && <TableCell>{vehicle.year}</TableCell>}
+                {!isMobile && <TableCell>{vehicle.eixo}</TableCell>}
                 <TableCell>{vehicle.plate}</TableCell>
                 <TableCell align="right">
                   <IconButton
@@ -270,7 +286,7 @@ export default function VehiclesTable() {
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
-          onRowsPerPageChange ={handleChangeRowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
 
@@ -288,6 +304,8 @@ export default function VehiclesTable() {
                 onChange={handleInputChange}
                 required
                 fullWidth
+                error={!!errors.make}
+                helperText={errors.make}
               />
               <TextField
                 name="model"
@@ -296,6 +314,8 @@ export default function VehiclesTable() {
                 onChange={handleInputChange}
                 required
                 fullWidth
+                error={!!errors.model}
+                helperText={errors.model}
               />
               <TextField
                 name="year"
@@ -305,6 +325,8 @@ export default function VehiclesTable() {
                 onChange={handleInputChange}
                 required
                 fullWidth
+                error={!!errors.year}
+                helperText={errors.year}
               />
               <TextField
                 name="eixo"
@@ -314,6 +336,8 @@ export default function VehiclesTable() {
                 onChange={handleInputChange}
                 required
                 fullWidth
+                error={!!errors.eixo}
+                helperText={errors.eixo}
               />
               <TextField
                 name="plate"
@@ -322,6 +346,8 @@ export default function VehiclesTable() {
                 onChange={handleInputChange}
                 required
                 fullWidth
+                error={!!errors.plate}
+                helperText={errors.plate}
               />
             </Stack>
           </DialogContent>

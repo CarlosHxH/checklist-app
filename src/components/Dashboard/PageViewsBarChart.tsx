@@ -1,3 +1,4 @@
+"use client"
 import * as React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -6,36 +7,49 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useTheme } from '@mui/material/styles';
+import useSWR from 'swr';
+import Loading from '@/components/Loading';
+import { fetcher } from '@/lib/ultils';
 
 export default function PageViewsBarChart() {
+  const [total,setTotal] = React.useState(0);
+  
+  const { data, isLoading } = useSWR('/api/admin/inspections/barchart',fetcher);
+
   const theme = useTheme();
   const colorPalette = [
     theme.palette.primary.dark,
     theme.palette.primary.main,
     theme.palette.primary.light,
   ];
+  React.useMemo(() => {
+    if (data) {
+      const totalDataSum = data.reduce((total: number, item: { data: number[] }) => {
+        return total + item.data.reduce((sum, value) => sum + value, 0);
+      }, 0);
+      setTotal(totalDataSum);
+    }
+  }, [data]);
+
+  if (isLoading) return <Loading />;
+
   return (
     <Card variant="outlined" sx={{ width: '100%' }}>
       <CardContent>
         <Typography component="h2" variant="subtitle2" gutterBottom>
-          Page views and downloads
+          Inspeções anual
         </Typography>
         <Stack sx={{ justifyContent: 'space-between' }}>
           <Stack
             direction="row"
-            sx={{
-              alignContent: { xs: 'center', sm: 'flex-start' },
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
+            sx={{alignContent: { xs: 'center', sm: 'flex-start' }, alignItems: 'center',gap: 1 }}>
             <Typography variant="h4" component="p">
-              1.3M
+              {total}
             </Typography>
-            <Chip size="small" color="error" label="-8%" />
+            <Chip size="small" color={(total*12/100)>1?"success":"error"} label={`${(total*12/100)}%`} />
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Page views and downloads for the last 6 months
+            Periodo de 2025
           </Typography>
         </Stack>
         <BarChart
@@ -49,26 +63,7 @@ export default function PageViewsBarChart() {
               },
             ]
           }
-          series={[
-            {
-              id: 'page-views',
-              label: 'Page views',
-              data: [2234, 3872, 2998, 4125, 3357, 2789, 2998],
-              stack: 'A',
-            },
-            {
-              id: 'downloads',
-              label: 'Downloads',
-              data: [3098, 4215, 2384, 2101, 4752, 3593, 2384],
-              stack: 'A',
-            },
-            {
-              id: 'conversions',
-              label: 'Conversions',
-              data: [4051, 2275, 3129, 4693, 3904, 2038, 2275],
-              stack: 'A',
-            },
-          ]}
+          series={data||[]}
           height={250}
           margin={{ left: 50, right: 0, top: 20, bottom: 20 }}
           grid={{ horizontal: true }}

@@ -26,7 +26,7 @@ export default function InspectionManager() {
 
   const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections',fetcher);
   const vehicles = data?.vehicle || [];
-  
+
   if(!data) return <Loading/>;
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {

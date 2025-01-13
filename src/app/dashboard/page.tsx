@@ -48,7 +48,7 @@ export default function DashboardContent() {
               columns={12}
               sx={{ mb: (theme) => theme.spacing(2) }}
             >
-              {false &&
+              {true &&
                 data.map((card: StatCardProps, index: number) => (
                   <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                     <StatCard {...card} />
@@ -60,9 +60,11 @@ export default function DashboardContent() {
                 </Grid>
               )}
 
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <PageViewsBarChart />
               </Grid>
+
+
               {false && (
                 <>
                   <Grid size={{ xs: 12, md: 6 }}>

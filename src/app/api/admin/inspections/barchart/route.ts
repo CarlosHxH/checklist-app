@@ -57,7 +57,7 @@ async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
   // Transformar no formato desejado
   const result: InspectionByPlate[] = Object.entries(groupedByPlate).map(([plate, data]) => {
     // Inicializar array com 12 meses zerados
-    const monthlyCount = Array(12).fill(1);
+    const monthlyCount = Array(12).fill(0);
 
     // Contar inspeções por mês
     data.inspections.forEach(inspection => {
@@ -67,7 +67,6 @@ async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
 
     return {
       id: data.lastId,
-      dataKey: data.lastId,
       label: plate,
       data: monthlyCount,
       stack: 'A'
