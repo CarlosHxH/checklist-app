@@ -32,6 +32,7 @@ import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
 import { VehicleSchema } from './vehicle';
 import { z } from 'zod';
+import Swal from 'sweetalert2';
 
 type Vehicle = {
   make: string;
@@ -128,6 +129,7 @@ export default function VehiclesTable() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value, }));
+    console.log(formData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,11 +151,15 @@ export default function VehiclesTable() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
+
+        const res = await response.json();
+        if (res.message) throw new Error(res.message);
         if (!response.ok) throw new Error('Failed to create vehicle');
+
+        setErrors({});
+        mutate();
+        handleCloseDialog();
       }
-      setErrors({});
-      mutate();
-      handleCloseDialog();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.errors.reduce((acc, curr) => ({
@@ -162,6 +168,17 @@ export default function VehiclesTable() {
         }), {});
         setErrors(formattedErrors);
         console.log({ formattedErrors });
+      }
+
+      if (error instanceof Error) {
+        setErrors({ message: error.message });
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: error.message,
+        });
+      } else {
+        setErrors({ message: 'An unknown error occurred' });
       }
     }
   };
@@ -289,6 +306,8 @@ export default function VehiclesTable() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
+
+
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <form onSubmit={handleSubmit}>

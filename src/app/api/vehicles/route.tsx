@@ -17,10 +17,14 @@ export async function POST(request: Request) {
   delete data.id;
   if (!data) return NextResponse.json({ message: 'Is are required.' }, { status: 400 });
   try {
+    const isExist = await prisma.vehicle.findUnique({where:{plate:data.plate}})
+    if (isExist) {
+      return NextResponse.json({ message: 'Veiculo já resgistrado!' }, { status: 403 });
+    }
     const vehicle = await prisma.vehicle.create({data});
     return NextResponse.json(vehicle, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 403 });
   }
 }
 
