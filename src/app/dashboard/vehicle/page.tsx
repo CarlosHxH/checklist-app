@@ -136,7 +136,8 @@ export default function VehiclesTable() {
     e.preventDefault();
     try {
       //const isValid = VehicleSchema.parse(formData);
-
+      //console.log(isValid);
+      
       if (selectedVehicle) {
         const response = await fetch('/api/vehicles', {
           method: 'PUT',
