@@ -62,7 +62,6 @@ export default function VehiclesTable() {
   const { data: vehicles, error, mutate } = useSWR<Vehicle[]>('/api/vehicles', fetcher);
 
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const [withErros, setWithErros] = React.useState(false)
 
   const [openDialog, setOpenDialog] = React.useState<boolean>(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState<Vehicle | null>(null);
@@ -134,7 +133,8 @@ export default function VehiclesTable() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const isValid = VehicleSchema.parse(formData);
+      //const isValid = VehicleSchema.parse(formData);
+
       if (selectedVehicle) {
         const response = await fetch('/api/vehicles', {
           method: 'PUT',
