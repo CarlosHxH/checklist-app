@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest)
     });
     return NextResponse.json(vehicle);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update user' },{ status: 500 }
+    return NextResponse.json({ error: 'Falha ao atualizar o veículo' },{ status: 500 }
     );
   }
 }
@@ -55,9 +55,9 @@ export async function DELETE(request: NextRequest)
     return NextResponse.json({ success: true });
   } catch (error)
   {
-    console.error('Error deleting user:', error);
+    console.error('Erro excluindo o veículo:', error);
     return NextResponse.json(
-      { error: 'Failed to delete user' },
+      { error: 'Falha ao excluir o veículo' },
       { status: 500 }
     );
   }

@@ -4,8 +4,8 @@ export const VehicleSchema = z.object({
   id: z.string(),
   make: z.string().min(2, "Preencha esse campo!"),
   model: z.string().min(2, "Preencha esse campo.!"),
-  year: z.any(),
-  eixo: z.any(),
+  year: z.union([z.string(), z.number()]),
+  eixo: z.union([z.string(), z.number()]),
   plate: z.string().min(7, "Preencha esse campo!"),
 });
 

@@ -30,7 +30,6 @@ import {
 import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
-import { VehicleSchema } from './vehicle';
 import { z } from 'zod';
 import Swal from 'sweetalert2';
 
@@ -129,7 +128,6 @@ export default function VehiclesTable() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value, }));
-    console.log(formData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -186,6 +184,7 @@ export default function VehiclesTable() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este veículo?')) return;
+    
     try {
       const response = await fetch('/api/vehicles', {
         method: 'DELETE',
@@ -201,6 +200,8 @@ export default function VehiclesTable() {
 
   if (error) return <Typography color="error">Erro de carregamento de veículos</Typography>;
   if (!vehicles) return <Loading />;
+
+  
 
   return (
     <Stack spacing={2}>
@@ -286,10 +287,7 @@ export default function VehiclesTable() {
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(vehicle.id)}
-                  >
+                  <IconButton color="error" onClick={() => handleDelete(vehicle.id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>

@@ -69,6 +69,7 @@ export const authOptions: NextAuthOptions = {
           // Atualizar ou criar Account
           try {
             // Gerar access token
+            const expires_at = Math.floor(Date.now() / 1000) + .01 * 60 * 60;
             const access_token = generateToken({id: user.id, username:user.username});
             await prisma.account.upsert({
               where: {
@@ -83,12 +84,12 @@ export const authOptions: NextAuthOptions = {
                 provider: "credentials",
                 providerAccountId: user.id,
                 access_token: access_token,
-                expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+                expires_at,
                 token_type: "Bearer",
               },
               update: {
                 access_token: access_token,
-                expires_at: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+                expires_at,
               },
             });
             console.log("Sucesso ao atualizar account:",user.username);
@@ -97,7 +98,7 @@ export const authOptions: NextAuthOptions = {
             console.log("Erro ao atualizar account: ",user.username);
             // continue com a autenticação mesmo se falhar
           }
-
+          
           // Retornar objeto do usuário (importante!)
           return {
             id: user.id,

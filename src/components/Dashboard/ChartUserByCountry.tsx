@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import * as React from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
@@ -92,10 +91,9 @@ type InspectionStatus = {
   count: number;
   percentage: number;
 };
-export default function ChartUserByCountry({ label }: { label: string }) {
+export default function ChartUserByCountry() {
   const [data, setData] = React.useState<InspectionStatus[]>([]);
   const [loading, setLoading] = React.useState(true);
-
   const router = useRouter();
 
   React.useEffect(() => {
@@ -116,9 +114,7 @@ export default function ChartUserByCountry({ label }: { label: string }) {
     return <div>Carregando...</div>;
   }
 
-  const total = data.reduce((acc: number, curr: any) => 
-    acc + (curr._count?.vehicleId || 0), 0);
-
+  const total = data.reduce((total: number, item: InspectionStatus) => total + item.count, 0);
 
   return (
     <Card
@@ -127,7 +123,7 @@ export default function ChartUserByCountry({ label }: { label: string }) {
     >
       <CardContent>
         <Typography component="h2" variant="subtitle2">
-          {label}
+          Inspeções por veiculos
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <PieChart
@@ -149,7 +145,7 @@ export default function ChartUserByCountry({ label }: { label: string }) {
               legend: { hidden: true },
             }}
           >
-            <PieCenterLabel primaryText={total.toString() || "Erro ao carregar o total"} secondaryText="Total" />
+            <PieCenterLabel primaryText={`${total}` || "Erro ao carregar o total"} secondaryText="Total" />
           </PieChart>
         </Box>
 

@@ -1,11 +1,32 @@
-// app/unauthorized/page.tsx
-export default function UnauthorizedPage() {
+"use client"
+import { Box, Typography, Button } from '@mui/material';
+import Link from 'next/link';
+
+const UnauthorizedPage = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-red-600">Acesso Negado</h1>
-        <p className="mt-2">Você não tem permissão para acessar esta página.</p>
-      </div>
-    </div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        textAlign: 'center',
+      }}
+    >
+      <Typography variant="h1" component="h1" gutterBottom>
+        404
+      </Typography>
+      <Typography variant="h5" component="h2" gutterBottom>
+        Página não encontrada
+      </Typography>
+      <Link href="/" passHref>
+        <Button variant="contained" color="primary">
+          Voltar para a Home
+        </Button>
+      </Link>
+    </Box>
   );
-}
+};
+
+export default UnauthorizedPage;

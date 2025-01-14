@@ -10,12 +10,12 @@ import { useTheme } from '@mui/material/styles';
 import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
+import { useRouter } from 'next/navigation';
 
 export default function PageViewsBarChart() {
   const [total,setTotal] = React.useState(0);
   
   const { data, isLoading } = useSWR('/api/admin/inspections/barchart',fetcher);
-
   const theme = useTheme();
   const colorPalette = [
     theme.palette.primary.dark,
@@ -52,6 +52,7 @@ export default function PageViewsBarChart() {
             Periodo de 2025
           </Typography>
         </Stack>
+        
         <BarChart
           borderRadius={8}
           colors={colorPalette}

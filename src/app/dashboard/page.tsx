@@ -14,12 +14,14 @@ import ChartUserByCountry from "@/components/Dashboard/ChartUserByCountry";
 import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
+import { useSession } from "next-auth/react";
 
 export default function DashboardContent() {
   const { data, isLoading } = useSWR("/api/admin", fetcher);
-
+  const { data:session, status, update} = useSession();
   if (isLoading) return <Loading />;
-
+  console.log({session, status, update});
+  
   return (
     <Box sx={{ display: "flex" }}>
       <Box
@@ -54,13 +56,13 @@ export default function DashboardContent() {
                     <StatCard {...card} />
                   </Grid>
                 ))}
-              {false && (
+              {true && (
                 <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
-                  <ChartUserByCountry label={"Inspeções por veiculos"} />
+                  <ChartUserByCountry/>
                 </Grid>
               )}
 
-              <Grid size={{ xs: 12, md: 12 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <PageViewsBarChart />
               </Grid>
 

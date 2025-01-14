@@ -24,9 +24,11 @@ const format = async(title:string,label:"up"|"down"|"neutral",month:number,occur
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+
     const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
     const month = parseInt(searchParams.get("month") || String(new Date().getMonth() + 1));
-
+    //const be = new Date();
+    //const af = new Date(new Date().setDate(be.getDate() - 30));
     const inspections = await getOccurrences(prisma.inspection, year, month);
     const users = await getOccurrences(prisma.user, year, month,{username:{ not: "admin" }});
     const vehicles = await getOccurrences(prisma.vehicle, year, month);
