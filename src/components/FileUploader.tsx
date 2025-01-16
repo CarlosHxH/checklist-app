@@ -88,23 +88,17 @@ const FileUploader = ({ label, name, value, error, helperText, onChange, disable
 
   return (
     <Container>
-      <Input accept="image/*" id={"fileUpload"+name||""} type="file" onChange={handleFileChange}/>
+      <Input accept="image/*" id={"fileUpload"+name||""} capture type="file" onChange={handleFileChange}/>
       <UploadButton htmlFor={"fileUpload"+name||""}>{label}</UploadButton>
       {!!value && (
-        <span style={{ position: "relative" }}>
+        <div style={{ position: "relative" }}>
           <Image
             height={100}
             width={100}
             src={value}
             alt={name}
           />
-          {!(!!disabled)&&<Chip
-            label={`${fileName}`}
-            onDelete={handleRemoveFile}
-            color="error"
-            style={{position: "absolute",bottom: -15,right: 0}}
-          />}
-        </span>
+        </div>
       )}
       {error && <Typography color="error" variant="caption">{helperText}</Typography>}
     </Container>
