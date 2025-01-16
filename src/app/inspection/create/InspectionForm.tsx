@@ -64,10 +64,9 @@ const InspectionForm: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...validatedData }),
       });
-      const res = await response.json();
-      console.log(res);
       
       if (response.ok) {
+        const res = await response.json();
         router.push(`/inspection/${res.id}`);
       } else {
         throw new Error("Verifique os campos!")
