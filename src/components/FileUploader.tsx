@@ -88,7 +88,7 @@ const FileUploader = ({ label, name, value, error, helperText, onChange, disable
 
   return (
     <Container>
-      <Input accept="image/*" id={"fileUpload"+name||""} type="file" onChange={handleFileChange}/>
+      <Input accept="image/*" id={"fileUpload"+name||""} type="file" capture={true} onChange={handleFileChange}/>
       <UploadButton htmlFor={"fileUpload"+name||""}>{label}</UploadButton>
       {!!value && (
         <span style={{ position: "relative" }}>

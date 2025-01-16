@@ -13,8 +13,11 @@ import { InspectionFormData } from "@/lib/formDataTypes";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
 import Swal from 'sweetalert2'
+import CameraInput from "@/components/CameraInput";
+import { objectToFormData } from "@/utils";
 
 const InspectionForm: React.FC = () => {
+  const form = React.useRef(null)
   const router = useRouter();
   const { data: session } = useSession();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -29,69 +32,85 @@ const InspectionForm: React.FC = () => {
 
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+    const { name, value, files } = event.target;
+
     if (name === "vehicleId") {
       const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
       let data = {};
       const eixoNumber = Number(formData.eixo) || 0;
       if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
-      else {delete formData.quartoEixo; delete formData.descricaoQuartoEixo;}
+      else { delete formData.quartoEixo; delete formData.descricaoQuartoEixo; }
 
       if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
-      else {delete formData.truck; delete formData.descricaoTruck;}
+      else { delete formData.truck; delete formData.descricaoTruck; }
 
       if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
-      else {delete formData.tracao; delete formData.descricaoTracao;}
-      
+      else { delete formData.tracao; delete formData.descricaoTracao; }
+
       data = { ...data, eixo };
       setFormData((prev) => ({ ...prev, ...data }));
     }
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: files?.length ? files[0] : value }));
   };
 
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    try {
-      const validatedData = InspectionSchema.parse(formData);
-      setWithErros(false);
-      const url = '/api/inspections';
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...validatedData }),
-      });
-      if (response.ok) {
-        const res = await response.json();
-        router.push(`/inspection/${res.id}`);
-      } else {
-        throw new Error("Verifique os campos!")
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const formattedErrors = error.errors.reduce((acc, curr) => ({
-          ...acc,
-          [curr.path[0]]: curr.message
-        }), {});
-        setWithErros(true);
-        setErrors(formattedErrors);
+    e.preventDefault()
 
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          html: `<div><p>Algo deu errado!</p><p style="color:red">Preencha todos os campos</p></div>`,
-          footer: '<a href="#">Por que eu tenho esse problema?</a>'
+    if (form.current) {
+      try {
+        InspectionSchema.parse(formData);
+        setWithErros(false);
+        setErrors({});
+
+        const form_Data = new FormData();
+
+        // Add the file if it exists
+        if (formData.fotoVeiculo) {
+          form_Data.append('fotoVeiculo', formData.fotoVeiculo);
+        }
+
+        // Add all other form fields
+        Object.entries(formData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+              form_Data.append(key, value as string | Blob);
+            }
         });
+        const response = await fetch('/api/inspections', { method: "POST", body: form_Data });
+        
+        if (response.ok) {
+          const res = await response.json();
+          router.push(`/inspection/${res.data.id}`);
+        } else {
+          throw new Error("Verifique os campos!")
+        }
+      } catch (error) {
+        alert(JSON.stringify({error}))
+        if (error instanceof z.ZodError) {
+          const formattedErrors = error.errors.reduce((acc, curr) => ({
+            ...acc,
+            [curr.path[0]]: curr.message
+          }), {});
+          setWithErros(true);
+          setErrors(formattedErrors);
+
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            html: `<div><p>Algo deu errado!</p><p style="color:red">Preencha todos os campos</p></div>`,
+            footer: '<a href="#">Por que eu tenho esse problema?</a>'
+          });
+        }
       }
+
     }
-  };
+  }
 
   if (!vehicles) return <Loading />;
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
-      <form onSubmit={handleSubmit}>
+      <form ref={form} onSubmit={handleSubmit}>
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
 
         <Grid container spacing={3}>
@@ -363,15 +382,15 @@ const InspectionForm: React.FC = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12} md={12} sx={{ textAlign: 'center' }}>
             <Divider>Foto do veiculo</Divider>
-            <FileUploader
-              label={"Foto do veiculo de frente"}
+            <Typography>Foto da frete do veiculo</Typography>
+            <CameraInput
+              label={"Abrir camera"}
               name={"fotoVeiculo"}
-              value={formData.fotoVeiculo}
+              onChange={onChange}
               error={!!errors.fotoVeiculo}
               helperText={errors.fotoVeiculo}
-              onChange={onChange}
             />
           </Grid>
 

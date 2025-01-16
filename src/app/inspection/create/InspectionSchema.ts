@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+const MAX_FILE_SIZE = 15000000
+const ACCEPTED_IMAGE_TYPES = [
+ 'image/jpeg',
+ 'image/jpg',
+ 'image/png',
+ 'image/webp',
+]
+
 export const InspectionSchema = z.object({
   id: z.string().optional(),
   status: z.enum(["INICIO", "FINAL"]),
@@ -26,7 +34,26 @@ export const InspectionSchema = z.object({
   descricaoAvariasBau: z.string().optional().nullable(),
   funcionamentoParteEletrica: z.string(),
   descricaoParteEletrica: z.string().optional().nullable(),
-  fotoVeiculo: z.string().min(1,"Tire uma foto do veiculo."),
+  fotoVeiculo: z
+  .union([
+    z
+      .instanceof(File, { message: "Image is required" })
+      .refine(
+        (file) => !file || file.size !== 0 || file.size <= 5000000,
+        `Max image size is ${5000000}MB`
+      )
+      .refine(
+        (file) =>
+          !file ||
+          file.type === "" ||
+          ["image/jpeg", "image/png", "image/jpg"].includes(file.type),
+        "Only .jpg, .jpeg, and .png formats are supported"
+      ),
+    z.string().optional(),
+  ])
+  .refine((value) => value instanceof File || typeof value === "string", {
+    message: "Image is required",
+  }),
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;

@@ -65,6 +65,21 @@ const EditInspectionPage: React.FC = () => {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = event.target;
+    if (formData?.dianteira) {
+      const eixoNumber = Number(formData?.eixo) || 0;
+      let dataEixos = {};
+      if (eixoNumber > 3) dataEixos = { ...dataEixos, quartoEixo: "", descricaoQuartoEixo: "" };
+      else { delete formData?.quartoEixo; delete formData?.descricaoQuartoEixo; }
+
+      if (eixoNumber > 2) dataEixos = { ...dataEixos, truck: "", descricaoTruck: "" };
+      else { delete formData?.truck; delete formData?.descricaoTruck; }
+
+      if (eixoNumber > 1) dataEixos = { ...dataEixos, tracao: "", descricaoTracao: "" };
+      else { delete formData?.tracao; delete formData?.descricaoTracao; }
+
+      dataEixos = { ...dataEixos };
+      setFormData((prev) => prev ? { ...prev, ...dataEixos } : null);
+    }
     setFormData(prev => prev ? { ...prev, [name]: files?.length ? files[0] : value } : null);
   };
 
@@ -105,9 +120,17 @@ const EditInspectionPage: React.FC = () => {
 
   const renderConditionalTextField = (condition: boolean, name: string, label: string) => {
     if (!condition || !formData) return null;
-    const value = formData[name as keyof InspectionFormData] ?? '';
+
     return (
-      <TextField label={label} name={name} value={value} onChange={handleChange} multiline fullWidth rows={2}/>
+      <TextField
+        label={label}
+        name={name}
+        value={formData[name as keyof InspectionFormData]}
+        onChange={handleChange}
+        multiline
+        fullWidth
+        rows={2}
+      />
     );
   };
 
@@ -160,7 +183,7 @@ const EditInspectionPage: React.FC = () => {
               fullWidth
               label="Modelo"
               disabled
-              value={formData.vehicle.model + " - eixos: " + formData?.eixo}
+              value={formData.vehicle.model}
             />
           </Grid>
 
