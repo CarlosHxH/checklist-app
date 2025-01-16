@@ -98,7 +98,7 @@ const EditInspectionPage: React.FC = () => {
 
 
 
-  const renderConditionalTextField = ( condition: boolean, name: string, label: string ) => {
+  const renderConditionalTextField = (condition: boolean, name: string, label: string) => {
     if (!condition || !formData) return null;
 
     return (
@@ -150,6 +150,18 @@ const EditInspectionPage: React.FC = () => {
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid item xs={12} md={12}>
+            <ButtonLabel
+              label={"Viagem"}
+              name={"status"}
+              value={formData?.status}
+              onChange={onChange}
+              options={["INICIO", "FINAL"]}
+              error={!!errors.status}
+              helperText={errors.status}
+            />
+          </Grid>
+
           {/* Vehicle Information */}
           <Grid item xs={12} md={6}>
             <TextField
