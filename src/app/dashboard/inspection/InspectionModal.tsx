@@ -136,7 +136,9 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         console.log({ formattedErrors });
       }
     } finally {
-      setIsSubmitting(false);
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 500);
     }
   };
   if (isSubmitting) return <Loading/>

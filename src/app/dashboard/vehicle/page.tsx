@@ -133,9 +133,6 @@ export default function VehiclesTable() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      //const isValid = VehicleSchema.parse(formData);
-      //console.log(isValid);
-      
       if (selectedVehicle) {
         const response = await fetch('/api/vehicles', {
           method: 'PUT',
@@ -144,6 +141,8 @@ export default function VehiclesTable() {
         });
         if (!response.ok) throw new Error('Failed to update vehicle');
         setErrors({});
+        mutate();
+        handleCloseDialog();
       } else {
         const response = await fetch('/api/vehicles', {
           method: 'POST',

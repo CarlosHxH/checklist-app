@@ -91,7 +91,6 @@ const EditInspectionPage: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : "Erro ao salvar inspeção");
       console.error("Erro ao atualizar a inspeção:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };

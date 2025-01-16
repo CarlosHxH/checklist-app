@@ -72,6 +72,7 @@ const InspectionForm: React.FC = () => {
         throw new Error("Verifique os campos!")
       }
     } catch (error) {
+      setIsSubmitting(false);
       if (error instanceof z.ZodError) {
         const formattedErrors = error.errors.reduce((acc, curr) => ({
           ...acc,
@@ -79,7 +80,6 @@ const InspectionForm: React.FC = () => {
         }), {});
         setWithErros(true);
         setErrors(formattedErrors);
-
         Swal.fire({
           icon: "error",
           title: "Oops...",
@@ -87,8 +87,6 @@ const InspectionForm: React.FC = () => {
           footer: '<a href="#">Por que eu tenho esse problema?</a>'
         });
       }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

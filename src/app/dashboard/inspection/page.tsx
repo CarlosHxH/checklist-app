@@ -23,30 +23,30 @@ export default function InspectionManager() {
   const [filter, setFilter] = React.useState("");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections',fetcher);
   const vehicles = data?.vehicle || [];
 
-  if(!data) return <Loading/>;
+  if(!data || isSubmitting) return <Loading/>;
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     if (name === "vehicleId") {
-      const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
-      let data = {};
-      const eixoNumber = Number(formData.eixo) || 0;
-      if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
-      if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
-      if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
-
-      data = { ...data, eixo };
-      setFormData((prev) => ({ ...prev, ...data }));
+      //const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
+      //let data = {};
+      //const eixoNumber = Number(formData.eixo) || 0;
+      //if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
+      //if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
+      //if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
+      //data = { ...data, eixo };
+      //setFormData((prev) => ({ ...prev, ...data }));
     }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza de que deseja excluir esta inspeção?")) return;
+    setIsSubmitting(true);
     try {
       await fetch("/api/inspections", {
         method: "DELETE",
@@ -56,6 +56,8 @@ export default function InspectionManager() {
       mutate();
     } catch (error) {
       console.error("Error deleting inspection:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
