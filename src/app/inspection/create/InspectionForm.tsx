@@ -18,6 +18,7 @@ const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [withErros, setWithErros] = React.useState(false)
   const { data: vehicles } = useSWR(`/api/vehicles`, fetcher);
 
@@ -35,14 +36,14 @@ const InspectionForm: React.FC = () => {
       let data = {};
       const eixoNumber = Number(formData.eixo) || 0;
       if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
-      else {delete formData.quartoEixo; delete formData.descricaoQuartoEixo;}
+      else { delete formData.quartoEixo; delete formData.descricaoQuartoEixo; }
 
       if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
-      else {delete formData.truck; delete formData.descricaoTruck;}
+      else { delete formData.truck; delete formData.descricaoTruck; }
 
       if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
-      else {delete formData.tracao; delete formData.descricaoTracao;}
-      
+      else { delete formData.tracao; delete formData.descricaoTracao; }
+
       data = { ...data, eixo };
       setFormData((prev) => ({ ...prev, ...data }));
     }
@@ -53,6 +54,7 @@ const InspectionForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setIsSubmitting(true);
     try {
       const validatedData = InspectionSchema.parse(formData);
       setWithErros(false);
@@ -84,10 +86,12 @@ const InspectionForm: React.FC = () => {
           footer: '<a href="#">Por que eu tenho esse problema?</a>'
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (!vehicles) return <Loading />;
+  if (!vehicles || isSubmitting) return <Loading />;
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
@@ -377,8 +381,14 @@ const InspectionForm: React.FC = () => {
 
           <Grid item xs={12} md={12}>
             {withErros && <Typography mx={'auto'} color="error">Campos não preenchidos!</Typography>}
-            <Button fullWidth type="submit" variant="contained" color="primary">
-              Salvar
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Salvando..." : "Salvar"}
             </Button>
           </Grid>
 

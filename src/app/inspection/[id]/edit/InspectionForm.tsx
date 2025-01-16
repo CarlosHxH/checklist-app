@@ -139,7 +139,7 @@ const EditInspectionPage: React.FC = () => {
     );
   };
 
-  if (!formData) return <Loading />;
+  if (!formData || isSubmitting) return <Loading />;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
