@@ -139,7 +139,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
       setIsSubmitting(false);
     }
   };
-  if (isSubmitting) return <Loading />
+  if (isSubmitting) return <Loading/>
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
