@@ -9,7 +9,7 @@ const Loading = () => {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        width: "100vw", // Adicionando largura para cobrir toda a tela
+        width: "100vw",
         zIndex: 9999,
         position: 'fixed',
         top: 0,
