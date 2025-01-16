@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(inspection);
   } catch (error) {
-    
     return NextResponse.json(
       { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 403 }

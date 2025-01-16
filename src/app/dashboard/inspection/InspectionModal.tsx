@@ -6,6 +6,7 @@ import FileUploader from "@/components/FileUploader";
 import { InspectionSchema } from '@/lib/InspectionSchema';
 import { z } from "zod";
 import { DataType } from "@/lib/formDataTypes";
+import Loading from "@/components/Loading";
 
 type Status = "INICIO" | "FINAL";
 type Condition = "BOM" | "RUIM";
@@ -48,7 +49,7 @@ interface InspectionModalProps {
   callback?: (event: Response) => void;
 }
 
-const SectionDivider: React.FC<{title: string}> = ({title}) => (
+const SectionDivider: React.FC<{ title: string }> = ({ title }) => (
   <Grid item xs={12} mb={-3}><Divider>{title}</Divider></Grid>
 );
 
@@ -58,7 +59,7 @@ const DefectTextField: React.FC<{
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
-}> = ({label, name, value, onChange, error}) => (
+}> = ({ label, name, value, onChange, error }) => (
   <TextField
     label={label}
     name={name}
@@ -80,7 +81,7 @@ const AxleSection: React.FC<{
   formData: FormFields;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   errors: Record<string, string>;
-}> = ({label, name, descriptionName, value, formData, onChange, errors}) => (
+}> = ({ label, name, descriptionName, value, formData, onChange, errors }) => (
   <Grid item xs={12} md={6}>
     <ButtonLabel
       label={label}
@@ -106,10 +107,12 @@ const AxleSection: React.FC<{
 export const InspectionModal: React.FC<InspectionModalProps> = ({
   open, onClose, data, formData, onChange, callback
 }) => {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const validatedData = InspectionSchema.parse(formData);
       const response = await fetch('/api/inspections', {
@@ -118,8 +121,8 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         body: JSON.stringify(validatedData),
       });
       const res = await response.json();
-      if(!response.ok) throw new z.ZodError([res]);
-      
+      if (!response.ok) throw new z.ZodError([res]);
+
       setErrors({});
       onClose();
       callback?.(response);
@@ -130,10 +133,13 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
           [curr.path[0]]: curr.message
         }), {});
         setErrors(formattedErrors);
-        console.log({formattedErrors});
+        console.log({ formattedErrors });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
+  if (isSubmitting) return <Loading />
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -144,7 +150,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         <DialogContent>
           <Grid container spacing={3}>
             <SectionDivider title="Dados do usuario" />
-            
+
             <Grid item xs={12} md={12}>
               <ButtonLabel
                 label="Viagem"
@@ -324,7 +330,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
             </Grid>
 
             <SectionDivider title="Eletrica" />
-            
+
             <Grid item xs={12}>
               <ButtonLabel
                 label="Parte Elétrica"
@@ -361,8 +367,13 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button type="submit" variant="contained">
-            {formData.id ? "Atualizar" : "Criar"}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Salvando..." : formData.id ? "Atualizar" : "Criar"}
           </Button>
         </DialogActions>
       </form>
