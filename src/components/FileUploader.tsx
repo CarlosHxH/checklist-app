@@ -59,10 +59,6 @@ const FileUploader = ({ label, name, value, error, helperText, onChange, disable
       reader.readAsDataURL(file); // Read the file as a data URL
     }
   };
-  const handleRemoveFile = () => {
-    setBase64String(""); // Clear the Base64 string
-    setFileName(""); // Clear the file name
-  };
 
   React.useEffect(()=>{
     if (onChange) {
