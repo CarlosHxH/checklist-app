@@ -79,7 +79,6 @@ const FileUploader = ({ label, name, value, error, helperText, onChange, disable
     }
   },[base64String, fileName])
 
-
   React.useMemo(()=>{
     if (value) {
       setBase64String(value);
