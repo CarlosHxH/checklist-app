@@ -12,7 +12,6 @@ type PrismaInspection = {
   id: string;
   plate: string;
   created_at: Date;
-  // outros campos necessários...
 }
 async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
   const currentYear = new Date().getFullYear();
@@ -38,6 +37,7 @@ async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
     }
   });
 
+  
   // Agrupar inspeções por placa
   const groupedByPlate = inspections.reduce((acc, inspection) => {
     if (!acc[inspection.vehicle.plate]) {

@@ -26,7 +26,7 @@ export const InspectionSchema = z.object({
   descricaoAvariasBau: z.string().optional().nullable(),
   funcionamentoParteEletrica: z.string(),
   descricaoParteEletrica: z.string().optional().nullable(),
-  fotoVeiculo: z.string().min(1,"Tire uma foto do veiculo."),
+  fotoVeiculo: z.string().optional().nullable(),
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;

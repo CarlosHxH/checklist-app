@@ -14,14 +14,12 @@ import ChartUserByCountry from "@/components/Dashboard/ChartUserByCountry";
 import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
-import { useSession } from "next-auth/react";
 
 export default function DashboardContent() {
   const { data, isLoading } = useSWR("/api/admin", fetcher);
-  const { data:session, status, update} = useSession();
+
   if (isLoading) return <Loading />;
-  console.log({session, status, update});
-  
+
   return (
     <Box sx={{ display: "flex" }}>
       <Box
