@@ -206,7 +206,7 @@ const ViewInspectionPage: React.FC = () => {
             </Grid>
           </Section>
           {/* Foto veiculo */}
-          <Section title="Foto do Veículo:">
+          {/*<Section title="Foto do Veículo:">
             <Grid container spacing={2}>
               <Grid item xs={12} md={12}>
                 <Image
@@ -217,7 +217,7 @@ const ViewInspectionPage: React.FC = () => {
                 />
               </Grid>
             </Grid>
-          </Section>
+          </Section>*/}
         </Paper>
       </Container>
     </Box>

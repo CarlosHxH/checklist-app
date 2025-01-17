@@ -366,7 +366,7 @@ const InspectionForm: React.FC = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} md={12}>
+          {/*<Grid item xs={12} md={12}>
             <Divider>Foto do veiculo</Divider>
             <FileUploader
               label={"Foto do veiculo de frente"}
@@ -376,7 +376,7 @@ const InspectionForm: React.FC = () => {
               helperText={errors.fotoVeiculo}
               onChange={onChange}
             />
-          </Grid>
+          </Grid>*/}
 
           <Grid item xs={12} md={12}>
             {withErros && <Typography mx={'auto'} color="error">Campos não preenchidos!</Typography>}

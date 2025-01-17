@@ -354,7 +354,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
               )}
             </Grid>
 
-            <Grid item xs={12}>
+            {/*<Grid item xs={12}>
               <Divider>Foto do veiculo</Divider>
               <FileUploader
                 label="Foto Veiculo"
@@ -364,7 +364,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                 error={!!errors.fotoVeiculo}
                 helperText={errors.fotoVeiculo}
               />
-            </Grid>
+            </Grid>*/}
           </Grid>
         </DialogContent>
         <DialogActions>

@@ -1,11 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
+import { TextField, Button, Grid, Typography, Paper } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import { useRouter, useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import ButtonLabel from "@/components/ButtonLabel";
-import FileUploader from "@/components/FileUploader";
 
 interface Vehicle {
   id: string;
@@ -272,7 +271,7 @@ const EditInspectionPage: React.FC = () => {
           </Grid>
 
           {/* Photo Upload */}
-          <Grid item xs={12}>
+          {/*<Grid item xs={12}>
             <Divider>Foto do veículo</Divider>
             <FileUploader
               label="Foto do veículo de frente"
@@ -280,7 +279,7 @@ const EditInspectionPage: React.FC = () => {
               value={formData.fotoVeiculo}
               onChange={handleChange}
             />
-          </Grid>
+          </Grid>*/}
 
           {/* Submit Button */}
           <Grid item xs={12}>
