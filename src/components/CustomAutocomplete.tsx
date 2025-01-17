@@ -70,6 +70,7 @@ export default function CustomAutocomplete({
         <StyledInput
           {...getInputProps()}
           name={name}
+          value={value ? value[keyExtractor] : ''}
           placeholder={label ? `${label} *` : ''}
           required
         />

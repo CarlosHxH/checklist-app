@@ -119,6 +119,7 @@ const InspectionForm: React.FC = () => {
               onChange={onChange}
               options={vehicles}
               name={"vehicleId"}
+              defaultValue={formData.vehicleId}
             />
           </Grid>
 
