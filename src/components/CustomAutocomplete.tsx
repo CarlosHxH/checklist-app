@@ -120,7 +120,7 @@ const StyledInput = styled('input')`
 
 const StyledListbox = styled('ul')`
   position: absolute;
-  z-index: 1;
+  z-index: 999;
   width: 100%;
   margin: 8px 0;
   padding: 8px;

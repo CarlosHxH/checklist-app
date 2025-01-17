@@ -2,7 +2,6 @@ import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField } from "@mui/material";
 import ButtonLabel from "@/components/ButtonLabel";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
-import FileUploader from "@/components/FileUploader";
 import { InspectionSchema } from '@/lib/InspectionSchema';
 import { z } from "zod";
 import { DataType } from "@/lib/formDataTypes";
@@ -152,7 +151,6 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         <DialogContent>
           <Grid container spacing={3}>
             <SectionDivider title="Dados do usuario" />
-
             <Grid item xs={12} md={12}>
               <ButtonLabel
                 label="Viagem"
