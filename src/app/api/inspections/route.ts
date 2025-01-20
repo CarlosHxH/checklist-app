@@ -18,20 +18,20 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: NextRequest) {
+  const body = await request.json();
   try {
-    const body = await request.json();
     const dataForm = { ...body};
     delete dataForm.id;
     delete dataForm.dataInspecao;
 
     const data = InspectionSchema.parse(dataForm);
-
+    
     const inspection = await prisma.inspection.create({data});
 
     return NextResponse.json(inspection);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to create inspection', body, details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 403 }
     );
   } finally {

@@ -1,6 +1,7 @@
 import { useAutocomplete } from '@mui/base/useAutocomplete';
 import { styled } from '@mui/system';
-import { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect } from 'react';
+import { useController, Control } from 'react-hook-form';
 
 interface Option {
   id: string;
@@ -11,10 +12,8 @@ interface AutocompleteProps {
   name: string;
   label?: string;
   options: Option[];
-  error?: boolean | string;
-  helperText?: string;
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
-  defaultValue?: string | boolean;
+  control: Control<any>;
+  rules?: Record<string, any>;
   keyExtractor?: keyof Option;
 }
 
@@ -22,13 +21,19 @@ export default function CustomAutocomplete({
   name,
   label,
   options,
-  onChange,
-  error,
-  helperText,
-  defaultValue,
+  control,
+  rules,
   keyExtractor = 'plate',
 }: AutocompleteProps) {
-  const [value, setValue] = useState<Option | null>(null);
+  const [ value, setValue ] = React.useState<Option | null>(null);
+  const {
+    field: { value: fieldValue, onChange },
+    fieldState: { error }
+  } = useController({
+    name,
+    control,
+    rules
+  });
 
   const {
     getRootProps,
@@ -37,32 +42,26 @@ export default function CustomAutocomplete({
     getOptionProps,
     groupedOptions,
     focused,
+    //value,
+    //inputValue
   } = useAutocomplete({
     options,
     getOptionLabel: (option: Option) => option[keyExtractor] || '',
-    value,
+    value: options.find(opt => opt.id === fieldValue) || null,
     onChange: (_, newValue) => {
-      setValue(newValue);
-      if (onChange) {
-        onChange({
-          target: {
-            name,
-            value: newValue?.id ?? null,
-            type: 'text',
-            checked: false,
-            valueAsNumber: 0,
-            valueAsDate: null
-          }
-        } as ChangeEvent<HTMLInputElement>);
-      }
+      //setValue(newValue);
+      onChange(newValue?.id ?? null);
     },
     isOptionEqualToValue: (option, value) => 
       option?.[keyExtractor] === value?.[keyExtractor],
   });
 
   useEffect(() => {
-    if (defaultValue && options.length) setValue(options.filter(e=>e.id===defaultValue)[0]);
-  }, [defaultValue, options]);
+    if (fieldValue && options.length) {
+      const selectedOption = options.find(opt => opt.id === fieldValue);
+      if (selectedOption) setValue(selectedOption);
+    }
+  }, [fieldValue, options, setValue]);
 
   return (
     <div style={{ marginBottom: '1rem', position: 'relative' }}>
@@ -75,7 +74,7 @@ export default function CustomAutocomplete({
           required
         />
       </StyledRoot>
-      {helperText && <ErrorText>{helperText}</ErrorText>}
+      {error && <ErrorText>{error.message}</ErrorText>}
       {groupedOptions.length > 0 && (
         <StyledListbox {...getListboxProps()}>
           {(groupedOptions as Option[]).map((option, index) => (
@@ -155,11 +154,6 @@ const ErrorText = styled('span')`
   margin-top: 4px;
   display: block;
 `;
-
-
-
-
-
 /*
 
 const blue = {

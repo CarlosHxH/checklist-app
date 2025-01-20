@@ -14,11 +14,41 @@ import ChartUserByCountry from "@/components/Dashboard/ChartUserByCountry";
 import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
+import { Button } from "@mui/material";
+
 
 export default function DashboardContent() {
   const { data, isLoading } = useSWR("/api/admin", fetcher);
-
   if (isLoading) return <Loading />;
+  console.log(data);
+  
+  const exportToCSV = () => {
+    if (!data) return;
+
+    const csvRows = [];
+    // Adiciona o cabeçalho
+    csvRows.push(['Mês', 'Valor']);
+
+    // Adiciona os dados
+    data.forEach((item: any, index: number) => {
+      const month = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][index];
+      item.data.forEach((value: any) => {
+        csvRows.push([month, value]);
+      });
+    });
+
+    // Cria um blob e inicia o download
+    const csvString = csvRows.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', 'true');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'dados_inspecoes.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -89,6 +119,10 @@ export default function DashboardContent() {
             )}
           </Box>
         </Stack>
+        {/* Botão para exportar para CSV */}
+        <Button variant="contained" color="primary" onClick={exportToCSV}>
+          Exportar para CSV
+        </Button>
       </Box>
     </Box>
   );
