@@ -1,150 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String  @map("user_id")
-  type               String
-  provider           String
-  providerAccountId  String  @map("provider_account_id")
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_user_id_fkey")
   @@map("accounts")
 }
-
 
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique @map("session_token")
   userId       String   @map("user_id")
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_user_id_fkey")
   @@map("sessions")
-}
-
-model User {
-  id            String    @id @default(cuid())
-  username      String    @unique
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  password      String
-  name          String
-  role          String    @default("DRIVER")
-  image         String?
-  isActive      Boolean?   @default(true)
-
-  lastLogin  DateTime?
-
-  loginCount Int?       @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime?  @updatedAt
-
-  accounts      Account[]
-  sessions      Session[]
-  inspections   Inspection[]
-  vehicleKey vehicleKey[]
-  accesses  Access[]
-}
-
-model Access {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  page      String
-  ipAddress String
-  userAgent String
-  timestamp DateTime @default(now())
 }
 
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
 
-model Vehicle {
-  id           String       @id @default(cuid())
-  make         String?
-  model        String?
-  year         String?
-  eixo         String
-  plate String      @unique
-  inspections  Inspection[]
+model access {
+  id        String   @id
+  userId    String
+  page      String
+  ipAddress String
+  userAgent String
+  timestamp DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], map: "Access_userId_fkey")
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime?  @updatedAt
-
-  vehicleKey vehicleKey[]
+  @@index([userId], map: "Access_userId_fkey")
 }
 
-model vehicleKey {
-  id           String       @id @default(cuid())
-  userId       String
-  vehicleId    String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime?  @updatedAt
-  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicle      Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+model inspection {
+  id                         String    @id
+  userId                     String
+  vehicleId                  String
+  vehicleKey                 String?
+  dataInspecao               DateTime? @default(now())
+  status                     String?
+  crlvEmDia                  String?
+  certificadoTacografoEmDia  String?
+  nivelAgua                  String?
+  nivelOleo                  String?
+  eixo                       String?
+  dianteira                  String?
+  descricaoDianteira         String?
+  tracao                     String?
+  descricaoTracao            String?
+  truck                      String?
+  descricaoTruck             String?
+  quartoEixo                 String?
+  descricaoQuartoEixo        String?
+  avariasCabine              String?
+  descricaoAvariasCabine     String?
+  bauPossuiAvarias           String?
+  descricaoAvariasBau        String?
+  funcionamentoParteEletrica String?
+  descricaoParteEletrica     String?
+  fotoVeiculo                String?   @db.LongText
+  isFinished                 Boolean?  @default(false)
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime?
+  kilometer                  String?
+  user                       user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
+  vehicle                    vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
+
+  @@index([userId], map: "Inspection_userId_fkey")
+  @@index([vehicleId], map: "Inspection_vehicleId_fkey")
 }
 
-model Inspection {
-  id                               String   @id @default(cuid())
-  userId                           String
-  vehicleId                        String
-  vehicleKey                       String?
+model user {
+  id             String       @id
+  username       String       @unique(map: "User_username_key")
+  email          String?      @unique(map: "User_email_key")
+  email_verified DateTime?
+  password       String
+  name           String
+  role           String       @default("DRIVER")
+  image          String?
+  isActive       Boolean?     @default(true)
+  lastLogin      DateTime?
+  loginCount     Int?         @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime?
+  access         access[]
+  accounts       Account[]
+  inspection     inspection[]
+  sessions       Session[]
+  vehiclekey     vehiclekey[]
+}
 
-  dataInspecao                     DateTime?  @default(now())
-  status                           String?
-  kilometer                        String?
+model vehicle {
+  id         String       @id
+  make       String?
+  model      String?
+  year       String?
+  eixo       String
+  plate      String       @unique(map: "Vehicle_plate_key")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime?
+  inspection inspection[]
+  vehiclekey vehiclekey[]
+}
 
-  crlvEmDia                        String?
-  certificadoTacografoEmDia        String?
-  nivelAgua                        String?
-  nivelOleo                        String?
+model vehiclekey {
+  id        String    @id
+  userId    String
+  vehicleId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "vehicleKey_userId_fkey")
+  vehicle   vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "vehicleKey_vehicleId_fkey")
 
-  eixo                             String?
-  dianteira                        String?
-  descricaoDianteira               String?
-  tracao                           String?
-  descricaoTracao                  String?
-  truck                            String?
-  descricaoTruck                   String?
-  quartoEixo                       String?
-  descricaoQuartoEixo              String?
-
-  avariasCabine                    String?
-  descricaoAvariasCabine           String?
-  bauPossuiAvarias                 String?
-  descricaoAvariasBau              String?
-  funcionamentoParteEletrica       String?
-  descricaoParteEletrica           String?
-
-  fotoVeiculo                      String?   @db.LongText
-
-  isFinished   Boolean?   @default(false)
-
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime?  @updatedAt
-
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  @@index([userId], map: "vehicleKey_userId_fkey")
+  @@index([vehicleId], map: "vehicleKey_vehicleId_fkey")
 }

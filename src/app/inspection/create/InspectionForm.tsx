@@ -1,7 +1,7 @@
 "use client";
 import useSWR from "swr";
-import { fetcher } from "@/lib/ultils";
 import React from "react";
+import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
@@ -9,7 +9,7 @@ import CustomAutocomplete from "@/components/CustomAutocomplete";
 import { TextField,Button,Grid,Typography,Paper,Divider} from "@mui/material";
 import { useForm, Form } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { InspectionFormData } from "./InspectionSchema";
+import { InspectionFormData } from "@/types/InspectionSchema";
 
 interface Option {
   [key: string]: any;
@@ -72,6 +72,7 @@ const InspectionForm: React.FC = () => {
   if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
   if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
   
+  console.log(errors);
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting &&<Loading/>}
@@ -87,7 +88,7 @@ const InspectionForm: React.FC = () => {
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
-
+        
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Divider>Dados do usuário</Divider>

@@ -1,20 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Paper,
-  Typography,
-  Grid,
-  Box,
-  Container,
-  Chip,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Paper,Typography,Grid,Box,Container,Chip,Card,CardContent } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import CustomFab from "@/components/CustomFab";
-import Image from "next/image";
 import Loading from "@/components/Loading";
 
 const ViewInspectionPage: React.FC = () => {
@@ -71,14 +61,20 @@ const ViewInspectionPage: React.FC = () => {
 
           <Section title="Informações do Veículo">
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <Typography variant="h6">Veículo:</Typography>
                 <Typography>
                   {inspectionData.vehicle.plate}{" "}
                   {inspectionData.vehicle.model}
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
+                <Typography variant="h6">Quilometragem:</Typography>
+                <Typography>
+                  {inspectionData.kilometer}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <Typography variant="h6">Data da Inspeção:</Typography>
                 <Typography>
                   {new Date(inspectionData.dataInspecao).toLocaleString()}

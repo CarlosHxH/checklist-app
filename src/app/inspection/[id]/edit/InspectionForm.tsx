@@ -1,302 +1,173 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { TextField, Button, Grid, Typography, Paper } from "@mui/material";
+import useSWR from "swr";
+import React from "react";
 import { fetcher } from "@/lib/ultils";
-import { useRouter, useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import ButtonLabel from "@/components/ButtonLabel";
+import { TextField,Button,Grid,Typography,Paper,Divider} from "@mui/material";
+import { useForm, Form } from "react-hook-form";
+import { useParams, useRouter } from "next/navigation";
+import { InspectionFormData } from "@/types/InspectionSchema";
 
-interface Vehicle {
+interface Option {
+  [key: string]: any;
+  setValue: (name: keyof InspectionFormData, value: any) => void;
+}
+
+interface Vehicle extends Option {
   id: string;
   plate: string;
   model: string;
 }
 
-interface InspectionFormData {
-  fotoCRLV: string | undefined;
-  fotoTacografo: string | undefined;
-  vehicle: Vehicle;
-  placa: string;
-  modelo: string;
-  crlvEmDia: boolean;
-  certificadoTacografoEmDia: boolean;
-  nivelAgua: "NORMAL" | "BAIXO" | "CRITICO";
-  nivelOleo: "NORMAL" | "BAIXO" | "CRITICO";
-  dianteira: "BOM" | "RUIM";
-  tracao?: "BOM" | "RUIM";
-  truck?: "BOM" | "RUIM";
-  quartoEixo?: "BOM" | "RUIM";
-  descricaoDianteira?: string;
-  descricaoTracao?: string;
-  descricaoTruck?: string;
-  descricaoQuartoEixo?: string;
-  avariasCabine: "SIM" | "NÃO";
-  descricaoAvariasCabine?: string;
-  bauPossuiAvarias: "SIM" | "NÃO";
-  descricaoAvariasBau?: string;
-  funcionamentoParteEletrica: "BOM" | "RUIM";
-  descricaoParteEletrica?: string;
-  fotoVeiculo?: string;
-  eixo: number;
+interface EixoSectionProps {
+  eixoNumber: number;
+  label: string;
+  fieldName: keyof InspectionFormData;
+  selectedVehicle?: Vehicle;
+  control: any;
+  register: any;
+  watch: any;
+  setValue: any;
 }
 
-const EditInspectionPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const [formData, setFormData] = useState<InspectionFormData | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchInspection = async () => {
-      try {
-        if (!id) return;
-        const data = await fetcher(`/api/inspections/${id}`);
-        setFormData(data);
-      } catch (error) {
-        setError("Erro ao carregar dados da inspeção");
-        console.error("Error fetching inspection:", error);
-      }
-    };
-
-    fetchInspection();
-  }, [id]);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target;
-    setFormData((prev) => prev ? { ...prev, [name]: value } : null);
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      if (!formData) throw new Error("Dados do formulário não disponíveis");
-
-      const response = await fetch(`/api/inspections`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Falha ao atualizar inspeção");
-      }
-
-      const result = await response.json();
-      router.push(`/inspection/${result.id}`);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Erro ao salvar inspeção");
-      console.error("Erro ao atualizar a inspeção:", error);
-      setIsSubmitting(false);
-    }
-  };
-
-
-
-  const renderConditionalTextField = ( condition: boolean, name: string, label: string ) => {
-    if (!condition || !formData) return null;
-
-    return (
-      <TextField
-        label={label}
-        name={name}
-        value={formData[name as keyof InspectionFormData]}
-        onChange={handleChange}
-        multiline
-        fullWidth
-        rows={2}
-      />
-    );
-  };
-
-  const renderEixoSection = (
-    eixoNumber: number,
-    label: string,
-    fieldName: string
-  ) => {
-    if (!formData || formData.eixo < eixoNumber) return null;
-
-    return (
-      <Grid item xs={12} md={6}>
-        <ButtonLabel
-          label={label}
-          name={fieldName}
-          options={["BOM", "RUIM"]}
-          value={String(formData[fieldName as keyof InspectionFormData] || '')}
-          onChange={handleChange}
-        />
-        {renderConditionalTextField(
-          formData[fieldName as keyof InspectionFormData] === "RUIM",
-          `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`,
-          "Qual Defeito?"
-        )}
-      </Grid>
-    );
-  };
-
-  if (!formData || isSubmitting) return <Loading />;
-  if (error) return <Typography color="error">{error}</Typography>;
-
+const EixoSection: React.FC<EixoSectionProps> = ({eixoNumber,label,fieldName,selectedVehicle,control,register,watch,setValue}) => {
+  if (!selectedVehicle || selectedVehicle.eixo < eixoNumber) return null;
+  setValue("eixo",String(eixoNumber));
+  const currentValue = watch(fieldName);
+  const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
+  if (currentValue === "BOM") setValue(field, "");
   return (
-    <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
-      <form onSubmit={handleSubmit}>
-        <Typography variant="h4" gutterBottom>
-          Editar Inspeção
-        </Typography>
-
-        <Grid container spacing={3}>
-          {/* Vehicle Information */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              label="Placa"
-              value={formData.vehicle.plate}
-              disabled
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              label="Modelo"
-              disabled
-              value={formData.vehicle.model}
-            />
-          </Grid>
-
-          {/* Documents Section */}
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="CRLV em dia"
-              name="crlvEmDia"
-              options={["SIM", "NÃO"]}
-              value={formData?.crlvEmDia}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="Certificado Tacógrafo em Dia"
-              name="certificadoTacografoEmDia"
-              options={["SIM", "NÃO"]}
-              value={formData.certificadoTacografoEmDia}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          {/* Fluid Levels */}
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="Nível de Água"
-              name="nivelAgua"
-              options={["NORMAL", "BAIXO", "CRITICO"]}
-              value={formData.nivelAgua}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="Nível de Óleo"
-              name="nivelOleo"
-              options={["NORMAL", "BAIXO", "CRITICO"]}
-              value={formData.nivelOleo}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          {/* Tires Section */}
-          <Grid item xs={12}>
-            <Typography variant="h5" sx={{ borderBottom: "1px solid #444" }}>
-              Situação dos Pneus
-            </Typography>
-          </Grid>
-
-          {/* Render tire sections based on number of axles */}
-          {renderEixoSection(1, "DIANTEIRA", "dianteira")}
-          {renderEixoSection(2, "TRAÇÃO", "tracao")}
-          {renderEixoSection(3, "TRUCK", "truck")}
-          {renderEixoSection(4, "Quarto Eixo", "quartoEixo")}
-
-          <Grid item xs={12} sx={{ borderBottom: "1px solid #444" }} />
-
-          {/* Damage Sections */}
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="Avarias na Cabine"
-              name="avariasCabine"
-              options={["NÃO", "SIM"]}
-              value={formData.avariasCabine}
-              onChange={handleChange}
-            />
-            {renderConditionalTextField(
-              formData.avariasCabine === "SIM",
-              "descricaoAvariasCabine",
-              "Qual avaria?"
-            )}
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <ButtonLabel
-              label="Avarias no Baú"
-              name="bauPossuiAvarias"
-              options={["NÃO", "SIM"]}
-              value={formData.bauPossuiAvarias}
-              onChange={handleChange}
-            />
-            {renderConditionalTextField(
-              formData.bauPossuiAvarias === "SIM",
-              "descricaoAvariasBau",
-              "Qual avaria?"
-            )}
-          </Grid>
-
-          {/* Electrical System */}
-          <Grid item xs={12}>
-            <ButtonLabel
-              label="Parte Elétrica"
-              name="funcionamentoParteEletrica"
-              options={["BOM", "RUIM"]}
-              value={formData.funcionamentoParteEletrica}
-              onChange={handleChange}
-            />
-            {renderConditionalTextField(
-              formData.funcionamentoParteEletrica === "RUIM",
-              "descricaoParteEletrica",
-              "Qual defeito?"
-            )}
-          </Grid>
-
-          {/* Photo Upload */}
-          {/*<Grid item xs={12}>
-            <Divider>Foto do veículo</Divider>
-            <FileUploader
-              label="Foto do veículo de frente"
-              name="fotoVeiculo"
-              value={formData.fotoVeiculo}
-              onChange={handleChange}
-            />
-          </Grid>*/}
-
-          {/* Submit Button */}
-          <Grid item xs={12}>
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Salvando..." : "Salvar"}
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
-    </Paper>
+    <Grid item xs={12} md={6}>
+      <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+      {currentValue === "RUIM" && (
+        <TextField {...register(field, { required: true })} label="Qual Defeito?" multiline fullWidth rows={2}/>
+      )}
+    </Grid>
   );
 };
 
-export default EditInspectionPage;
+const InspectionForm: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { register, watch, control, setValue, formState: { errors, isSubmitting }} = useForm<InspectionFormData>({
+    defaultValues: async () => {
+      const response = await fetch(`/api/inspections/${id}`);
+      const data = await response.json();
+      return data;
+    }
+  });
+  
+  if (!vehicles) return <Loading />;
+  if (error) return <div>Error loading vehicles</div>;
+
+  const selectedVehicleId = watch("vehicleId");
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+
+  // Watch values for conditional fields
+  const avariasCabine = watch("avariasCabine");
+  const bauPossuiAvarias = watch("bauPossuiAvarias");
+  const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
+  if (avariasCabine === "SIM") setValue("descricaoAvariasCabine", "");
+  if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
+  if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
+  
+  return (
+    <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
+      {isSubmitting &&<Loading/>}
+      <Form
+        method="put"
+        action={"/api/inspections"}
+        encType={'application/json'}
+        onSuccess={async({response}) => {
+          const res = await response.json()
+          router.push(`/inspection/${res.id}`);
+        }}
+        onError={(e) => {alert("Erro ao enviar os dados!")}}
+        control={control}
+      >
+        <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
+        
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Divider>Dados do usuário</Divider>
+          </Grid>
+
+          <Grid item xs={12}>
+            <ButtonLabel label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+          </Grid>
+
+          <Grid item xs={12} md={12}>
+            <Typography>Quilometragem:</Typography>
+            <TextField type="number" {...register("kilometer",{required: "Este campo é obrigatório"})} fullWidth size="small"/>
+          </Grid>
+
+          <Grid item xs={12}><Divider>Documentos</Divider></Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+          </Grid>
+
+          <Grid item xs={12}><Divider>Níveis</Divider></Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }}/>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="Nível Óleo" name="nivelOleo" options={["NORMAL", "BAIXO", "CRITICO"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+          </Grid>
+
+          {selectedVehicle && (
+            <>
+              <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
+              <EixoSection eixoNumber={1} label="DIANTEIRA" fieldName="dianteira" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue}/>
+              <EixoSection eixoNumber={2} label="TRAÇÃO" fieldName="tracao" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSection eixoNumber={3} label="TRUCK" fieldName="truck" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue}/>
+              <EixoSection eixoNumber={4} label="QUARTO EIXO" fieldName="quartoEixo" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue}/>
+            </>
+          )}
+
+          <Grid item xs={12}><Divider>Avarias</Divider></Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+            {watch("avariasCabine") === "SIM" && (
+              <TextField {...register("descricaoAvariasCabine")} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2}/>
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+            {watch("bauPossuiAvarias") === "SIM" && (
+              <TextField {...register("descricaoAvariasBau")} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
+            )}
+          </Grid>
+
+          <Grid item xs={12}>
+            <Divider>Elétrica</Divider>
+            <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+            {watch("funcionamentoParteEletrica") === "RUIM" && (
+              <TextField {...register("descricaoParteEletrica")} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2}/>
+            )}
+          </Grid>
+
+          <Grid item xs={12}>
+            {Object.keys(errors).length > 0 && (
+              <Typography color="error" align="center" gutterBottom>
+                {errors.root?.message||"Existem campos obrigatórios não preenchidos!"}
+              </Typography>
+            )}
+            <Button fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
+          </Grid>
+        </Grid>
+      </Form>
+    </Paper>
+  );
+};
+export default InspectionForm;

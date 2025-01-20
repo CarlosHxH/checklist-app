@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { InspectionSchema } from '@/lib/InspectionSchema';
+import { InspectionSchema } from '@/types/InspectionSchema';
 
 
 export async function GET(request: Request) {
@@ -17,21 +17,18 @@ export async function GET(request: Request) {
   }
 }
 
+
 export async function POST(request: NextRequest) {
-  const body = await request.json();
   try {
-    const dataForm = { ...body};
+    const body = await request.json();
+    const dataForm = { ...body };
     delete dataForm.id;
-    delete dataForm.dataInspecao;
-
     const data = InspectionSchema.parse(dataForm);
-    
-    const inspection = await prisma.inspection.create({data});
-
-    return NextResponse.json(inspection);
+    const inspection = await prisma.inspection.create({data} as any);
+    return NextResponse.json(inspection, {status:201});
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to create inspection', body, details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to create inspection', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 403 }
     );
   } finally {
@@ -45,9 +42,7 @@ export async function PUT(request: NextRequest) {
     const updateData = { ...body };
     delete updateData.id;
     const data = InspectionSchema.parse(updateData);
-    
     const inspection = await prisma.inspection.update({where: { id: body.id },data});
-
     return NextResponse.json(inspection);
   } catch (error) {
     return NextResponse.json(
@@ -59,19 +54,18 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest)
-{
-  try
-  {
+export async function DELETE(request: NextRequest) {
+  try {
     const { id } = await request.json();
     await prisma.inspection.delete({where: { id }});
     return NextResponse.json({ success: true });
-  } catch (error)
-  {
+  } catch (error) {
     console.error('Error deleting user:', error);
     return NextResponse.json(
       { error: 'Failed to delete user' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
