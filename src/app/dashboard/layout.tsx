@@ -12,6 +12,7 @@ import { Avatar } from '@mui/material';
 import { Person2 } from '@mui/icons-material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { redirect } from 'next/navigation';
+import KeyIcon from '@mui/icons-material/Key';
 
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
@@ -20,6 +21,10 @@ const createNavigation = (): Navigation => [
     title: 'Dashboard',
     icon: <DashboardIcon />,
   }, { kind: 'header', title: 'Adicionar' }, {
+    segment: 'dashboard/chave',
+    title: 'Chave',
+    icon: <KeyIcon />,
+  }, {
     segment: 'dashboard/inspection',
     title: 'Inspeções',
     icon: <BarChartIcon />,
