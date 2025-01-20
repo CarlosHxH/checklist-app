@@ -8,44 +8,17 @@ import { TextField,Button,Grid,Typography,Paper,Divider} from "@mui/material";
 import { useForm, Form } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
+import { EixoSection } from "@/components/EixoSection";
 
 interface Option {
   [key: string]: any;
   setValue: (name: keyof InspectionFormData, value: any) => void;
 }
-
 interface Vehicle extends Option {
   id: string;
   plate: string;
   model: string;
 }
-
-interface EixoSectionProps {
-  eixoNumber: number;
-  label: string;
-  fieldName: keyof InspectionFormData;
-  selectedVehicle?: Vehicle;
-  control: any;
-  register: any;
-  watch: any;
-  setValue: any;
-}
-
-const EixoSection: React.FC<EixoSectionProps> = ({eixoNumber,label,fieldName,selectedVehicle,control,register,watch,setValue}) => {
-  if (!selectedVehicle || selectedVehicle.eixo < eixoNumber) return null;
-  setValue("eixo",String(eixoNumber));
-  const currentValue = watch(fieldName);
-  const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
-  if (currentValue === "BOM") setValue(field, "");
-  return (
-    <Grid item xs={12} md={6}>
-      <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
-      {currentValue === "RUIM" && (
-        <TextField {...register(field, { required: true })} label="Qual Defeito?" multiline fullWidth rows={2}/>
-      )}
-    </Grid>
-  );
-};
 
 const InspectionForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +28,8 @@ const InspectionForm: React.FC = () => {
     defaultValues: async () => {
       const response = await fetch(`/api/inspections/${id}`);
       const data = await response.json();
-      return data;
+      if (data.isFinished) router.replace('/');
+      else return{...data, isFinished: true}
     }
   });
   
@@ -72,7 +46,7 @@ const InspectionForm: React.FC = () => {
   if (avariasCabine === "SIM") setValue("descricaoAvariasCabine", "");
   if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
   if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
-  
+
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting &&<Loading/>}
@@ -163,7 +137,7 @@ const InspectionForm: React.FC = () => {
                 {errors.root?.message||"Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
-            <Button fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
+            <Button fullWidth disabled={isSubmitting} type="submit" variant="contained" color="primary">Salvar</Button>
           </Grid>
         </Grid>
       </Form>

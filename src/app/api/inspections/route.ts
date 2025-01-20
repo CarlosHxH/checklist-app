@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const dataForm = { ...body };
     delete dataForm.id;
+    console.log(dataForm);
+    
     const data = InspectionSchema.parse(dataForm);
     const inspection = await prisma.inspection.create({data} as any);
     return NextResponse.json(inspection, {status:201});
@@ -35,6 +37,12 @@ export async function POST(request: NextRequest) {
     await prisma.$disconnect();
   }
 }
+
+
+
+
+
+
 
 export async function PUT(request: NextRequest) {
   try {

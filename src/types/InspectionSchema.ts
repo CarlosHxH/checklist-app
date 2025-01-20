@@ -28,6 +28,8 @@ export const InspectionSchema = z.object({
   funcionamentoParteEletrica: z.string(),
   descricaoParteEletrica: z.string().optional().nullable(),
   fotoVeiculo: z.string().optional().nullable(),
+
+  isFinished: z.boolean().optional()
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;

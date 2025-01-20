@@ -20,7 +20,6 @@ import { Button } from "@mui/material";
 export default function DashboardContent() {
   const { data, isLoading } = useSWR("/api/admin", fetcher);
   if (isLoading) return <Loading />;
-  console.log(data);
   
   const exportToCSV = () => {
     if (!data) return;

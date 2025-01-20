@@ -52,6 +52,7 @@ export type InspectionType = {
     fotoVeiculo: string;
     vehicle?: VehicleType;
     user?: UserType;
+    isFinished?: boolean;
 };
 
 export type InspectionFormData  = {
@@ -85,7 +86,7 @@ export type InspectionFormData  = {
 }
 
 export type DataType = {
-    vehicle?: VehicleType[];
-    inspections?: InspectionType[];
-    user?: UserType[];
+    user: UserType[];
+    vehicle: VehicleType[];
+    inspections: InspectionType[];
 }

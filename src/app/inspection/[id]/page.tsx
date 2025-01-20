@@ -51,7 +51,7 @@ const ViewInspectionPage: React.FC = () => {
         showBackButton
       />
 
-      <CustomFab variant={"Edit"} href={`/inspection/${id}/edit`} />
+      {!inspectionData.isFinished && <CustomFab variant={"Edit"} href={`/inspection/${id}/edit`} />}
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
@@ -61,25 +61,33 @@ const ViewInspectionPage: React.FC = () => {
 
           <Section title="Informações do Veículo">
             <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="h6">Veículo:</Typography>
                 <Typography>
                   {inspectionData.vehicle.plate}{" "}
                   {inspectionData.vehicle.model}
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6">Quilometragem:</Typography>
-                <Typography>
-                  {inspectionData.kilometer}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="h6">Data da Inspeção:</Typography>
                 <Typography>
                   {new Date(inspectionData.dataInspecao).toLocaleString()}
                 </Typography>
               </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6">Status da viagem</Typography>
+                <Typography>
+                  {inspectionData.status}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6">Quilometragem:</Typography>
+                <Typography>
+                  {Number(inspectionData.kilometer)}
+                </Typography>
+              </Grid>
+
+
             </Grid>
           </Section>
 

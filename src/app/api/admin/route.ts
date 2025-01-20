@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { InspectionSchema } from "@/lib/InspectionSchema";
 import { getOccurrences } from "@/lib/occurrences";
 
 const months = [
@@ -55,10 +54,10 @@ export async function POST(request: Request) {
 
     if (!data.dataInspecao) delete data.dataInspecao;
 
-    const validatedData = InspectionSchema.parse(newData);
+    //const validatedData = InspectionSchema.parse(newData);
 
     const inspection = await prisma.inspection.create({
-      data: validatedData,
+      data: newData as any,
       include: {
         user: true,
         vehicle: true,
@@ -82,11 +81,11 @@ export async function PUT(request: Request) {
 
     if (!!updateData.dataInspecao) delete updateData.dataInspecao;
 
-    const validatedData = InspectionSchema.parse(updateData);
+    //const validatedData = InspectionSchema.parse(updateData);
 
     const inspection = await prisma.inspection.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
       include: {
         user: true,
         vehicle: true,

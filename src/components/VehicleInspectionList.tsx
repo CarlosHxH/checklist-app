@@ -36,6 +36,7 @@ interface VehicleInspection {
     plate: string;
     model: string;
   };
+  isFinished: boolean;
 }
 
 export default function VehicleInspectionList({
@@ -133,7 +134,7 @@ export default function VehicleInspectionList({
                           <ViewIcon />
                         </IconButton>
                       )}
-                      {onEdit && (
+                      {onEdit && !inspection.isFinished && (
                         <IconButton
                           onClick={() => onEdit(inspection.id)}
                           color="primary"

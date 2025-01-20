@@ -7,6 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model user {
+  id             String       @id @default(cuid())
+  username       String       @unique(map: "User_username_key")
+  email          String?      @unique(map: "User_email_key")
+  email_verified DateTime?
+  password       String
+  name           String
+  role           String       @default("DRIVER")
+  image          String?
+  isActive       Boolean?     @default(true)
+  lastLogin      DateTime?
+  loginCount     Int?         @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime?
+  access         access[]
+  accounts       Account[]
+  inspection     inspection[]
+  sessions       Session[]
+  vehiclekey     vehiclekey[]
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -48,7 +69,7 @@ model VerificationToken {
 }
 
 model access {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   page      String
   ipAddress String
@@ -60,7 +81,7 @@ model access {
 }
 
 model inspection {
-  id                         String    @id
+  id                         String    @id @default(cuid())
   userId                     String
   vehicleId                  String
   vehicleKey                 String?
@@ -86,7 +107,7 @@ model inspection {
   funcionamentoParteEletrica String?
   descricaoParteEletrica     String?
   fotoVeiculo                String?   @db.LongText
-  isFinished                 Boolean?  @default(false)
+  isFinished                 Boolean
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime?
   kilometer                  String?
@@ -97,33 +118,12 @@ model inspection {
   @@index([vehicleId], map: "Inspection_vehicleId_fkey")
 }
 
-model user {
-  id             String       @id
-  username       String       @unique(map: "User_username_key")
-  email          String?      @unique(map: "User_email_key")
-  email_verified DateTime?
-  password       String
-  name           String
-  role           String       @default("DRIVER")
-  image          String?
-  isActive       Boolean?     @default(true)
-  lastLogin      DateTime?
-  loginCount     Int?         @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime?
-  access         access[]
-  accounts       Account[]
-  inspection     inspection[]
-  sessions       Session[]
-  vehiclekey     vehiclekey[]
-}
-
 model vehicle {
-  id         String       @id
+  id         String       @id @default(cuid())
   make       String?
   model      String?
   year       String?
-  eixo       String
+  eixo       String?
   plate      String       @unique(map: "Vehicle_plate_key")
   createdAt  DateTime     @default(now())
   updatedAt  DateTime?
@@ -132,7 +132,7 @@ model vehicle {
 }
 
 model vehiclekey {
-  id        String    @id
+  id        String    @id @default(cuid())
   userId    String
   vehicleId String
   createdAt DateTime  @default(now())

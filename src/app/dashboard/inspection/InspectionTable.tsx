@@ -37,6 +37,7 @@ export const InspectionTable = ({
           <TableRow>
             <TableCell>Usuário</TableCell>
             <TableCell>Placa</TableCell>
+            <TableCell>Status</TableCell>
             {!isMobile && <TableCell>Modelo</TableCell>}
             {!isMobile && <TableCell>Data</TableCell>}
             <TableCell align="right">Ações</TableCell>
@@ -49,6 +50,7 @@ export const InspectionTable = ({
               <TableRow key={inspection.id}>
                 <TableCell>{inspection.user?.name}</TableCell>
                 <TableCell>{inspection?.vehicle?.plate}</TableCell>
+                <TableCell sx={{color: inspection?.isFinished?'#43a047':'#e53935'}}>{inspection?.isFinished?"Finalizada":"Não finalizada"}</TableCell>
                 {!isMobile && <TableCell>{inspection?.vehicle?.model}</TableCell>}
                 {!isMobile && <TableCell>{formatDate(inspection.dataInspecao)}</TableCell>}
                 <TableCell align="right">
