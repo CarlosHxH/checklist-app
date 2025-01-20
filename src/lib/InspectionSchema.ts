@@ -5,6 +5,7 @@ export const InspectionSchema = z.object({
   status: z.enum(["INICIO", "FINAL"]).optional().nullable(),
   userId: z.string().min(1),
   vehicleId: z.string().min(1),
+  kilometer: z.string().optional().nullable(),
   
   crlvEmDia: z.string().optional().nullable(),
   certificadoTacografoEmDia: z.string().optional().nullable(),

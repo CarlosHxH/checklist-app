@@ -13,6 +13,5 @@ export const UserSchema = z.object({
 });
 
 export type User = z.infer<typeof UserSchema>;
-
 export type UserCreateInput = Omit<User, 'id' | 'createdAt'>;
 export type UserUpdateInput = Partial<Omit<User, 'id' | 'createdAt'>> & { id: string };

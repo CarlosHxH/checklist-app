@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
             value: "http://wks-ti004.5stransportes.com.br",
           },
           {
+            key: "Access-Control-Allow-Origin",
+            value: "0.0.0.0",
+          },
+          {
             key: "Access-Control-Allow-Methods",
             value: "GET, POST, OPTIONS, PUT, PATCH, DELETE",
           },

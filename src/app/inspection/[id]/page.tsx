@@ -1,20 +1,10 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Paper,
-  Typography,
-  Grid,
-  Box,
-  Container,
-  Chip,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Paper, Typography, Grid, Box, Container, Chip, Card, CardContent } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import CustomFab from "@/components/CustomFab";
-import Image from "next/image";
 import Loading from "@/components/Loading";
 
 const ViewInspectionPage: React.FC = () => {
@@ -33,13 +23,11 @@ const ViewInspectionPage: React.FC = () => {
   }, [id]);
 
   if (!inspectionData) return <Loading />;
-  
+
   const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
+        <Typography variant="h6" gutterBottom>{title}</Typography>
         {children}
       </CardContent>
     </Card>
@@ -52,7 +40,6 @@ const ViewInspectionPage: React.FC = () => {
     return <Chip label={status || config.label} color={config.color} size="small" />;
   };
 
-
   return (
     <Box>
       <ResponsiveAppBar
@@ -64,24 +51,30 @@ const ViewInspectionPage: React.FC = () => {
       <CustomFab variant={"Edit"} href={`/inspection/${id}/edit`} />
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
+        <Paper sx={{ p: 3, maxWidth: 800, margin: "auto", overflowY: 'auto', maxHeight: '80vh' }}>
           <Typography variant="h4" gutterBottom>
             Detalhes da Inspeção
           </Typography>
 
           <Section title="Informações do Veículo">
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
+                <Typography variant="h6">Data da Inspeção:</Typography>
+                <Typography>
+                  {new Date(inspectionData.dataInspecao).toLocaleString()}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <Typography variant="h6">Veículo:</Typography>
                 <Typography>
                   {inspectionData.vehicle.plate}{" "}
                   {inspectionData.vehicle.model}
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Data da Inspeção:</Typography>
+              <Grid item xs={12} md={4}>
+                <Typography variant="h6">Kilometragem:</Typography>
                 <Typography>
-                  {new Date(inspectionData.dataInspecao).toLocaleString()}
+                  {inspectionData.kilometer || "N/A"}
                 </Typography>
               </Grid>
             </Grid>
@@ -205,19 +198,6 @@ const ViewInspectionPage: React.FC = () => {
               </Grid>
             </Grid>
           </Section>
-          {/* Foto veiculo */}
-          {/*<Section title="Foto do Veículo:">
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={12}>
-                <Image
-                  width={100}
-                  height={100}
-                  src={inspectionData?.fotoVeiculo || "/assets/img/placeholder.png"}
-                  alt={""}
-                />
-              </Grid>
-            </Grid>
-          </Section>*/}
         </Paper>
       </Container>
     </Box>

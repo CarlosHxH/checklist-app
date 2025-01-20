@@ -3,9 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const inspections = await prisma.inspection.findMany({ include: { vehicle: true, user: true } });
+    const inspections = await prisma.inspection.findMany({ include: { vehicle: true, user: true }});
     const vehicle = await prisma.vehicle.findMany();
-    const user = await prisma.user.findMany( {where: { username:{ not: "admin" }}})
+    const user = await prisma.user.findMany( {where: { username:{ not: "admin" }},select:{
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      role: true
+    }})
 
     return NextResponse.json({ inspections, vehicle, user });
   } catch (error) {
@@ -15,6 +21,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 export async function POST(request: NextRequest) {
   try {

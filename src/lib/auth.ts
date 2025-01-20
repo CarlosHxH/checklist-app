@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { generateToken } from "./auth/jwt";
+import { generateToken, verifyToken } from "./auth/jwt";
 import { type User } from "@prisma/client";
 import { hoje } from "./ultils";
 
@@ -69,8 +69,10 @@ export const authOptions: NextAuthOptions = {
           // Atualizar ou criar Account
           try {
             // Gerar access token
-            const expires_at = Math.floor(Date.now() / 1000) + .01 * 60 * 60;
-            const access_token = generateToken({id: user.id, username:user.username});
+            //const expires_at = Math.floor(Date.now() / 1000) + .01 * 60 * 60;
+            
+            const access_token = await generateToken({id: user.id, username:user.username});
+            const expire_token = await verifyToken(access_token);
             await prisma.account.upsert({
               where: {
                 provider_providerAccountId: {
@@ -84,12 +86,12 @@ export const authOptions: NextAuthOptions = {
                 provider: "credentials",
                 providerAccountId: user.id,
                 access_token: access_token,
-                expires_at,
+                expires_at: expire_token?.exp,
                 token_type: "Bearer",
               },
               update: {
                 access_token: access_token,
-                expires_at,
+                expires_at: expire_token?.exp,
               },
             });
             console.log("Sucesso ao atualizar account:",user.username);

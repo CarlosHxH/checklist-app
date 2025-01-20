@@ -5,45 +5,13 @@ import { fetcher } from "@/lib/ultils";
 import { useRouter, useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import ButtonLabel from "@/components/ButtonLabel";
+import { InspectionForm } from "@/lib/formDataTypes";
 
-interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-}
-
-interface InspectionFormData {
-  fotoCRLV: string | undefined;
-  fotoTacografo: string | undefined;
-  vehicle: Vehicle;
-  placa: string;
-  modelo: string;
-  crlvEmDia: boolean;
-  certificadoTacografoEmDia: boolean;
-  nivelAgua: "NORMAL" | "BAIXO" | "CRITICO";
-  nivelOleo: "NORMAL" | "BAIXO" | "CRITICO";
-  dianteira: "BOM" | "RUIM";
-  tracao?: "BOM" | "RUIM";
-  truck?: "BOM" | "RUIM";
-  quartoEixo?: "BOM" | "RUIM";
-  descricaoDianteira?: string;
-  descricaoTracao?: string;
-  descricaoTruck?: string;
-  descricaoQuartoEixo?: string;
-  avariasCabine: "SIM" | "NÃO";
-  descricaoAvariasCabine?: string;
-  bauPossuiAvarias: "SIM" | "NÃO";
-  descricaoAvariasBau?: string;
-  funcionamentoParteEletrica: "BOM" | "RUIM";
-  descricaoParteEletrica?: string;
-  fotoVeiculo?: string;
-  eixo: number;
-}
 
 const EditInspectionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [formData, setFormData] = useState<InspectionFormData | null>(null);
+  const [formData, setFormData] = useState<InspectionForm | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,16 +62,14 @@ const EditInspectionPage: React.FC = () => {
     }
   };
 
-
-
-  const renderConditionalTextField = ( condition: boolean, name: string, label: string ) => {
+  const renderConditionalTextField = (condition: boolean, name: string, label: string) => {
     if (!condition || !formData) return null;
 
     return (
       <TextField
         label={label}
         name={name}
-        value={formData[name as keyof InspectionFormData]}
+        value={formData[name as keyof InspectionForm]}
         onChange={handleChange}
         multiline
         fullWidth
@@ -125,11 +91,11 @@ const EditInspectionPage: React.FC = () => {
           label={label}
           name={fieldName}
           options={["BOM", "RUIM"]}
-          value={String(formData[fieldName as keyof InspectionFormData] || '')}
+          value={String(formData[fieldName as keyof InspectionForm] || '')}
           onChange={handleChange}
         />
         {renderConditionalTextField(
-          formData[fieldName as keyof InspectionFormData] === "RUIM",
+          formData[fieldName as keyof InspectionForm] === "RUIM",
           `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`,
           "Qual Defeito?"
         )}
@@ -154,17 +120,20 @@ const EditInspectionPage: React.FC = () => {
               required
               fullWidth
               label="Placa"
-              value={formData.vehicle.plate}
+              value={formData.vehicle.plate+" "+formData.vehicle.model}
               disabled
             />
           </Grid>
+
           <Grid item xs={12} md={6}>
             <TextField
               required
               fullWidth
-              label="Modelo"
-              disabled
-              value={formData.vehicle.model}
+              name="kilometer"
+              type="number"
+              label="Kilometragem"
+              value={formData?.kilometer||0}
+              onChange={handleChange}
             />
           </Grid>
 

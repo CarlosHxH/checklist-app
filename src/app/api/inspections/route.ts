@@ -20,10 +20,11 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const dataForm = { ...body};
+    const dataForm = { ...body, kilometer: String(body.kilometer)};
+    
     delete dataForm.id;
     delete dataForm.dataInspecao;
-
+    
     const data = InspectionSchema.parse(dataForm);
 
     const inspection = await prisma.inspection.create({data});

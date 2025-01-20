@@ -7,7 +7,6 @@ import Loading from "@/components/Loading";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
-import FileUploader from "@/components/FileUploader";
 import { InspectionSchema } from "./InspectionSchema";
 import { InspectionFormData } from "@/lib/formDataTypes";
 import CustomAutocomplete from "@/components/CustomAutocomplete";
@@ -26,8 +25,8 @@ const InspectionForm: React.FC = () => {
     userId: session?.user.id,
     vehicleId: "",
     eixo: "0",
+    kilometer: "",
   });
-
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -64,7 +63,7 @@ const InspectionForm: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...validatedData }),
       });
-      
+
       if (response.ok) {
         const res = await response.json();
         router.push(`/inspection/${res.id}`);
@@ -110,6 +109,18 @@ const InspectionForm: React.FC = () => {
               options={["INICIO", "FINAL"]}
               error={!!errors.status}
               helperText={errors.status}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={12}>
+            <TextField
+              label={"Kilometragem:"}
+              name="kilometer"
+              value={formData.kilometer || ""}
+              onChange={onChange}
+              fullWidth
+              error={!!errors.kilometer}
+              helperText={errors.kilometer}
             />
           </Grid>
 
@@ -366,18 +377,6 @@ const InspectionForm: React.FC = () => {
                 multiline fullWidth rows={2} disabled />
             )}
           </Grid>
-
-          {/*<Grid item xs={12} md={12}>
-            <Divider>Foto do veiculo</Divider>
-            <FileUploader
-              label={"Foto do veiculo de frente"}
-              name={"fotoVeiculo"}
-              value={formData.fotoVeiculo}
-              error={!!errors.fotoVeiculo}
-              helperText={errors.fotoVeiculo}
-              onChange={onChange}
-            />
-          </Grid>*/}
 
           <Grid item xs={12} md={12}>
             {withErros && <Typography mx={'auto'} color="error">Campos não preenchidos!</Typography>}
