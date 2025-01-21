@@ -107,10 +107,10 @@ model inspection {
   funcionamentoParteEletrica String?
   descricaoParteEletrica     String?
   fotoVeiculo                String?   @db.LongText
-  isFinished                 Boolean
   createdAt                  DateTime  @default(now())
   updatedAt                  DateTime?
   kilometer                  String?
+  isFinished                 Boolean?  @default(false)
   user                       user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
   vehicle                    vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
 

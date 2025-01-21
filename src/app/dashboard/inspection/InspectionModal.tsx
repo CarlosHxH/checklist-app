@@ -9,58 +9,26 @@ import { EixoSection } from "@/components/EixoSection";
 import SectionDivider from "@/components/SectionDivider";
 import ComboBox from "@/components/ComboBox";
 
-
-type Status = "INICIO" | "FINAL";
-type Condition = "BOM" | "RUIM";
-type YesNo = "SIM" | "NÃO";
-type Level = "NORMAL" | "BAIXO" | "CRITICO";
-
-interface FormFields {
-  id?: string;
-  status: Status;
-  userId: string;
-  kilometer: string;
-  vehicleId: string;
-  crlvEmDia: YesNo;
-  certificadoTacografoEmDia: YesNo;
-  nivelAgua: Level;
-  nivelOleo: Level;
-  dianteira: Condition;
-  descricaoDianteira?: string;
-  tracao?: Condition;
-  descricaoTracao?: string;
-  truck?: Condition;
-  descricaoTruck?: string;
-  quartoEixo?: Condition;
-  descricaoQuartoEixo?: string;
-  avariasCabine: YesNo;
-  descricaoAvariasCabine?: string;
-  bauPossuiAvarias: YesNo;
-  descricaoAvariasBau?: string;
-  funcionamentoParteEletrica: Condition;
-  descricaoParteEletrica?: string;
-  fotoVeiculo: string;
-  eixo: string;
-}
-
 interface Props {
   open: boolean;
   onClose: () => void;
   data: DataType;
-  formData: FormFields;
+  formData: InspectionFormData;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   callback?: (event: Response) => void;
 }
 
 export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData, onChange, callback }) => {
-  const { register, watch, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
-    defaultValues: { ...formData }
+  const { register, watch, reset,control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
+    defaultValues: {}
   });
-  React.useMemo(() =>
+
+  React.useMemo(() =>{
+    if (!formData.id) reset()
     Object.entries(formData).forEach(([key, value]) => {
       if (["user", "vehicle"].includes(key)) return;
-      setValue(key as keyof FormFields, value)
-    }),
+      setValue(key as keyof InspectionFormData, value)
+    })},
     [formData])
 
   if (!data.vehicle) return <Loading />;
@@ -77,8 +45,6 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
   const selectedVehicle = data.vehicle.find((v) => v.id === selectedVehicleId);
 
   if (isSubmitting) return <Loading />
-  const isFinished = watch('isFinished')
-  console.log(isFinished);
 
   return (
     <Dialog open={open}>
@@ -91,7 +57,10 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
           onClose();
           callback?.(res);
         }}
-        onError={(e) => {
+        onError={async(e) => {
+          const data = await e.response?.json();
+          console.log(data);
+          
           alert("Erro ao enviar os dados!"); console.log(e);
         }}
         control={control}
@@ -104,7 +73,15 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
             <SectionDivider title="Dados do usuario" />
 
             <Grid item xs={12}>
-              <ButtonLabel label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+              <ButtonLabel label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <ComboBox name="userId" label="Selecione um usuário" options={data.user.map((u) => ({ label: u.name, value: u.id }))} control={control} rules={{ required: 'Usuário é obrigatório' }} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <ComboBox name="vehicleId" label="Selecione um veículo" options={data.vehicle.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
             </Grid>
 
             <Grid item xs={12} md={6}>
@@ -114,11 +91,7 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
                 render={({ field }) => (
                   <Stack direction="row" sx={{alignItems:'center'}}>
                     <Typography>Finalizar viagem?</Typography>
-                    <Switch
-                      sx={{padding:1, borderRadius:1}}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
+                    <Switch sx={{padding:1, borderRadius:1}} checked={field.value} onChange={(e) => field.onChange(e.target.checked)}/>
                   </Stack>
                 )}
               />
@@ -127,15 +100,7 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
 
             <Grid item xs={12} md={6}>
               <Typography>Quilometragem:</Typography>
-              <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <ComboBox name="userId" label="Selecione um usuário" options={data.user.map((u) => ({ label: u.name, value: u.id }))} control={control} rules={{ required: 'Usuário é obrigatório' }} />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <ComboBox name="vehicleId" label="Selecione um veículo" options={data.vehicle.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
+              <TextField type="number" {...register("kilometer")} fullWidth size="small" />
             </Grid>
 
             <SectionDivider title="Documentos" />
@@ -192,13 +157,8 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={isSubmitting}
-          >
+          <Button type="reset" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
             {isSubmitting ? "Salvando..." : formData.id ? "Atualizar" : "Criar"}
           </Button>
         </DialogActions>

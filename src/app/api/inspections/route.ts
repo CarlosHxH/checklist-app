@@ -21,11 +21,8 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const dataForm = { ...body };
-    delete dataForm.id;
-    console.log(dataForm);
-    
-    const data = InspectionSchema.parse(dataForm);
+    const data = { ...body };
+    delete data.id;
     const inspection = await prisma.inspection.create({data} as any);
     return NextResponse.json(inspection, {status:201});
   } catch (error) {
@@ -40,22 +37,17 @@ export async function POST(request: NextRequest) {
 
 
 
-
-
-
-
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const updateData = { ...body };
-    delete updateData.id;
-    const data = InspectionSchema.parse(updateData);
+    const data = { ...body };
+    delete data.id;
     const inspection = await prisma.inspection.update({where: { id: body.id },data});
     return NextResponse.json(inspection);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 400 }
+      { error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error', error },
+      { status: 403 }
     );
   } finally {
     await prisma.$disconnect();
