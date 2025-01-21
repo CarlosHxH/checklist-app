@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Paper,Typography,Grid,Box,Container,Chip,Card,CardContent } from "@mui/material";
+import { Paper, Typography, Grid, Box, Container, Chip, Card, CardContent, Stack } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import CustomFab from "@/components/CustomFab";
@@ -10,20 +10,20 @@ import Loading from "@/components/Loading";
 const ViewInspectionPage: React.FC = () => {
   const router = useRouter();
   const { id } = useParams<{ id: string; tag: string; item: string }>();
-  const [inspectionData, setInspectionData] = useState<any>(null);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
     if (id) {
       const fetchInspection = async () => {
-        const data = await fetcher(`/api/inspections/${id}`);
-        setInspectionData(data);
+        const res = await fetcher(`/api/inspections/${id}`);
+        setData(res);
       };
       fetchInspection();
     }
   }, [id]);
 
-  if (!inspectionData) return <Loading />;
-  
+  if (!data) return <Loading />;
+
   const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
     <Card sx={{ mb: 3 }}>
       <CardContent>
@@ -42,48 +42,67 @@ const ViewInspectionPage: React.FC = () => {
     return <Chip label={status || config.label} color={config.color} size="small" />;
   };
 
+  const EixoView = ({ label, value, descricao }: { label: string, value: string, descricao: string }) => {
+    if (!value) return;
+    return (
+      <>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">{label}:</Typography>
+          <Chip label={value} color={value === "BOM" ? "success" : "error"} size="small" />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">Descrição {label}:</Typography>
+          <Typography>{descricao || "N/A"}</Typography>
+        </Grid>
+      </>
+    )
+  }
+
 
   return (
     <Box>
       <ResponsiveAppBar
-        title={`Inspeção ${inspectionData?.vehicle?.plate || ""}`}
+        title={`Inspeção ${data?.vehicle?.plate || ""}`}
         onBackClick={() => router.push("/")}
         showBackButton
       />
 
-      {!inspectionData.isFinished && <CustomFab variant={"Edit"} href={`/inspection/${id}/edit`} />}
+      {!data.isFinished && <CustomFab variant={"Edit"} href={`/inspection/${id}/edit`} />}
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
-          <Typography variant="h4" gutterBottom>
-            Detalhes da Inspeção
-          </Typography>
+          <Stack direction={"row"} sx={{alignItems:'center'}} justifyContent={'space-between'}>
+            <Typography variant="h4" gutterBottom>
+              Detalhes da Inspeção
+            </Typography>
+            <Typography variant="caption">Codigo: {data.id}</Typography>
+          </Stack>
 
           <Section title="Informações do Veículo">
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Veículo:</Typography>
                 <Typography>
-                  {inspectionData.vehicle.plate}{" "}
-                  {inspectionData.vehicle.model}
+                  {data.vehicle.plate}{" "}
+                  {data.vehicle.model}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Data da Inspeção:</Typography>
                 <Typography>
-                  {new Date(inspectionData.dataInspecao).toLocaleString()}
+                  {new Date(data.dataInspecao).toLocaleString()}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Status da viagem</Typography>
                 <Typography>
-                  {inspectionData.status}
+                  {data.status}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Quilometragem:</Typography>
                 <Typography>
-                  {Number(inspectionData.kilometer)}
+                  {Number(data.kilometer)}
                 </Typography>
               </Grid>
 
@@ -95,13 +114,13 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">CRLV em Dia:</Typography>
-                {getStatusChip(inspectionData.crlvEmDia)}
+                {getStatusChip(data.crlvEmDia)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">
                   Certificado Tacógrafo em Dia:
                 </Typography>
-                {getStatusChip(inspectionData.certificadoTacografoEmDia)}
+                {getStatusChip(data.certificadoTacografoEmDia)}
               </Grid>
             </Grid>
           </Section>
@@ -111,11 +130,11 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Nível de Água:</Typography>
-                {getStatusChip(inspectionData.nivelAgua)}
+                {getStatusChip(data.nivelAgua)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Nível de Óleo:</Typography>
-                {getStatusChip(inspectionData.nivelOleo)}
+                {getStatusChip(data.nivelOleo)}
               </Grid>
             </Grid>
           </Section>
@@ -123,46 +142,10 @@ const ViewInspectionPage: React.FC = () => {
           {/* Pneus */}
           <Section title="Pneus">
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Dianteira:</Typography>
-                {getStatusChip(inspectionData.dianteira)}
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Descrição Dianteira:</Typography>
-                <Typography>
-                  {inspectionData.descricaoDianteira || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Tração:</Typography>
-                {getStatusChip(inspectionData.tracao)}
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Descrição Tração:</Typography>
-                <Typography>
-                  {inspectionData.descricaoTracao || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Truck:</Typography>
-                {getStatusChip(inspectionData.truck)}
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Descrição Truck:</Typography>
-                <Typography>
-                  {inspectionData.descricaoTruck || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Quarto Eixo:</Typography>
-                {getStatusChip(inspectionData.quartoEixo)}
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6">Descrição Quarto Eixo:</Typography>
-                <Typography>
-                  {inspectionData.descricaoQuartoEixo || "N/A"}
-                </Typography>
-              </Grid>
+              <EixoView label={"Dianteira"} value={data.dianteira} descricao={data.descricaoDianteira} />
+              <EixoView label={"Tração"} value={data.tracao} descricao={data.descricaoTracao} />
+              <EixoView label={"Quarto Eixo"} value={data.truck} descricao={data.descricaoTruck} />
+              <EixoView label={"Quarto Eixo"} value={data.quartoEixo} descricao={data.descricaoQuartoEixo} />
             </Grid>
           </Section>
 
@@ -171,22 +154,22 @@ const ViewInspectionPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Avarias na Cabine:</Typography>
-                {getStatusChip(inspectionData.avariasCabine)}
+                <Chip label={data.avariasCabine} color={data.avariasCabine === "NÃO" ? "success" : "error"} size="small" />
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Avarias Cabine:</Typography>
                 <Typography>
-                  {inspectionData.descricaoAvariasCabine || "N/A"}
+                  {data.descricaoAvariasCabine || "N/A"}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Avarias no Baú:</Typography>
-                {getStatusChip(inspectionData.bauPossuiAvarias)}
+                <Chip label={data.bauPossuiAvarias} color={data.bauPossuiAvarias === "NÃO" ? "success" : "error"} size="small" />
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Avarias Baú:</Typography>
                 <Typography>
-                  {inspectionData.descricaoAvariasBau || "N/A"}
+                  {data.descricaoAvariasBau || "N/A"}
                 </Typography>
               </Grid>
             </Grid>
@@ -199,12 +182,12 @@ const ViewInspectionPage: React.FC = () => {
                 <Typography variant="h6">
                   Funcionamento Parte Elétrica:
                 </Typography>
-                {getStatusChip(inspectionData.funcionamentoParteEletrica)}
+                {getStatusChip(data.funcionamentoParteEletrica)}
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6">Descrição Parte Elétrica:</Typography>
                 <Typography>
-                  {inspectionData.descricaoParteEletrica || "N/A"}
+                  {data.descricaoParteEletrica || "N/A"}
                 </Typography>
               </Grid>
             </Grid>
@@ -216,7 +199,7 @@ const ViewInspectionPage: React.FC = () => {
                 <Image
                   width={100}
                   height={100}
-                  src={inspectionData?.fotoVeiculo || "/assets/img/placeholder.png"}
+                  src={data?.fotoVeiculo || "/assets/img/placeholder.png"}
                   alt={""}
                 />
               </Grid>

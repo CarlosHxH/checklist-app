@@ -33,6 +33,7 @@ const StyledToggleButton = styled(ToggleButton)({
 export default function ButtonLabel({ label, name, options, control, rules, ...props }: ButtonLabelProps) {
 
   const { field: { value, onChange }, fieldState: { error }} = useController({ name, control, rules});
+  
   const handleChange = (_: React.MouseEvent<HTMLElement>, newValue: string | null) => {
     if (newValue !== null) onChange(newValue);
   };

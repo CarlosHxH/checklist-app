@@ -1,9 +1,8 @@
-"use state"
-import { useState } from 'react'
+"use client"
+import React from 'react'
 import { Controller, Form, useForm } from 'react-hook-form'
 import { PrismaClient } from '@prisma/client'
 import { Button, Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
-
 
 // Tipos
 interface VehicleKey {
@@ -30,7 +29,7 @@ interface FormData {
 export async function getServerSideProps() {
   const prisma = new PrismaClient()
   
-  const vehicleKeys = await prisma.vehiclekey.findMany({
+  const vehicleKeys = await prisma.vehicleKey.findMany({
     include: {
       user: {
         select: {
@@ -82,7 +81,7 @@ export default function VehicleKeyControl({
   users,
   vehicles,
 }: VehicleKeyControlProps) {
-  const [vehicleKeys, setVehicleKeys] = useState<VehicleKey[]>(initialVehicleKeys)
+  const [vehicleKeys, setVehicleKeys] = React.useState<VehicleKey[]>(initialVehicleKeys)
   
   const form = useForm<FormData>({
     defaultValues: {
@@ -131,10 +130,9 @@ export default function VehicleKeyControl({
               <Controller
                 control={form.control}
                 name="vehicleId"
-                render={({ field }) => (<></>
+                render={({ field }) => (<>{field.name}</>
                 )}
               />
-
               <Button type="submit">Registrar Chave</Button>
             </form>
           </Form>

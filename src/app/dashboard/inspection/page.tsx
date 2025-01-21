@@ -24,25 +24,9 @@ export default function InspectionManager() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections',fetcher);
-  const vehicles = data?.vehicle || [];
+  const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections', fetcher);
 
-  if(!data || isSubmitting) return <Loading/>;
-
-  const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    if (name === "vehicleId") {
-      //const eixo = vehicles.find((e: any) => e.id === value)?.eixo || 0;
-      //let data = {};
-      //const eixoNumber = Number(formData.eixo) || 0;
-      //if (eixoNumber > 3) data = { ...data, quartoEixo: "", descricaoQuartoEixo: "" };
-      //if (eixoNumber > 2) data = { ...data, truck: "", descricaoTruck: "" };
-      //if (eixoNumber > 1) data = { ...data, tracao: "", descricaoTracao: "" };
-      //data = { ...data, eixo };
-      //setFormData((prev) => ({ ...prev, ...data }));
-    }
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  if (!data || isSubmitting) return <Loading />;
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza de que deseja excluir esta inspeção?")) return;
@@ -61,7 +45,7 @@ export default function InspectionManager() {
     }
   };
 
-  const handleOpenDialog = (inspection?: InspectionType|any) => {
+  const handleOpenDialog = (inspection?: InspectionType | any) => {
     setFormData(inspection || DEFAULT_FORM_DATA);
     setOpenDialog(true);
   };
@@ -69,11 +53,13 @@ export default function InspectionManager() {
   if (error) return <Typography color="error">Failed to load inspections</Typography>;
 
   const filteredInspections = data?.inspections?.filter(ins => 
+    ins.id.includes(filter.toLowerCase()) ||
     ins.user?.name.toLowerCase().includes(filter.toLowerCase()) ||
+    ins.vehicle?.model.toLowerCase().includes(filter.toLowerCase()) ||
     ins.vehicle?.plate.toLowerCase().includes(filter.toLowerCase())
   ) ?? [];
 
-  const callback = async (e:Response)=> mutate()
+  const callback = async (e: Response) => mutate()
 
   return (
     <Stack spacing={2}>
@@ -82,13 +68,13 @@ export default function InspectionManager() {
         onClose={() => setOpenDialog(false)}
         data={data}
         formData={formData as any}
-        onChange={handleFormChange}
+        onChange={() => { }}
         callback={callback}
       />
 
       <SearchBar
         value={filter}
-        onChange={(e:{target:{value:string}}) => setFilter(e.target.value)}
+        onChange={(e: { target: { value: string } }) => setFilter(e.target.value)}
         onAdd={() => handleOpenDialog()}
       />
 

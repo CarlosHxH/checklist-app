@@ -39,11 +39,7 @@ interface VehicleInspection {
   isFinished: boolean;
 }
 
-export default function VehicleInspectionList({
-  onEdit,
-  onView,
-  userId,
-}: Props) {
+export default function VehicleInspectionList({ onEdit, onView, userId }: Props) {
   const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher);
 
   const getStatusChip = (status: string | boolean) => {
@@ -62,7 +58,7 @@ export default function VehicleInspectionList({
   }
 
   return (
-    <List>
+    <List sx={{paddingBottom:20}}>
       {isLoading || !data && <Loading />}
       {data &&
         data.map((inspection, index) => (

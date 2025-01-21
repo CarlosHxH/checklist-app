@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = { ...body };
     delete data.id;
+    delete data.user;
+    delete data.vehicle;
     const inspection = await prisma.inspection.create({data} as any);
     return NextResponse.json(inspection, {status:201});
   } catch (error) {
@@ -42,17 +44,18 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const data = { ...body };
     delete data.id;
+    delete data.user;
+    delete data.vehicle;
     const inspection = await prisma.inspection.update({where: { id: body.id },data});
     return NextResponse.json(inspection);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error', error },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error' },{ status: 403 });
   } finally {
     await prisma.$disconnect();
   }
 }
+
+
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -63,7 +66,7 @@ export async function DELETE(request: NextRequest) {
     console.error('Error deleting user:', error);
     return NextResponse.json(
       { error: 'Failed to delete user' },
-      { status: 500 }
+      { status: 403 }
     );
   } finally {
     await prisma.$disconnect();

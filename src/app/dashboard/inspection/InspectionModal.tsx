@@ -19,16 +19,17 @@ interface Props {
 }
 
 export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData, onChange, callback }) => {
-  const { register, watch, reset,control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
+  const { register, watch, reset, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: {}
   });
 
-  React.useMemo(() =>{
+  React.useMemo(() => {
     if (!formData.id) reset()
     Object.entries(formData).forEach(([key, value]) => {
       if (["user", "vehicle"].includes(key)) return;
       setValue(key as keyof InspectionFormData, value)
-    })},
+    })
+  },
     [formData])
 
   if (!data.vehicle) return <Loading />;
@@ -57,10 +58,10 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
           onClose();
           callback?.(res);
         }}
-        onError={async(e) => {
+        onError={async (e) => {
           const data = await e.response?.json();
           console.log(data);
-          
+
           alert("Erro ao enviar os dados!"); console.log(e);
         }}
         control={control}
@@ -89,13 +90,16 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
                 name="isFinished"
                 control={control}
                 render={({ field }) => (
-                  <Stack direction="row" sx={{alignItems:'center'}}>
-                    <Typography>Finalizar viagem?</Typography>
-                    <Switch sx={{padding:1, borderRadius:1}} checked={field.value} onChange={(e) => field.onChange(e.target.checked)}/>
+                  <Stack direction="row" sx={{ alignItems: 'center' }}>
+                    <Switch sx={{ padding: 1, borderRadius: 1 }} checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
+                    <div>
+                      <Typography variant="body2">Status da inspeção:</Typography>
+                      <Typography color={field.value?"success":"error"}>{field.value ? "Finalizada" : "Em aberto"}</Typography>
+                    </div>
                   </Stack>
                 )}
               />
-              <Typography variant="caption">Se habilitado, o usuario não poderá editar.</Typography>
+              <Typography variant="caption">Se finalizada, o usuario não poderá editar.</Typography>
             </Grid>
 
             <Grid item xs={12} md={6}>

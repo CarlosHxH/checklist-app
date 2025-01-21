@@ -60,6 +60,7 @@ const InspectionForm: React.FC = () => {
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
+        
 
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -113,14 +114,14 @@ const InspectionForm: React.FC = () => {
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
-              <TextField {...register("descricaoAvariasCabine")} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoAvariasCabine",{ required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
           </Grid>
 
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
-              <TextField {...register("descricaoAvariasBau")} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoAvariasBau",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
           </Grid>
 
@@ -128,7 +129,7 @@ const InspectionForm: React.FC = () => {
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
-              <TextField {...register("descricaoParteEletrica")} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoParteEletrica",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
           </Grid>
 

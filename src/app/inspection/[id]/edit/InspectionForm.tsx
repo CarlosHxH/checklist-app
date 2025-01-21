@@ -47,9 +47,6 @@ const InspectionForm: React.FC = () => {
   if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
   if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
 
-  console.log(errors);
-  
-
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting &&<Loading/>}

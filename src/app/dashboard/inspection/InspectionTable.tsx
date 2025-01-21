@@ -46,14 +46,16 @@ export const InspectionTable = ({
         <TableBody>
           {inspections
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((inspection) => (
+            .map((inspection) => {
+              const color = {color: inspection?.isFinished?'#43a047':'#e53935'}
+              return(
               <TableRow key={inspection.id}>
-                <TableCell>{inspection.user?.name}</TableCell>
-                <TableCell>{inspection?.vehicle?.plate}</TableCell>
-                <TableCell sx={{color: inspection?.isFinished?'#43a047':'#e53935'}}>{inspection?.isFinished?"Finalizada":"Não finalizada"}</TableCell>
-                {!isMobile && <TableCell>{inspection?.vehicle?.model}</TableCell>}
-                {!isMobile && <TableCell>{formatDate(inspection.dataInspecao)}</TableCell>}
-                <TableCell align="right">
+                <TableCell sx={color}>{inspection.user?.name}</TableCell>
+                <TableCell sx={color}>{inspection?.vehicle?.plate}</TableCell>
+                <TableCell sx={color}>{inspection?.isFinished?"Finalizada":"Não finalizada"}</TableCell>
+                {!isMobile && <TableCell sx={color}>{inspection?.vehicle?.model}</TableCell>}
+                {!isMobile && <TableCell sx={color}>{formatDate(inspection.dataInspecao)}</TableCell>}
+                <TableCell align="right" sx={color}>
                   <IconButton color="primary" onClick={() => onEdit(inspection)}>
                     <EditIcon />
                   </IconButton>
@@ -62,7 +64,7 @@ export const InspectionTable = ({
                   </IconButton>
                 </TableCell>
               </TableRow>
-            ))}
+            )})}
         </TableBody>
       </Table>
       <TablePagination
