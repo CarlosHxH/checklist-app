@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 import {Dialog,DialogTitle,DialogContent,DialogActions,Button,Stack} from '@mui/material';
 import { User, Vehicle, VehicleKey, VehicleKeyFormData } from './Types';
@@ -12,25 +13,11 @@ interface VehicleKeyModalProps {
   vehicleKey?: VehicleKey;
   users: User[];
   vehicles: Vehicle[];
-  availableParents: VehicleKey[];
 }
 
-export const VehicleKeyModal: React.FC<VehicleKeyModalProps> = ({ open, onClose, onSave, vehicleKey, users, vehicles, availableParents }) => {
-  const { reset, watch, setValue, control, formState: { isSubmitting } } = useForm<VehicleKeyFormData>({defaultValues: {}});
-
-  const selectedVehicleId = watch('vehicleId');
-
-  React.useEffect(() => {
-    if (selectedVehicleId) {
-      const lastParentKey = availableParents
-        .filter(key => key.vehicle.id === selectedVehicleId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-      
-      if (lastParentKey) setValue('parentId', lastParentKey.id);
-      else setValue('parentId', null);
-    }
-  }, [selectedVehicleId, availableParents, setValue]);
-
+export const AddKeyModal: React.FC<VehicleKeyModalProps> = ({ open, onClose, onSave, vehicleKey, users, vehicles }) => {
+  const { reset, setValue, control, formState: { isSubmitting } } = useForm<VehicleKeyFormData>({defaultValues: {}});
+/*
   React.useEffect(() => {
     reset()
     vehicleKey?.id && Object.entries(vehicleKey).forEach(([key, value]) => {
@@ -38,9 +25,8 @@ export const VehicleKeyModal: React.FC<VehicleKeyModalProps> = ({ open, onClose,
       setValue(key as keyof VehicleKeyFormData, value)
     })
   }, [vehicleKey, reset, setValue])
-
+*/
   if(isSubmitting) return <Loading/>
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <Form
@@ -73,16 +59,6 @@ export const VehicleKeyModal: React.FC<VehicleKeyModalProps> = ({ open, onClose,
           <Stack spacing={2} sx={{ mt: 2 }}>
             <ComboBox name="vehicleId" label="Veículo" options={vehicles.map((v) => ({label: `${v.plate} - ${v.model}`,value: v.id}))} control={control} rules={{ required: true }}/>
             <ComboBox name="userId" label="Usuario" options={users.map((v) => ({label: `${v.name}`,value: v.id}))} control={control} rules={{ required: true }}/>
-            <ComboBox 
-              name="parentId"
-              label="Parent Key" 
-              options={availableParents.filter(data => data.vehicle.id === selectedVehicleId).map((key) => ({
-                  label: `${key.vehicle.plate} - ${key.user.name}`,
-                  value: key.id
-                }))}
-              control={control}
-              disabled
-            />
           </Stack>
         </DialogContent>
         <DialogActions>

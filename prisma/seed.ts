@@ -22,8 +22,7 @@ async function main() {
         email: 'admin@gmail.com',
         password: await hash('#5s2024@', 12),
         name: 'Administrador',
-        role: 'ADMIN',
-        emailVerified: new Date(),
+        role: 'ADMIN'
       },
       update: {
         

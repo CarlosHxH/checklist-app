@@ -14,9 +14,10 @@ interface ComboBoxProps {
   name: string;
   control: Control<any>;
   rules?: Record<string, any>;
+  disabled?: boolean;
 }
 
-export default function ComboBox({ options, label,  name, control, rules}: ComboBoxProps) {
+export default function ComboBox({ options, label,  name, control, rules, disabled}: ComboBoxProps) {
   const { field: { onChange, value }, fieldState: { error }} = useController({ name, control, rules});
 
   const selectedOption = React.useMemo(() => 
@@ -26,6 +27,7 @@ export default function ComboBox({ options, label,  name, control, rules}: Combo
 
   return (
     <Autocomplete
+      disabled={!!disabled}
       value={selectedOption}
       onChange={(_, newValue) => onChange(newValue?.value || null)}
       options={options}

@@ -21,8 +21,8 @@ const createNavigation = (): Navigation => [
     title: 'Dashboard',
     icon: <DashboardIcon />,
   }, { kind: 'header', title: 'Adicionar' }, {
-    segment: 'dashboard/chave',
-    title: 'Chave',
+    segment: 'dashboard/keys',
+    title: 'Controle de Chaves',
     icon: <KeyIcon />,
   }, {
     segment: 'dashboard/inspection',
