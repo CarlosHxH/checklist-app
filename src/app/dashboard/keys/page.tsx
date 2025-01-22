@@ -1,20 +1,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
+import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import { VehicleKey } from '@/types/vehicle'
+import HistoryModal from './HistoryModal';
+import { History } from '@mui/icons-material';
 
 
 type DataType = { users: { id: string, name: string }[], vehicles: { id: string, plate: string, model: string }[], vehicleKeys: VehicleKey[] };
 
 export default function VehicleKeysPage() {
   const [data, setData] = useState<DataType>({ users: [], vehicles: [], vehicleKeys: [] })
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedVehicleKeys, setSelectedVehicleKeys] = useState([]);
+
   const [vehicleKeys, setVehicleKeys] = useState<VehicleKey[]>([])
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState({
     userId: '',
-    vehicleId: '',
-    parentId: '',
+    vehicleId: ''
   })
 
   console.log(data);
@@ -48,7 +52,7 @@ export default function VehicleKeysPage() {
       if (response.ok) {
         setOpen(false)
         fetchVehicleKeys()
-        setFormData({ userId: '', vehicleId: '', parentId: '' })
+        setFormData({ userId: '', vehicleId: '' })
       }
     } catch (error) {
       console.error('Error creating vehicle key:', error)
@@ -56,11 +60,10 @@ export default function VehicleKeysPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <h1>Vehicle Keys Management</h1>
+    <Container maxWidth="lg" sx={{ mt: 2 }}>
+      <Box display="flex" justifyContent="end" bgcolor={'smoke'} alignItems="center" mb={4}>
         <Button variant="contained" onClick={() => setOpen(true)}>
-          Add New Vehicle Key
+          Novo cadastro
         </Button>
       </Box>
 
@@ -74,6 +77,7 @@ export default function VehicleKeysPage() {
               <TableCell>Parent</TableCell>
               <TableCell>Created At</TableCell>
               <TableCell>Updated At</TableCell>
+              <TableCell>Opções</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -85,23 +89,31 @@ export default function VehicleKeysPage() {
                 <TableCell>{key.parentId || 'N/A'}</TableCell>
                 <TableCell>{new Date(key.createdAt).toLocaleString()}</TableCell>
                 <TableCell>{new Date(key.updatedAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  <IconButton
+                    onClick={() => {
+                      setSelectedVehicleKeys(data);
+                      setHistoryModalOpen(true);
+                    }}
+                  >
+                    <History fontSize="small" />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Add New Vehicle Key</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle>Transferir chave</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Usuário</InputLabel>
             <Select
               value={formData.userId}
               onChange={(e) => setFormData({ ...formData, userId: e.target.value })}>
-              {data && data?.users.map((u) => (
-                <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
-              ))}
+              {data && data?.users.map((u) => (<MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>))}
             </Select>
           </FormControl>
 
@@ -110,27 +122,21 @@ export default function VehicleKeysPage() {
             <Select
               value={formData.vehicleId}
               onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}>
-              {data && data?.vehicles.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.plate+" - "+v.model}</MenuItem>
-              ))}
+              {data && data?.vehicles.map((v) => (<MenuItem key={v.id} value={v.id}>{v.plate + " - " + v.model}</MenuItem>))}
             </Select>
           </FormControl>
-
-          <TextField
-            fullWidth
-            label="Parent ID (Optional)"
-            margin="normal"
-            value={formData.parentId}
-            onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            Add
-          </Button>
+          <Button onClick={handleSubmit} variant="contained">Add</Button>
         </DialogActions>
       </Dialog>
+
+      <HistoryModal
+        open={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        vehicleKeys={selectedVehicleKeys}
+      />
     </Container>
   )
 }

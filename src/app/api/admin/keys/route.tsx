@@ -24,11 +24,20 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const { vehicleId } = body;
+    const find = await prisma.vehicleKey.findFirst({
+      where: {
+        vehicleId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
     const vehicleKey = await prisma.vehicleKey.create({
       data: {
         userId: body.userId,
         vehicleId: body.vehicleId,
-        parentId: body.parentId,
+        parentId: find?.id || null,
       },
     })
     return NextResponse.json(vehicleKey)
