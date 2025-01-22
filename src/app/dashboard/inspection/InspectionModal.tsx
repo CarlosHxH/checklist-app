@@ -29,8 +29,7 @@ export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData
       if (["user", "vehicle"].includes(key)) return;
       setValue(key as keyof InspectionFormData, value)
     })
-  },
-    [formData])
+  },[formData])
 
   if (!data.vehicle) return <Loading />;
 

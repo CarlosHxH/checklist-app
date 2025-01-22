@@ -1,66 +1,78 @@
 "use client"
-import React from 'react';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Button, TextField, Stack, Box, Chip } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, KeyboardArrowRight as ArrowIcon } from '@mui/icons-material';
-import { VehicleKeyModal } from './VehicleModal';
-import { User, Vehicle, VehicleKey, VehicleKeyFormData } from './Types';
+import React from "react";
+import {Paper,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,TablePagination,IconButton,Button,TextField,Stack,Box,Chip} from "@mui/material";
+import {Edit as EditIcon,Delete as DeleteIcon,KeyboardArrowRight as ArrowIcon} from "@mui/icons-material";
+import { VehicleKeyModal } from "./VehicleKeyModal";
+import { User, Vehicle, VehicleKey, VehicleKeyFormData } from "./Types";
 
 interface VehicleKeyTableProps {
   vehicleKeys: VehicleKey[];
   users: User[];
   vehicles: Vehicle[];
-  data: {
-    id: string;
-    vehicleKeys: VehicleKey[];
-    users: User[];
-    vehicles: Vehicle[];
-  }[] |  VehicleKey[];
   onSave: (key: VehicleKeyFormData) => void;
   onDelete: (id: string) => void;
 }
 
-export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleKeys, users, vehicles, onSave, onDelete }) => {
-
-
+export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({
+  vehicleKeys,
+  users,
+  vehicles,
+  onSave,
+  onDelete,
+}) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [filter, setFilter] = React.useState('');
+  const [filter, setFilter] = React.useState("");
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [selectedKey, setSelectedKey] = React.useState<VehicleKey | undefined>();
-/*
+  const [selectedKey, setSelectedKey] = React.useState<
+    VehicleKey | undefined
+  >();
+
   // Filter keys based on search term
-  const filteredKeyss = React.useMemo(() => {
+  const filteredKeys = React.useMemo(() => {
     return vehicleKeys.filter((key) => {
-      console.log(key);
       const searchStr = [
         key.user.name,
         key.vehicle.plate,
         key.vehicle.model,
         key.parent?.vehicle.plate,
-      ].filter(Boolean).join(' ').toLowerCase();
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
       return searchStr.includes(filter.toLowerCase());
-    }) || [];
+    });
   }, [vehicleKeys, filter]);
 
   // Get available parents (exclude self and children)
   const getAvailableParents = (currentKey?: VehicleKey) => {
     if (!currentKey) return vehicleKeys;
+
     const childIds = new Set<string>();
     const getChildIds = (key: VehicleKey) => {
-      key.children.forEach(child => {
+      key.children.forEach((child) => {
         childIds.add(child.id);
         getChildIds(child);
       });
     };
-    if (currentKey) getChildIds(currentKey);
+
+    if (currentKey) {
+      getChildIds(currentKey);
+    }
+
     return vehicleKeys.filter(
-      key => key.id !== currentKey.id && !childIds.has(key.id)
+      (key) => key.id !== currentKey.id && !childIds.has(key.id)
     );
   };
 
   // Handle pagination
-  const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -70,7 +82,7 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
     setSelectedKey(key);
     setModalOpen(true);
   };
-*/
+
   const handleAdd = () => {
     setSelectedKey(undefined);
     setModalOpen(true);
@@ -81,7 +93,8 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
     let level = 0;
     let currentKey = key;
     while (currentKey.parent) {
-      level++; currentKey = currentKey.parent;
+      level++;
+      currentKey = currentKey.parent;
     }
     return level;
   };
@@ -98,7 +111,7 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
           sx={{ flexGrow: 1 }}
         />
         <Button variant="contained" onClick={handleAdd}>
-          Adicionar
+          Add Vehicle Key
         </Button>
       </Stack>
 
@@ -116,25 +129,49 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
               </TableRow>
             </TableHead>
             <TableBody>
-              {vehicleKeys
+              {filteredKeys
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((key) => (
                   <TableRow key={key.id}>
                     <TableCell>
                       {[...Array(getHierarchyLevel(key))].map((_, i) => (
-                        <ArrowIcon key={i} sx={{ ml: 1, color: 'action.disabled' }} />
+                        <ArrowIcon
+                          key={i}
+                          sx={{ ml: 1, color: "action.disabled" }}
+                        />
                       ))}
-                      <Chip label={key.children.length ? `Parent (${key.children.length})` : 'Key'} size="small" color={key.children.length ? 'primary' : 'default'} variant="outlined"/>
+                      <Chip
+                        label={
+                          key.children.length
+                            ? `Parent (${key.children.length})`
+                            : "Key"
+                        }
+                        size="small"
+                        color={key.children.length ? "primary" : "default"}
+                        variant="outlined"
+                      />
                     </TableCell>
-                    <TableCell>{key?.user?.name || ""}</TableCell>
-                    <TableCell>{key.vehicle.plate} - {key.vehicle.model}</TableCell>
-                    <TableCell>{key.parent ? `${key.parent.vehicle.plate} - ${key.parent.user.name}` : '-'}</TableCell>
-                    <TableCell>{new Date(key.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{key.user.name}</TableCell>
                     <TableCell>
-                      <IconButton size="small" onClick={() => {/*handleEdit(key) */}}>
+                      {key.vehicle.plate} - {key.vehicle.model}
+                    </TableCell>
+                    <TableCell>
+                      {key.parent
+                        ? `${key.parent.vehicle.plate} - ${key.parent.user.name}`
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(key.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => handleEdit(key)} disabled={key.children.length > 0}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton size="small" onClick={() => onDelete(key.id)} disabled={key.children.length > 0}>
+                      <IconButton
+                        size="small"
+                        onClick={() => onDelete(key.id)}
+                        disabled={key.children.length > 0}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -143,7 +180,7 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
             </TableBody>
           </Table>
         </TableContainer>
-        {/*<TablePagination
+        <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredKeys.length}
@@ -151,9 +188,9 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-        />*/}
+        />
       </Paper>
-{/*
+
       <VehicleKeyModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -162,7 +199,36 @@ export const VehicleKeyTable: React.FC<VehicleKeyTableProps> = ({ data, vehicleK
         users={users}
         vehicles={vehicles}
         availableParents={getAvailableParents(selectedKey)}
-      />*/}
+      />
     </Box>
   );
 };
+
+// Usage Example
+/*
+  import { VehicleKeyTable } from './VehicleKeyTable';
+  
+  const App = () => {
+    const [vehicleKeys, setVehicleKeys] = React.useState<VehicleKey[]>([]);
+    const [users, setUsers] = React.useState<User[]>([]);
+    const [vehicles, setVehicles] = React.useState<Vehicle[]>([]);
+  
+    const handleSave = async (data: VehicleKeyFormData) => {
+      // Implement save logic
+    };
+  
+    const handleDelete = async (id: string) => {
+      // Implement delete logic
+    };
+  
+    return (
+      <VehicleKeyTable
+        vehicleKeys={vehicleKeys}
+        users={users}
+        vehicles={vehicles}
+        onSave={handleSave}
+        onDelete={handleDelete}
+      />
+    );
+  };
+  */

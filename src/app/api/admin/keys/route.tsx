@@ -8,6 +8,43 @@ interface RouteParams {
   }
 }
 
+async function getData() {
+  const u = { select: { name: true }}
+  const v = { select: { model: true, plate: true}}
+  const [vehicleKey, users, vehicles] = await Promise.all([
+    prisma.vehicleKey.findMany({
+      include: {
+        user: u,
+        vehicle: v,
+        parent: {
+          include: {
+            user: u,
+            vehicle: v
+          },
+        },
+        children: {
+          include: {
+            user: u,
+            vehicle: v,
+          },
+        },
+      },
+    }),
+    prisma.user.findMany(),
+    prisma.vehicle.findMany(),
+  ]);
+  
+  return { vehicleKey, users, vehicles };
+}
+export async function GET(req: NextRequest) {
+  try {
+    const data = await getData()
+    return NextResponse.json(data,{status: 403})
+  } catch (error) {
+    return NextResponse.json({error},{status: 403})
+  }
+}
+/*
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams
@@ -46,10 +83,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({error},{status: 403})
   }
 }
-
+*/
 export async function POST(req: NextRequest) {
+  const body = await req.json();
+  console.log(body);
+  
   try {
-    const body = await req.json()
     //const validatedData = vehicleKeySchema.parse(body)
 
     const vehicleKey = await prisma.vehicleKey.create({

@@ -1,40 +1,25 @@
 "use client"
-import React from 'react';
-import { VehicleKeyFormData } from './Types';
-import { VehicleKeyTable } from './VehicleTable';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
+import { VehicleKeyTable } from './VehicleKeyTable';
 import Loading from '@/components/Loading';
 
-const Page = () => {
-  const { data, isLoading ,mutate } = useSWR('/api/admin/keys',fetcher);
-  const handleSave = async (data: VehicleKeyFormData) => {
-    // Implement save logic
-    mutate();
-  };
+export default function Page() {
+  const { data, isLoading } = useSWR('/api/admin/keys', fetcher);
+  
+  if (isLoading) return <Loading />;
+  
+  const { vehicleKey, users, vehicles } = data;
 
-  const handleDelete = async (id: string) => {
-    // Implement delete logic
-    console.log(id);
-    
-  };
-  if (isLoading) return <Loading/>
-/*
-  for (const key in object) {
-    if (Object.prototype.hasOwnProperty.call(object, key)) {
-      const element = object[key];
-      
-    }
-  }*/
   return (
-    <VehicleKeyTable
-      data={data}
-      vehicleKeys={data?.[0].vehicleKey}
-      users={data?.[0].user|| []}
-      vehicles={data?.[0].vehicle}
-      onSave={handleSave}
-      onDelete={handleDelete}
-    />
+    <div>
+      <VehicleKeyTable
+        vehicleKeys={vehicleKey}
+        users={users}
+        vehicles={vehicles}
+        onSave={() => {}}
+        onDelete={() => {}}
+      />
+    </div>
   );
-};
-export default Page;
+}
