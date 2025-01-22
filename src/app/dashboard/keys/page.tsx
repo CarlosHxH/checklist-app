@@ -1,285 +1,136 @@
-"use client"
-import { useState, useEffect } from 'react';
-import { Container, Table, TableBody, TableCell, TableHead, TableRow, Paper, Button, Modal, Box, TextField, FormControl, InputLabel, Select, MenuItem, Typography, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Chip } from '@mui/material';
+'use client'
 
-interface ChaveVeiculo {
-  id: number;
-  user: { name: string };
-  vehicle: { plate: string; model: string };
-  createdAt: Date;
-  devolucao: Date | null;
-  parent?: ChaveVeiculo[]
-  children?: ChaveVeiculo[]
-  parentId: string;
-}
+import { useEffect, useState } from 'react'
+import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
+import { VehicleKey } from '@/types/vehicle'
 
-interface Usuario {
-  id: number;
-  name: string;
-}
 
-interface Veiculo {
-  id: number;
-  plate: string;
-  model: string;
-}
+type DataType = { users: { id: string, name: string }[], vehicles: { id: string, plate: string, model: string }[], vehicleKeys: VehicleKey[] };
 
-const HistoricoDialog = ({ 
-  open, 
-  handleClose, 
-  chaveAtual 
-}: { 
-  open: boolean; 
-  handleClose: () => void; 
-  chaveAtual: ChaveVeiculo; 
-}) => {
-  const [historico, setHistorico] = useState<ChaveVeiculo[]>([]);
+export default function VehicleKeysPage() {
+  const [data, setData] = useState<DataType>({ users: [], vehicles: [], vehicleKeys: [] })
+  const [vehicleKeys, setVehicleKeys] = useState<VehicleKey[]>([])
+  const [open, setOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    userId: '',
+    vehicleId: '',
+    parentId: '',
+  })
+
+  console.log(data);
+
 
   useEffect(() => {
-    const buscarHistorico = async () => {
-      const response = await fetch(`/api/chaves/historico/${chaveAtual.id}`);
-      const data = await response.json();
-      setHistorico(data.historico);
-    };
+    fetchVehicleKeys()
+  }, [])
 
-    if (open) {
-      buscarHistorico();
+  const fetchVehicleKeys = async () => {
+    try {
+      const response = await fetch('/api/admin/keys')
+      const data = await response.json()
+      setData(data);
+      setVehicleKeys(data.vehicleKeys)
+    } catch (error) {
+      console.error('Error fetching vehicle keys:', error)
     }
-  }, [open, chaveAtual.id]);
-
-  return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose}
-      maxWidth="md"
-      fullWidth
-    >
-      <DialogTitle>
-        Histórico da Chave - {chaveAtual.vehicle.plate}
-      </DialogTitle>
-      <DialogContent>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Usuário</TableCell>
-              <TableCell>Retirada</TableCell>
-              <TableCell>Devolução</TableCell>
-              <TableCell>Tipo</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {historico.map((registro) => (
-              <TableRow 
-                key={registro.id}
-                sx={{ 
-                  bgcolor: registro.id === chaveAtual.id ? 'action.hover' : 'inherit'
-                }}
-              >
-                <TableCell>{registro.user.name}</TableCell>
-                <TableCell>
-                  {new Date(registro.createdAt).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  {registro.devolucao 
-                    ? new Date(registro.devolucao).toLocaleString() 
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  {registro.id === chaveAtual.id ? 'Atual' : 'Anterior'}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Fechar</Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-export default function Home() {
-  const [chaves, setChaves] = useState<ChaveVeiculo[]>([]);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [filtroUsuario, setFiltroUsuario] = useState('');
-  const [filtroVeiculo, setFiltroVeiculo] = useState('');
-  const [historicoOpen, setHistoricoOpen] = useState(false);
-  const [chaveSelecionada, setChaveSelecionada] = useState<ChaveVeiculo | null>(null);
-
-  const [novaChave, setNovaChave] = useState({ userId: '', vehicleId: '' });
-
-  // Função para abrir o histórico
-  const handleOpenHistorico = (chave: ChaveVeiculo) => {
-    setChaveSelecionada(chave);
-    setHistoricoOpen(true);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const response = await fetch('/api/admin/keys');
-    const data = await response.json();
-    setChaves(data.chaves);
-    setUsuarios(data.usuarios);
-    setVeiculos(data.veiculos);
-  };
+  }
 
   const handleSubmit = async () => {
-    await fetch('/api/admin/keys', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novaChave),
-    });
-    setModalOpen(false);
-    fetchData();
-  };
+    try {
+      const response = await fetch('/api/admin/keys', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
 
-  const chavesFiltradas = chaves.filter(chave => {
-    const matchUsuario = chave.user.name.toLowerCase().includes(filtroUsuario.toLowerCase());
-    const matchVeiculo = chave.vehicle.plate.toLowerCase().includes(filtroVeiculo.toLowerCase());
-    return matchUsuario && matchVeiculo;
-  });
+      if (response.ok) {
+        setOpen(false)
+        fetchVehicleKeys()
+        setFormData({ userId: '', vehicleId: '', parentId: '' })
+      }
+    } catch (error) {
+      console.error('Error creating vehicle key:', error)
+    }
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      
-      <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-        <TextField
-          label="Filtrar por Usuário"
-          value={filtroUsuario}
-          onChange={(e) => setFiltroUsuario(e.target.value)}
-          size="small"
-        />
-        <TextField
-          label="Filtrar por Placa"
-          value={filtroVeiculo}
-          onChange={(e) => setFiltroVeiculo(e.target.value)}
-          size="small"
-        />
-        <Button 
-          variant="contained" 
-          onClick={() => setModalOpen(true)}
-        >
-          Nova Retirada
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <h1>Vehicle Keys Management</h1>
+        <Button variant="contained" onClick={() => setOpen(true)}>
+          Add New Vehicle Key
         </Button>
       </Box>
 
-      <Paper>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Usuário</TableCell>
-              <TableCell>Veículo</TableCell>
-              <TableCell>Placa</TableCell>
-              <TableCell>Retirada</TableCell>
-              <TableCell>Devolução</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Ações</TableCell>
+              <TableCell>ID</TableCell>
+              <TableCell>User</TableCell>
+              <TableCell>Vehicle</TableCell>
+              <TableCell>Parent</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Updated At</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {chavesFiltradas.map((chave) => (
-              <TableRow key={chave.id}>
-                <TableCell>{chave.user.name}</TableCell>
-                <TableCell>{chave.vehicle.model}</TableCell>
-                <TableCell>{chave.vehicle.plate}</TableCell>
-                <TableCell>
-                  {new Date(chave.createdAt).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  {chave.devolucao 
-                    ? new Date(chave.devolucao).toLocaleString() 
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={chave.devolucao ? 'Devolvido' : 'Em uso'} 
-                    color={chave.devolucao ? 'default' : 'primary'}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {!chave.devolucao && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => console.log(chave.id)}
-                      >
-                        Devolver
-                      </Button>
-                    )}
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleOpenHistorico(chave)}
-                    >
-                      Histórico
-                    </Button>
-                  </Box>
-                </TableCell>
+            {vehicleKeys.map((key) => (
+              <TableRow key={key.id}>
+                <TableCell>{key.id.slice(0, 6)}</TableCell>
+                <TableCell>{key.user.name}</TableCell>
+                <TableCell>{key.vehicle.plate}</TableCell>
+                <TableCell>{key.parentId || 'N/A'}</TableCell>
+                <TableCell>{new Date(key.createdAt).toLocaleString()}</TableCell>
+                <TableCell>{new Date(key.updatedAt).toLocaleString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </Paper>
+      </TableContainer>
 
-      {/* Modal de Histórico */}
-      {chaveSelecionada && (
-        <HistoricoDialog
-          open={historicoOpen}
-          handleClose={() => setHistoricoOpen(false)}
-          chaveAtual={chaveSelecionada}
-        />
-      )}
-
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-      >
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Nova Retirada de Chave
-          </Typography>
-
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>Add New Vehicle Key</DialogTitle>
+        <DialogContent>
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Usuário</InputLabel>
             <Select
-              value={novaChave.userId}
-              onChange={(e) => setNovaChave({ ...novaChave, userId: e.target.value })}>
-              {usuarios.map((u) => (
+              value={formData.userId}
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}>
+              {data && data?.users.map((u) => (
                 <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Veículo</InputLabel>
+            <InputLabel>Veiculo</InputLabel>
             <Select
-              value={novaChave.vehicleId}
-              onChange={(e) => setNovaChave({
-                ...novaChave,
-                vehicleId: e.target.value
-              })}
-            >
-              {veiculos.map((v) => (<MenuItem key={v.id} value={v.id}>{v.model} - {v.plate}</MenuItem>
+              value={formData.vehicleId}
+              onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}>
+              {data && data?.vehicles.map((v) => (
+                <MenuItem key={v.id} value={v.id}>{v.plate+" - "+v.model}</MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
+          <TextField
             fullWidth
-          >
-            Salvar
+            label="Parent ID (Optional)"
+            margin="normal"
+            value={formData.parentId}
+            onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained">
+            Add
           </Button>
-        </Box>
-      </Modal>
+        </DialogActions>
+      </Dialog>
     </Container>
-  );
+  )
 }

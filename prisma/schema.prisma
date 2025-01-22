@@ -143,13 +143,10 @@ model VehicleKey {
   // Relações
   user          user         @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicle       vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  
-  // Self-relation com restrições
-  parent        VehicleKey?  @relation("VehicleKeyHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children      VehicleKey[] @relation("VehicleKeyHierarchy")
 
   @@index([userId])
   @@index([vehicleId])
   @@index([parentId])
   @@index([createdAt])
 }
+

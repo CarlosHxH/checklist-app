@@ -23,3 +23,30 @@ model VehicleKey {
   @@index([userId], map: "vehicleKey_userId_fkey")
   @@index([vehicleId], map: "vehicleKey_vehicleId_fkey")
 }*/
+
+
+/**
+
+model VehicleKey {
+  id            String       @id @default(cuid())
+  userId        String
+  vehicleId     String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  parentId      String?
+
+  // Relações
+  user          user         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle       vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  // Self-relation com restrições
+  parent        VehicleKey?  @relation("VehicleKeyHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children      VehicleKey[] @relation("VehicleKeyHierarchy")
+
+  @@index([userId])
+  @@index([vehicleId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+*/
