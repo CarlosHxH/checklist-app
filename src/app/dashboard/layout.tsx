@@ -20,11 +20,11 @@ const createNavigation = (): Navigation => [
     segment: 'dashboard',
     title: 'Dashboard',
     icon: <DashboardIcon />,
-  }, { kind: 'header', title: 'Adicionar' }, {
+  }, { kind: 'header', title: 'Chaves' }, {
     segment: 'dashboard/keys',
     title: 'Controle de Chaves',
     icon: <KeyIcon />,
-  }, {
+  }, { kind: 'header', title: 'Inspeções' },{
     segment: 'dashboard/inspection',
     title: 'Inspeções',
     icon: <BarChartIcon />,
