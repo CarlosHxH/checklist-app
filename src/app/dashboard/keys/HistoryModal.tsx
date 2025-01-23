@@ -1,14 +1,26 @@
 import React from 'react';
 import { 
   Dialog, 
-  DialogTitle, 
-  DialogContent,
-  Box,
+  DialogContent, 
+  DialogTitle,
   Typography,
-  IconButton,
+  Box,
   Paper
 } from '@mui/material';
-import { Close, ArrowRight } from '@mui/icons-material';
+import { 
+  Close, 
+  CarRental,
+  Person,
+  AccessTime
+} from '@mui/icons-material';
+
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+import zIndex from '@mui/material/styles/zIndex';
 
 interface User {
   id: string
@@ -19,6 +31,7 @@ interface Vehicle {
   id: string
   plate: string
   model: string
+  vehicleKeys?: VehicleKey[]
 }
 
 interface VehicleKey {
@@ -35,59 +48,95 @@ interface VehicleKey {
 interface HistoryModalProps {
   open: boolean
   onClose: () => void
-  vehicleKeys: VehicleKey | null
+  vehicleKeys: {
+    vehicle: Vehicle
+    keys: VehicleKey[]
+    latestKey: VehicleKey
+  } | null
 }
 
-const HistoryModal = ({ open, onClose, vehicleKeys }: HistoryModalProps) => {
+const HistoryModal = ({ 
+  open, 
+  onClose, 
+  vehicleKeys 
+}: HistoryModalProps) => {
   if (!vehicleKeys) return null;
 
+  // Sort keys from most recent to oldest
+  const sortedKeys = [...vehicleKeys.keys].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  console.log(vehicleKeys);
+  
+
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Histórico do Veículo</Typography>
-          <IconButton onClick={onClose}>
-            <Close />
-          </IconButton>
+          <Typography variant="h6">
+            Histórico do Veículo:
+            <Typography>
+              <strong> {vehicleKeys.vehicle.model} - {vehicleKeys.vehicle.plate}</strong>
+            </Typography>
+          </Typography>
+          <Close onClick={onClose} sx={{ cursor: 'pointer' }} />
         </Box>
       </DialogTitle>
+      
       <DialogContent>
-        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6">
-            {vehicleKeys.vehicle.model} - {vehicleKeys.vehicle.plate}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Primeira Transferência: {new Date(vehicleKeys.createdAt).toLocaleString()}
-          </Typography>
-        </Paper>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant="subtitle1">Detalhes da Chave</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-              <Typography variant="body2">
-                <strong>ID:</strong> {vehicleKeys.id}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Usuário:</strong> {vehicleKeys.user.name}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Criado em:</strong> {new Date(vehicleKeys.createdAt).toLocaleString()}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Atualizado em:</strong> {new Date(vehicleKeys.updatedAt).toLocaleString()}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Parent ID:</strong> {vehicleKeys.parentId || 'Nenhum'}
-              </Typography>
-            </Box>
-          </Paper>
-        </Box>
+        <Timeline>
+          {sortedKeys.map((key, index) => (
+            <TimelineItem key={key.id}>
+              <TimelineSeparator>
+                <TimelineDot color={index === 0 ? 'primary' : 'grey'}>
+                  {index === 0 ? <CarRental /> : <Person />}
+                </TimelineDot>
+                {index < sortedKeys.length - 1 && <TimelineConnector />}
+              </TimelineSeparator>
+              
+              <TimelineContent>
+                <Paper 
+                  elevation={index === 0 ? 3 : 1}
+                  sx={{ 
+                    p: 2, 
+                    borderLeft: `4px solid ${index === 0 ? 'primary.main' : 'grey.500'}` 
+                  }}
+                >
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="subtitle1" 
+                      color={index === 0 ? 'primary.main' : 'text.secondary'}
+                    >
+                      {index === 0 ? 'Transferência Atual' : `Transferência ${index + 1}`}
+                    </Typography>
+                    
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <AccessTime fontSize="small" />
+                      <Typography variant="body2">
+                        {new Date(key.createdAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    Responsável: {key.user.name}
+                  </Typography>
+                  
+                  <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                    <Typography variant="body2">
+                      <strong>ID:</strong> {key.id.slice(0, 10)}...
+                    </Typography>
+                    {key.parentId && (
+                      <Typography variant="body2">
+                        <strong>Parent ID:</strong> {key.parentId.slice(0, 10)}...
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </TimelineContent>
+            </TimelineItem>
+          ))}
+        </Timeline>
       </DialogContent>
     </Dialog>
   );
