@@ -1,11 +1,10 @@
 // src/lib/auth.ts
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { generateToken } from "./auth/jwt";
-import { type User } from "@prisma/client";
 import { hoje } from "./ultils";
 
 interface CustomUser extends User {
