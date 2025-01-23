@@ -66,8 +66,6 @@ const HistoryModal = ({
   const sortedKeys = [...vehicleKeys.keys].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
-  console.log(vehicleKeys);
-  
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
@@ -84,7 +82,7 @@ const HistoryModal = ({
       </DialogTitle>
       
       <DialogContent>
-        <Timeline>
+        <Timeline sx={{position:'relative',left:-30}}>
           {sortedKeys.map((key, index) => (
             <TimelineItem key={key.id}>
               <TimelineSeparator>
