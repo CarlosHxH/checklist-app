@@ -1,42 +1,106 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
-import { VehicleKey } from '@/types/vehicle'
-import HistoryModal from './HistoryModal';
-import { History } from '@mui/icons-material';
+import {
+  Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl,IconButton,
+  InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+} from '@mui/material'
+import { History } from '@mui/icons-material'
+import HistoryModal from './HistoryModal'
 
+interface User {
+  id: string
+  name: string
+}
 
-type DataType = { users: { id: string, name: string }[], vehicles: { id: string, plate: string, model: string }[], vehicleKeys: VehicleKey[] };
+interface Vehicle {
+  id: string
+  plate: string
+  model: string
+}
+
+interface VehicleKey {
+  id: string
+  userId: string
+  vehicleId: string
+  createdAt: string
+  updatedAt: string
+  parentId: string | null
+  user: User
+  vehicle: Vehicle
+}
+
+interface DataType {
+  users: User[]
+  vehicles: Vehicle[]
+  vehicleKeys: VehicleKey[]
+}
+
+interface GroupedVehicleKeys {
+  [vehicleId: string]: {
+    vehicle: Vehicle
+    keys: VehicleKey[]
+    latestKey: VehicleKey
+  }
+}
 
 export default function VehicleKeysPage() {
-  const [data, setData] = useState<DataType>({ users: [], vehicles: [], vehicleKeys: [] })
-  const [historyModalOpen, setHistoryModalOpen] = useState(false);
-  const [selectedVehicleKeys, setSelectedVehicleKeys] = useState([]);
+  const [data, setData] = useState<DataType>({ 
+    users: [], 
+    vehicles: [], 
+    vehicleKeys: [] 
+  })
+  const [groupedVehicleKeys, setGroupedVehicleKeys] = useState<GroupedVehicleKeys>({})
+  const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
 
-  const [vehicleKeys, setVehicleKeys] = useState<VehicleKey[]>([])
   const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState({
     userId: '',
     vehicleId: ''
   })
 
-  console.log(data);
-
-
   useEffect(() => {
     fetchVehicleKeys()
   }, [])
 
+  useEffect(() => {
+    if (data.vehicleKeys.length > 0) {
+      groupVehicleKeys()
+    }
+  }, [data.vehicleKeys])
+
   const fetchVehicleKeys = async () => {
     try {
       const response = await fetch('/api/admin/keys')
-      const data = await response.json()
-      setData(data);
-      setVehicleKeys(data.vehicleKeys)
+      const fetchedData: DataType = await response.json()
+      setData(fetchedData)
     } catch (error) {
       console.error('Error fetching vehicle keys:', error)
     }
+  }
+
+  const groupVehicleKeys = () => {
+    const grouped = data.vehicleKeys.reduce<GroupedVehicleKeys>((acc, key) => {
+      if (!acc[key.vehicleId]) {
+        acc[key.vehicleId] = {
+          vehicle: key.vehicle,
+          keys: [],
+          latestKey: key
+        }
+      }
+      
+      acc[key.vehicleId].keys.push(key)
+      
+      // Update latest key if this key is newer
+      if (new Date(key.createdAt) > new Date(acc[key.vehicleId].latestKey.createdAt)) {
+        acc[key.vehicleId].latestKey = key
+      }
+      
+      return acc
+    }, {})
+
+    setGroupedVehicleKeys(grouped)
   }
 
   const handleSubmit = async () => {
@@ -46,7 +110,10 @@ export default function VehicleKeysPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          parentId: groupedVehicleKeys[formData.vehicleId]?.latestKey?.id || null
+        }),
       })
 
       if (response.ok) {
@@ -61,8 +128,16 @@ export default function VehicleKeysPage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
-      <Box display="flex" justifyContent="end" bgcolor={'smoke'} alignItems="center" mb={4}>
-        <Button variant="contained" onClick={() => setOpen(true)}>
+      <Box 
+        display="flex" 
+        justifyContent="flex-end" 
+        alignItems="center" 
+        mb={4}
+      >
+        <Button 
+          variant="contained" 
+          onClick={() => setOpen(true)}
+        >
           Novo cadastro
         </Button>
       </Box>
@@ -71,29 +146,27 @@ export default function VehicleKeysPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>User</TableCell>
-              <TableCell>Vehicle</TableCell>
-              <TableCell>Parent</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Updated At</TableCell>
+              <TableCell>Veículo</TableCell>
+              <TableCell>Último Responsável</TableCell>
+              <TableCell>Placa</TableCell>
+              <TableCell>Total Transferências</TableCell>
+              <TableCell>Última Transferência</TableCell>
               <TableCell>Opções</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {vehicleKeys.map((key) => (
-              <TableRow key={key.id}>
-                <TableCell>{key.id.slice(0, 6)}</TableCell>
-                <TableCell>{key.user.name}</TableCell>
-                <TableCell>{key.vehicle.plate}</TableCell>
-                <TableCell>{key.parentId || 'N/A'}</TableCell>
-                <TableCell>{new Date(key.createdAt).toLocaleString()}</TableCell>
-                <TableCell>{new Date(key.updatedAt).toLocaleString()}</TableCell>
+            {Object.values(groupedVehicleKeys).map((group) => (
+              <TableRow key={group.vehicle.id}>
+                <TableCell>{group.vehicle.model}</TableCell>
+                <TableCell>{group.latestKey.user.name}</TableCell>
+                <TableCell>{group.vehicle.plate}</TableCell>
+                <TableCell>{group.keys.length}</TableCell>
+                <TableCell>{new Date(group.latestKey.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <IconButton
                     onClick={() => {
-                      setSelectedVehicleKeys(data);
-                      setHistoryModalOpen(true);
+                      setSelectedVehicleKeys(group.latestKey)
+                      setHistoryModalOpen(true)
                     }}
                   >
                     <History fontSize="small" />
@@ -105,38 +178,57 @@ export default function VehicleKeysPage() {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)} 
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Transferir chave</DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
             <InputLabel>Usuário</InputLabel>
             <Select
               value={formData.userId}
-              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}>
-              {data && data?.users.map((u) => (<MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>))}
+              label="Usuário"
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+            >
+              {data.users.map((u) => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Veiculo</InputLabel>
+            <InputLabel>Veículo</InputLabel>
             <Select
               value={formData.vehicleId}
-              onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}>
-              {data && data?.vehicles.map((v) => (<MenuItem key={v.id} value={v.id}>{v.plate + " - " + v.model}</MenuItem>))}
+              label="Veículo"
+              onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
+            >
+              {data.vehicles.map((v) => (
+                <MenuItem key={v.id} value={v.id}>
+                  {`${v.plate} - ${v.model}`}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">Add</Button>
+          <Button onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={handleSubmit} variant="contained">Adicionar</Button>
         </DialogActions>
       </Dialog>
 
-      <HistoryModal
-        open={historyModalOpen}
-        onClose={() => setHistoryModalOpen(false)}
-        vehicleKeys={selectedVehicleKeys}
-      />
+      {selectedVehicleKeys && (
+        <HistoryModal
+          open={historyModalOpen}
+          onClose={() => setHistoryModalOpen(false)}
+          vehicleKeys={selectedVehicleKeys}
+        />
+      )}
     </Container>
   )
 }

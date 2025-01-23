@@ -8,81 +8,38 @@ import {
   IconButton,
   Paper
 } from '@mui/material';
-import { ArrowRight } from '@mui/icons-material';
+import { Close, ArrowRight } from '@mui/icons-material';
 
-interface VehicleKeyHistory {
-  id: string;
-  userId: string;
-  vehicleId: string;
-  createdAt: string;
-  updatedAt: string;
-  parentId: string | null;
-  user: {
-    name: string;
-  };
-  vehicle: {
-    model: string;
-    plate: string;
-  };
+interface User {
+  id: string
+  name: string
+}
+
+interface Vehicle {
+  id: string
+  plate: string
+  model: string
+}
+
+interface VehicleKey {
+  id: string
+  userId: string
+  vehicleId: string
+  createdAt: string
+  updatedAt: string
+  parentId: string | null
+  user: User
+  vehicle: Vehicle
 }
 
 interface HistoryModalProps {
-  open: boolean;
-  onClose: () => void;
-  vehicleKeys: VehicleKeyHistory[];
+  open: boolean
+  onClose: () => void
+  vehicleKeys: VehicleKey | null
 }
 
 const HistoryModal = ({ open, onClose, vehicleKeys }: HistoryModalProps) => {
-  // Find root keys (those without parents)
-  const rootKeys = vehicleKeys.filter(key => !key.parentId);
-  
-  // Find child keys for a given parent ID
-  const findChildren = (parentId: string) => {
-    return vehicleKeys.filter(key => key.parentId === parentId);
-  };
-
-  // Render a single key entry
-  const KeyEntry = ({ data, depth = 0 }: { data: VehicleKeyHistory; depth?: number }) => {
-    const children = findChildren(data.id);
-    
-    return (
-      <Box sx={{ ml: depth * 3 }}>
-        <Paper 
-          elevation={1}
-          sx={{
-            p: 2,
-            my: 1,
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 2,
-            backgroundColor: 'background.paper'
-          }}
-        >
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
-            {depth > 0 && (
-              <ArrowRight />
-            )}
-            <Typography variant="h6" component="div">
-              {data.vehicle.model} - {data.vehicle.plate}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ pl: depth > 0 ? 3 : 0 }}>
-            <Typography variant="body2" color="text.secondary">
-              Responsável: {data.user.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Data: {new Date(data.createdAt).toLocaleDateString()} {new Date(data.createdAt).toLocaleTimeString()}
-            </Typography>
-          </Box>
-        </Paper>
-        
-        {children.map(child => (
-          <KeyEntry key={child.id} data={child} depth={depth + 1} />
-        ))}
-      </Box>
-    );
-  };
+  if (!vehicleKeys) return null;
 
   return (
     <Dialog 
@@ -95,15 +52,41 @@ const HistoryModal = ({ open, onClose, vehicleKeys }: HistoryModalProps) => {
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Histórico do Veículo</Typography>
           <IconButton onClick={onClose}>
-            &times;
+            <Close />
           </IconButton>
         </Box>
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          {rootKeys.map(key => (
-            <KeyEntry key={key.id} data={key} />
-          ))}
+        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h6">
+            {vehicleKeys.vehicle.model} - {vehicleKeys.vehicle.plate}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Primeira Transferência: {new Date(vehicleKeys.createdAt).toLocaleString()}
+          </Typography>
+        </Paper>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Typography variant="subtitle1">Detalhes da Chave</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+              <Typography variant="body2">
+                <strong>ID:</strong> {vehicleKeys.id}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Usuário:</strong> {vehicleKeys.user.name}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Criado em:</strong> {new Date(vehicleKeys.createdAt).toLocaleString()}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Atualizado em:</strong> {new Date(vehicleKeys.updatedAt).toLocaleString()}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Parent ID:</strong> {vehicleKeys.parentId || 'Nenhum'}
+              </Typography>
+            </Box>
+          </Paper>
         </Box>
       </DialogContent>
     </Dialog>
