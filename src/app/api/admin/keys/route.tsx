@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const u = { select: { name: true } }
-    const v = { select: { model: true, plate: true } }
+    const u = { select: { id: true, name: true } }
+    const v = { select: { id:true, model: true, plate: true } }
     const [vehicleKeys, users, vehicles] = await Promise.all([
       prisma.vehicleKey.findMany({
         include: {
@@ -12,8 +12,8 @@ export async function GET() {
           vehicle: v,
         },
       }),
-      prisma.user.findMany(),
-      prisma.vehicle.findMany(),
+      prisma.user.findMany(u),
+      prisma.vehicle.findMany(v),
     ]);
     return NextResponse.json({ vehicleKeys, users, vehicles })
   } catch (error) {

@@ -8,7 +8,9 @@ html {
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
-
+.d-none {
+  display: none;
+}
 body {
   overflow: hidden;
   background-position: center top;
