@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           );
 
           
-          if (!user || !user.password) {
+          if (!user || !user.password || user.isActive) {
             throw "Credenciais inválidas";
           }
           // Verificar senha
@@ -92,7 +92,6 @@ export const authOptions: NextAuthOptions = {
               },
             });
             console.log("Sucesso ao atualizar account:",user.username);
-            
           } catch (error) {
             console.log("Erro ao atualizar account: ",user.username);
             // continue com a autenticação mesmo se falhar

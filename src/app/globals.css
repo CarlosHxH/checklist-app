@@ -10,6 +10,26 @@ html {
 }
 .d-none {
   display: none;
+  && {
+    display: none !important;
+  }
+}
+.d-block {
+  display: block;
+  && {
+    display: block !important;
+  }
+}
+
+.flex {
+  display: flex;
+  flex: 1;
+  && {
+    display: flex !important;
+  }
+}
+.auto {
+  width: auto !important;
 }
 body {
   overflow: hidden;

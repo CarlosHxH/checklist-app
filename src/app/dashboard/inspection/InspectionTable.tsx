@@ -27,6 +27,7 @@ export const InspectionTable = ({
   onEdit,
   onDelete,
 }: InspectionTableProps) => {
+  
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 

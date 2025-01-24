@@ -13,6 +13,7 @@ export async function GET() {
         name: true,
         role: true,
         createdAt: true,
+        isActive: true
       }
     });
     return NextResponse.json(users);
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
         name: true,
         role: true,
         createdAt: true,
+        isActive: true
       }
     });
     return NextResponse.json(user, { status: 201 });
@@ -52,21 +54,20 @@ export async function PUT(request: NextRequest)
 {
   try
   {
-    const body = await request.json();
-    const updateData = { ...body };
-    if (body.password) updateData.password = await hash(body.password, 12);
-
-    delete updateData.id;
+    const {id, ...data} = await request.json();
+    if (data.password) data.password = await hash(data.password, 12);
+    else delete data.password;
 
     const user = await prisma.user.update({
-      where: { id: body.id },
-      data: updateData,
+      where: { id: id },
+      data,
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
         createdAt: true,
+        isActive: true
       }
     });
 

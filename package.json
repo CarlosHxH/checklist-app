@@ -31,6 +31,7 @@
     "dayjs": "^1.11.13",
     "global": "^4.4.0",
     "jsonwebtoken": "^9.0.2",
+    "material-ui-popup-state": "^5.3.3",
     "next": "15.1.0",
     "next-auth": "^4.24.11",
     "pm2": "^5.4.3",
