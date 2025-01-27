@@ -1,25 +1,9 @@
 'use client';
 import React from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Stack,
-  Typography,
-  useTheme,
-  TablePagination,
-  useMediaQuery
+  Table,TableBody,TableCell,TableContainer, useMediaQuery,
+  TableHead,TableRow,Paper,IconButton,Button,Dialog,DialogTitle,
+  DialogContent, DialogActions, TextField, Stack, Typography, useTheme, TablePagination
 } from '@mui/material';
 import {
   Edit as EditIcon,

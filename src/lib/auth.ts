@@ -49,21 +49,15 @@ export const authOptions: NextAuthOptions = {
             where: { username: credentials.username }
           });
 
-          console.log(
-            "Resultado da busca:",
-            user ? "Usuário encontrado: "+user.email : "Usuário não encontrado"
-          );
+          console.log("Resultado da busca:",user ? "Usuário encontrado: "+user.email : "Usuário não encontrado");
 
-          
-          if (!user || !user.password || user.isActive) {
-            throw "Credenciais inválidas";
-          }
+          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo!";
+
           // Verificar senha
           const isPasswordValid = await compare(credentials.password, user.password);
+          console.log({isPasswordValid});
           
-          if (!isPasswordValid) {
-            return null;
-          }
+          if (!isPasswordValid) return null;
 
           // Atualizar ou criar Account
           try {

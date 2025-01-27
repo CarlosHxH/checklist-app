@@ -7,24 +7,21 @@ import {
 } from '@mui/x-data-grid';
 import { Edit as EditIcon, Delete as DeleteIcon, Visibility as ViewIcon } from '@mui/icons-material';
 import { Box, Button, IconButton, Stack, useMediaQuery, useTheme } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
-import UserModal from './Forms';
 import axios from 'axios';
+import VehicleModal, { vehicleFormData } from './Forms';
 
 // Menu Popup State
-export function MenuPopupState({ isMobile, params, handleEdit, handleView, handleDelete }:
-  { isMobile: boolean, params: GridRowParams, handleEdit: (id: string) => void, handleView: (id: string) => void, handleDelete: (id: string) => void }) {
+export function MenuPopupState({ isMobile, params, handleEdit, handleDelete }:
+  { isMobile: boolean, params: GridRowParams, handleEdit: (id: string) => void, handleDelete: (id: string) => void }) {
 
   const Filds = [
     <GridActionsCellItem key={1} icon={<EditIcon />} label="Edit" onClick={() => handleEdit(params.id as string)} />,
-    <GridActionsCellItem key={2} icon={<ViewIcon />} label="View" onClick={() => handleView(params.id as string)} />,
     <GridActionsCellItem key={3} icon={<DeleteIcon />} label="Delete" onClick={() => handleDelete(params.id as string)} color="error" />
   ]
 
@@ -33,12 +30,8 @@ export function MenuPopupState({ isMobile, params, handleEdit, handleView, handl
     <PopupState variant="popover" popupId="popup-menu">
       {(popupState) => (
         <React.Fragment>
-          <IconButton {...bindTrigger(popupState)} aria-haspopup="true" aria-label="more">
-            <MoreVertIcon />
-          </IconButton>
-          <Menu {...bindMenu(popupState)}>
-            {Filds.map((item) => <MenuItem key={item.key} onClick={popupState.close}>{item}</MenuItem>)}
-          </Menu>
+          <IconButton {...bindTrigger(popupState)} aria-haspopup="true" aria-label="more"><MoreVertIcon /></IconButton>
+          <Menu {...bindMenu(popupState)}>{Filds.map((item) => <MenuItem key={item.key} onClick={popupState.close}>{item}</MenuItem>)}</Menu>
         </React.Fragment>
       )}
     </PopupState>
@@ -46,31 +39,21 @@ export function MenuPopupState({ isMobile, params, handleEdit, handleView, handl
 }
 
 
-// User interface definition
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  role: "ADMIN" | "USER" | "DRIVER";
-  isActive: boolean;
-  password?: string;
-}
+// Vechicle interface definition
 
-const UserDataGrid: React.FC = () => {
+const VechicleDataGrid: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const { data: users, isLoading, mutate } = useSWR<User[]>('/api/users', fetcher);
-
+  const { data: vehicles, isLoading, mutate } = useSWR<vehicleFormData[]>('/api/vehicles', fetcher);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState(null);
-
+  const [selectedVechicle, setSelectedVechicle] = React.useState(null);
   const [paginationModel, setPaginationModel] = React.useState({ pageSize: 10, page: 0 });
 
   const handleDelete = (id: string) => {
-    if (users) {
-      if (confirm(`Temcerteza que deseja deletar o usuário: ${users.filter(user => user.id === id)[0]?.name}`)) {
-        axios.delete(`/api/users/${id}`)
+    if (vehicles) {
+      if (confirm(`Temcerteza que deseja deletar o veiculo: ${vehicles.find(Vechicle => Vechicle.id === id)?.plate}`)) {
+        axios.delete(`/api/vehicles/${id}`)
           .then(function (response) {
             console.log({ response });
             mutate();
@@ -83,58 +66,31 @@ const UserDataGrid: React.FC = () => {
   };
 
   const handleView = (id: string) => {
-    console.log(`View user ${id}`);
-    if (users) {
-      console.log(users.filter(user => user.id === id));
+    if (vehicles) {
+      console.log(vehicles.find(Vechicle => Vechicle.id === id));
     }
   };
 
 
   // Column definitions
   const columns: GridColDef[] = [
+    { field: 'make', headerName: 'Fabricante', flex: isMobile ? 1 : 0.5, minWidth: 80 },
+    { field: 'plate', headerName: 'Placa', flex: isMobile ? 1 : 2, minWidth: 80 },
+    { field: 'model', headerName: 'Modelo', flex: isMobile ? 1 : 0.8, minWidth: 80 },
+    { field: 'year', headerName: 'Ano', flex: isMobile ? 1 : 0.8, minWidth: 80 },
+
+    { field: 'eixo', headerName: 'Eixos', flex: isMobile ? 1 : 0.8, minWidth: 80, valueFormatter: (v) => isMobile ? v : ['DIANTEIRA', 'TRAÇÃO', 'TRUCK', 'Quarto Eixo'][--v] },
     {
-      field: 'name',
-      headerName: 'Name',
-      flex: isMobile ? 2 : 3,
-      minWidth: 90,
-    },
-    {
-      field: 'username',
-      headerName: 'Login',
-      flex: isMobile ? 1 : 0.8,
-      minWidth: 80,
-    },
-    {
-      field: 'role',
-      headerName: 'Perfil',
-      flex: isMobile ? 1 : 0.5,
-      minWidth: 80,
-      valueOptions: ['ADMIN', 'USER', 'DRIVER'],
-    },
-    {
-      field: 'isActive',
-      headerName: 'Status',
-      flex: isMobile ? 1 : 2,
-      type: 'singleSelect',
-      valueOptions: ['active', 'inactive'],
-      renderCell: (params) => <>{params.value ? <CheckIcon color='success' /> : <CloseIcon color='error' />}</>,
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Ações',
-      flex: 1,
-      minWidth: 70,
+      field: 'actions', type: 'actions', headerName: 'Ações', flex: 1, minWidth: 70,
       getActions: ({ row }: GridRowParams) => [
         <MenuPopupState
           key={row.id as string}
           isMobile={isMobile}
           params={row}
           handleEdit={() => {
-            setSelectedUser(row);
+            setSelectedVechicle(row);
             setIsModalOpen(true);
           }}
-          handleView={handleView}
           handleDelete={handleDelete}
         />
       ]
@@ -146,7 +102,7 @@ const UserDataGrid: React.FC = () => {
       <GridToolbarContainer>
         <GridToolbarColumnsButton />
         <GridToolbarFilterButton />
-        <GridToolbarExport slotProps={{ tooltip: { title: '', sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
+        <GridToolbarExport slotProps={{ tooltip: { sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
         <Box sx={{ flexGrow: 1 }} />
         <Stack direction="row" spacing={2} alignItems={'center'}>
           <GridToolbarQuickFilter variant="outlined" size="small" />
@@ -155,11 +111,12 @@ const UserDataGrid: React.FC = () => {
       </GridToolbarContainer>
     );
   }
-
+  
+  const xs = isMobile?{year: false, eixo: false, model: false }:null
   return (
     <Box sx={{ height: 'auto', width: '100%' }}>
       <DataGrid
-        rows={users}
+        rows={vehicles}
         columns={columns}
         loading={isLoading}
         pagination
@@ -180,19 +137,20 @@ const UserDataGrid: React.FC = () => {
             quickFilterProps: { debounceMs: 500 },
           },
         }}
-        sx={{
-          '& .status-active': { color: 'green', fontWeight: 'bold' },
-          '& .status-inactive': { color: 'red', fontWeight: 'bold' }
+        initialState={{
+          columns: {
+            columnVisibilityModel: {...xs},
+          },
         }}
       />
 
-      <UserModal
+      <VehicleModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setSelectedUser(null);
+          setSelectedVechicle(null);
         }}
-        user={selectedUser}
+        data={selectedVechicle}
         onSubmit={async (data) => { await mutate() }}
       />
 
@@ -200,4 +158,4 @@ const UserDataGrid: React.FC = () => {
   );
 };
 
-export default UserDataGrid;
+export default VechicleDataGrid;

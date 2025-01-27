@@ -8,7 +8,7 @@ import { Box, Button, IconButton, Stack, useMediaQuery, useTheme } from '@mui/ma
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -64,6 +64,8 @@ const UserDataGrid: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState(null);
 
+  const [paginationModel, setPaginationModel] = React.useState({pageSize: 10,page: 0});
+
   const handleDelete = (id: string) => {
     console.log(`Delete user ${id}`);
     if (users) {
@@ -96,6 +98,7 @@ const UserDataGrid: React.FC = () => {
       headerName: 'Perfil',
       flex: isMobile ? 1 : 0.5,
       minWidth: 80,
+      valueOptions: ['ADMIN', 'USER', 'DRIVER'],
     },
     {
       field: 'isActive',
@@ -127,15 +130,6 @@ const UserDataGrid: React.FC = () => {
     }
   ];
 
-  const handleEditUser = async (data: User) => {
-    mutate();
-  }
-  const handleAddUser = async (data: User) => {
-    mutate();
-  }
-  
-
-
   function CustomToolbar() {
     return (
       <GridToolbarContainer>
@@ -158,7 +152,8 @@ const UserDataGrid: React.FC = () => {
         columns={columns}
         pagination
         loading={isLoading}
-        pageSizeOptions={[5, 10, 25]}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         disableRowSelectionOnClick
         slots={{ toolbar: CustomToolbar || GridToolbar }}
         localeText={{
@@ -171,24 +166,11 @@ const UserDataGrid: React.FC = () => {
           toolbar: {
             showQuickFilter: true,
             quickFilterProps: { debounceMs: 500 },
-
           },
         }}
         sx={{
-          '& .none': {
-            display: 'none',
-            '&& ': {
-              display: 'none !important'
-            }
-          },
-          '& .status-active': {
-            color: 'green',
-            fontWeight: 'bold'
-          },
-          '& .status-inactive': {
-            color: 'red',
-            fontWeight: 'bold'
-          }
+          '& .status-active': {color: 'green',fontWeight: 'bold'},
+          '& .status-inactive': {color: 'red',fontWeight: 'bold'}
         }}
       />
 
@@ -199,9 +181,7 @@ const UserDataGrid: React.FC = () => {
           setSelectedUser(null);
         }}
         user={selectedUser}
-        onSubmit={async (data) => {
-          await mutate();
-        }}
+        onSubmit={async (data) => {await mutate()}}
       />
 
     </Box>

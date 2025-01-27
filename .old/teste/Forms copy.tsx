@@ -95,27 +95,21 @@ export default function UserModal({
               control={control}
               render={({ field }) => (<TextField variant='outlined' label="Nome" {...field} placeholder="Nome completo" fullWidth />)}
             />
-            {errors.name && (
-              <Typography color="error">{errors.name.message}</Typography>
-            )}
+            {errors.name && (<Typography color="error">{errors.name.message}</Typography>)}
 
             <Controller
               name="username"
               control={control}
               render={({ field }) => (<TextField variant='outlined' label="Usuario" {...field} placeholder="Usuário para login" fullWidth />)}
             />
-            {errors.username && (
-              <Typography color="error">{errors.username.message}</Typography>
-            )}
+            {errors.username && (<Typography color="error">{errors.username.message}</Typography>)}
 
             <Controller
               name="password"
               control={control}
               render={({ field }) => (<TextField variant='outlined' label="Senha" {...field} placeholder="********" fullWidth helperText={user ? "Deixe em branco para manter a senha atual" : ""} />)}
             />
-            {errors.password && (
-              <Typography color="error">{errors.password.message}</Typography>
-            )}
+            {errors.password && (<Typography color="error">{errors.password.message}</Typography>)}
 
             <Controller
               name="role"
@@ -127,12 +121,9 @@ export default function UserModal({
                   <MenuItem value="USER">Usuário</MenuItem>
                   <MenuItem value="DRIVER">Motorista</MenuItem>
                 </Select>
-
               </>)}
             />
-            {errors.role && (
-              <Typography color="error">{errors.role.message}</Typography>
-            )}
+            {errors.role && (<Typography color="error">{errors.role.message}</Typography>)}
             <Controller
               name="isActive"
               control={control}
@@ -143,9 +134,7 @@ export default function UserModal({
                     <MenuItem value="true">Ativo</MenuItem>
                     <MenuItem value="false">Inativo</MenuItem>
                   </Select>
-                  {errors.role && (
-                    <Typography color="error">{errors.role.message}</Typography>
-                  )}
+                  {errors.role && (<Typography color="error">{errors.role.message}</Typography>)}
                 </>
               )}
             />
@@ -154,9 +143,7 @@ export default function UserModal({
 
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button type="submit" variant="contained">
-            {user ? "Atualizar" : "Criar"}
-          </Button>
+          <Button type="submit" variant="contained">{user ? "Atualizar" : "Criar"}</Button>
         </DialogActions>
       </form>
     </Dialog>

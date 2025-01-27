@@ -142,9 +142,7 @@ const UserCardGrid: React.FC = () => {
               <Typography>Email: {selectedUser.email}</Typography>
               <Typography>Role: {selectedUser.role}</Typography>
               <Typography>Status: {selectedUser.status}</Typography>
-              <Button onClick={handleCloseModal} variant="contained" sx={{ mt: 2 }}>
-                Close
-              </Button>
+              <Button onClick={handleCloseModal} variant="contained" sx={{ mt: 2 }}>Close</Button>
             </>
           )}
 
