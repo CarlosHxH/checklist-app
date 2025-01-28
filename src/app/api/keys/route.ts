@@ -1,40 +1,99 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+// app/api/admin/keys/route.ts
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
-const prisma = new PrismaClient();
-
+// GET all keys
 export async function GET() {
   try {
-    const keyLogs = await prisma.vehicleKey.findMany({
-      include: {
-        vehicle: true,
-        user: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return NextResponse.json(keyLogs);
+    const [users, vehicles, vehicleKeys] = await prisma.$transaction([
+      prisma.user.findMany({
+        include:{
+            vehiclekey: true
+        }
+      }),
+      prisma.vehicle.findMany(),
+      prisma.vehicleKey.findMany({
+        include: {
+          user: true,
+          vehicle: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    ])
+
+    return NextResponse.json({
+      users,
+      vehicles,
+      vehicleKeys
+    })
   } catch (error) {
-    return NextResponse.json({ error: 'Error fetching key logs' }, { status: 500 });
+    console.error('Error fetching data:', error)
+    return NextResponse.json(
+      { error: 'Error fetching data' },
+      { status: 500 }
+    )
   }
 }
 
+// POST new key transfer
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const keyLog = await prisma.vehicleKey.create({
-      data: {
-        vehicleId: body.vehicleId,
-        userId: body.userId,
-      },
-      include: {
-        vehicle: true,
-        user: true
-      },
-    });
-    return NextResponse.json(keyLog);
+    const body = await request.json()
+    const { userId, vehicleId, parentId } = body
+
+    // Validate input
+    if (!userId || !vehicleId) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+
+    // Start transaction
+    const newTransfer = await prisma.$transaction(async (tx) => {
+      // Check if user exists
+      const user = await tx.user.findUnique({
+        where: { id: userId }
+      })
+
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      // Check if vehicle exists
+      const vehicle = await tx.vehicle.findUnique({
+        where: { id: vehicleId }
+      })
+
+      if (!vehicle) {
+        throw new Error('Vehicle not found')
+      }
+
+      // Create new transfer
+      const transfer = await tx.vehicleKey.create({
+        data: {
+          userId,
+          vehicleId,
+          parentId,
+          status: 'PENDING'
+        },
+        include: {
+          user: true,
+          vehicle: true
+        }
+      })
+
+      return transfer
+    })
+
+    return NextResponse.json(newTransfer)
   } catch (error) {
-    return NextResponse.json({ error: 'Error creating key log' }, { status: 500 });
+    console.error('Error creating transfer:', error)
+    return NextResponse.json(
+      { error: 'Error creating transfer' },
+      { status: 500 }
+    )
   }
 }

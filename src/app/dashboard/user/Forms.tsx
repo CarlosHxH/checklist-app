@@ -3,8 +3,8 @@ import React from 'react';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
-import { log } from 'console';
 import axios from 'axios';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 // User schema for validation
 const userSchema = z.object({
@@ -13,18 +13,18 @@ const userSchema = z.object({
   username: z.string().min(3, { message: "Username deve ter pelo menos 3 caracteres" }),
   password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }).optional(),
   role: z.enum(['ADMIN', 'USER', 'DRIVER'], {
-    errorMap: () => ({ message: "Selecione um papel válido" })
+    errorMap: () => ({ message: "Selecione um perfil válido" })
   }),
-  isActive: z.string().optional()
+  isActive: z.any().optional()
 });
 
-type UserFormData = z.infer<typeof userSchema>;
+export type UserFormData = z.infer<typeof userSchema>;
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user?: UserFormData | null;
-  onSubmit: (data?: UserFormData) => Promise<void>;
+  onSubmit: (data?: UserFormData) => Promise<void> | void;
 }
 
 export default function UserModal({
@@ -39,7 +39,7 @@ export default function UserModal({
     reset,
     formState: { errors }
   } = useForm<UserFormData>({
-    /*resolver: zodResolver(userSchema),*/
+    resolver: zodResolver(userSchema),
     defaultValues: user || {
       name: '',
       username: '',

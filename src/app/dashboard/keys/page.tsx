@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { 
+  Alert,
+  Backdrop,
   Box, 
   Button, 
+  CircularProgress,
   Container, 
   Dialog, 
   DialogActions, 
   DialogContent, 
+  DialogContentText,
   DialogTitle, 
   FormControl, 
   IconButton, 
@@ -15,6 +19,7 @@ import {
   MenuItem, 
   Paper, 
   Select, 
+  Snackbar,
   Table, 
   TableBody, 
   TableCell, 
@@ -65,21 +70,36 @@ interface GroupedVehicleKeys {
   }
 }
 
-export default function VehicleKeysPage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+interface FormData {
+  userId: string
+  vehicleId: string
+}
 
+export default function VehicleKeysPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
+  // Main data states
   const [data, setData] = useState<DataType>({ 
     users: [], 
     vehicles: [], 
     vehicleKeys: [] 
   })
   const [groupedVehicleKeys, setGroupedVehicleKeys] = useState<GroupedVehicleKeys>({})
-  const [historyModalOpen, setHistoryModalOpen] = useState(false)
-  const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
-
+  
+  // UI states
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  
+  // Modal states
   const [open, setOpen] = useState(false)
-  const [formData, setFormData] = useState({
+  const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
+  
+  // Form state
+  const [formData, setFormData] = useState<FormData>({
     userId: '',
     vehicleId: ''
   })
@@ -95,12 +115,19 @@ export default function VehicleKeysPage() {
   }, [data.vehicleKeys])
 
   const fetchVehicleKeys = async () => {
+    setLoading(true)
     try {
       const response = await fetch('/api/admin/keys')
+      if (!response.ok) {
+        throw new Error('Erro ao carregar dados')
+      }
       const fetchedData: DataType = await response.json()
       setData(fetchedData)
     } catch (error) {
       console.error('Error fetching vehicle keys:', error)
+      setError('Erro ao carregar os dados. Tente novamente.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -128,7 +155,36 @@ export default function VehicleKeysPage() {
     setGroupedVehicleKeys(grouped)
   }
 
+  const validateForm = (): string | null => {
+    if (!formData.vehicleId) {
+      return 'Selecione um veículo'
+    }
+    if (!formData.userId) {
+      return 'Selecione um usuário'
+    }
+    
+    const currentKey = groupedVehicleKeys[formData.vehicleId]?.latestKey
+    if (currentKey && currentKey.userId === formData.userId) {
+      return 'A chave já está com este usuário'
+    }
+    
+    return null
+  }
+
   const handleSubmit = async () => {
+    const validationError = validateForm()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    
+    setConfirmDialogOpen(true)
+  }
+
+  const handleConfirmedSubmit = async () => {
+    setLoading(true)
+    setConfirmDialogOpen(false)
+    
     try {
       const response = await fetch('/api/admin/keys', {
         method: 'POST',
@@ -141,52 +197,86 @@ export default function VehicleKeysPage() {
         }),
       })
 
-      if (response.ok) {
-        setOpen(false)
-        fetchVehicleKeys()
-        setFormData({ userId: '', vehicleId: '' })
+      if (!response.ok) {
+        throw new Error('Erro ao transferir chave')
       }
+
+      await fetchVehicleKeys()
+      setSuccessMessage('Chave transferida com sucesso!')
+      handleCloseModal()
     } catch (error) {
       console.error('Error creating vehicle key:', error)
+      setError('Erro ao transferir a chave. Tente novamente.')
+    } finally {
+      setLoading(false)
     }
   }
-  
+
+  const handleCloseModal = () => {
+    setOpen(false)
+    setError(null)
+    setFormData({ userId: '', vehicleId: '' })
+  }
+
+  const getCurrentKeyHolder = (vehicleId: string) => {
+    return groupedVehicleKeys[vehicleId]?.latestKey?.user?.name || 'Nenhum'
+  }
+
+  if (loading && !data.vehicleKeys.length) {
+    return (
+      <Backdrop open={true}>
+        <CircularProgress color="primary" />
+      </Backdrop>
+    )
+  }
+
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
       <Box 
         display="flex" 
-        justifyContent="flex-end" 
+        justifyContent="space-between" 
         alignItems="center" 
         mb={4}
       >
+        <Typography variant="h5">Gestão de Chaves</Typography>
         <Button 
           variant="contained" 
           onClick={() => setOpen(true)}
         >
-          Novo cadastro
+          Nova Transferência
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              {!isMobile&&<TableCell>Veículo</TableCell>}
-              <TableCell>Último Responsável</TableCell>
+              {!isMobile && <TableCell>Veículo</TableCell>}
+              <TableCell>Responsável Atual</TableCell>
               <TableCell>Placa</TableCell>
-              {!isMobile&&<TableCell>Total Transferências</TableCell>}
-              {!isMobile&&<TableCell>Última Transferência</TableCell>}
-              <TableCell>Opções</TableCell>
+              {!isMobile && <TableCell>Total Transferências</TableCell>}
+              {!isMobile && <TableCell>Última Transferência</TableCell>}
+              <TableCell>Histórico</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.values(groupedVehicleKeys).map((group, i:number) => (
+            {Object.values(groupedVehicleKeys).map((group, i) => (
               <TableRow key={i}>
-                {!isMobile&&<TableCell>{group.vehicle.model}</TableCell>}
+                {!isMobile && <TableCell>{group.vehicle.model}</TableCell>}
                 <TableCell>{group.latestKey.user.name}</TableCell>
                 <TableCell>{group.vehicle.plate}</TableCell>
-                {!isMobile&&<TableCell>{group.keys.length}</TableCell>}
-                {!isMobile&&<TableCell>{new Date(group.latestKey.createdAt).toLocaleString()}</TableCell>}
+                {!isMobile && <TableCell>{group.keys.length}</TableCell>}
+                {!isMobile && (
+                  <TableCell>
+                    {new Date(group.latestKey.createdAt).toLocaleString('pt-BR')}
+                  </TableCell>
+                )}
                 <TableCell>
                   <IconButton
                     onClick={() => {
@@ -195,7 +285,11 @@ export default function VehicleKeysPage() {
                     }}
                   >
                     <History fontSize="small" />
-                    {isMobile && <Typography variant='body2'>{group.keys.length}</Typography>}
+                    {isMobile && (
+                      <Typography variant="body2" sx={{ ml: 1 }}>
+                        {group.keys.length}
+                      </Typography>
+                    )}
                   </IconButton>
                 </TableCell>
               </TableRow>
@@ -204,52 +298,99 @@ export default function VehicleKeysPage() {
         </Table>
       </TableContainer>
 
+      {/* Transfer Dialog */}
       <Dialog 
         open={open} 
-        onClose={() => setOpen(false)} 
+        onClose={handleCloseModal}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Transferir chave</DialogTitle>
+        <DialogTitle>Nova Transferência de Chave</DialogTitle>
         <DialogContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
             <InputLabel>Veículo</InputLabel>
             <Select
               value={formData.vehicleId}
               label="Veículo"
-              onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
+              onChange={(e) => {
+                setError(null)
+                setFormData({ ...formData, vehicleId: e.target.value })
+              }}
             >
               {data.vehicles.map((v) => (
                 <MenuItem key={v.id} value={v.id}>
                   {`${v.plate} - ${v.model}`}
+                  {formData.vehicleId === v.id && ` (Atual: ${getCurrentKeyHolder(v.id)})`}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
-            <InputLabel>Usuário</InputLabel>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Novo Responsável</InputLabel>
             <Select
               value={formData.userId}
-              label="Usuário"
-              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+              label="Novo Responsável"
+              onChange={(e) => {
+                setError(null)
+                setFormData({ ...formData, userId: e.target.value })
+              }}
             >
               {data.users.map((u) => (
-                <MenuItem key={u.id} value={u.id}>
+                <MenuItem 
+                  key={u.id} 
+                  value={u.id}
+                  disabled={groupedVehicleKeys[formData.vehicleId]?.latestKey?.userId === u.id}
+                >
                   {u.name}
+                  {groupedVehicleKeys[formData.vehicleId]?.latestKey?.userId === u.id && 
+                    ' (Responsável Atual)'}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">Adicionar</Button>
+          <Button onClick={handleCloseModal}>Cancelar</Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained"
+            disabled={loading || !formData.userId || !formData.vehicleId}
+          >
+            Transferir
+          </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+      >
+        <DialogTitle>Confirmar Transferência</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Deseja transferir a chave do veículo{' '}
+            {formData.vehicleId && data.vehicles.find(v => v.id === formData.vehicleId)?.model}{' '}
+            para{' '}
+            {formData.userId && data.users.find(u => u.id === formData.userId)?.name}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={handleConfirmedSubmit} variant="contained" autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* History Modal */}
       {selectedVehicleKeys && (
         <HistoryModal
           open={historyModalOpen}
@@ -257,6 +398,30 @@ export default function VehicleKeysPage() {
           vehicleKeys={groupedVehicleKeys[selectedVehicleKeys.vehicleId]}
         />
       )}
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSuccessMessage(null)} 
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Loading Backdrop */}
+      <Backdrop
+        sx={{ color: '#fff', zIndex: theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Container>
   )
 }

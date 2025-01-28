@@ -1,64 +1,36 @@
 'use client';
 import React from 'react';
 import {
-  Table,TableBody,TableCell,TableContainer, useMediaQuery,
-  TableHead,TableRow,Paper,IconButton,Button,Dialog,DialogTitle,
-  DialogContent, DialogActions, TextField, Stack, Typography, useTheme, TablePagination
+  Table, TableBody, TableCell, TableContainer, useMediaQuery,
+  TableHead, TableRow, Paper, IconButton, Button,
+  TextField, Stack, Typography, useTheme, TablePagination
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
-  Search as SearchIcon,
-} from '@mui/icons-material';
+import {Edit as EditIcon,Delete as DeleteIcon,Add as AddIcon,Search as SearchIcon } from '@mui/icons-material';
 import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
-import { z } from 'zod';
-import Swal from 'sweetalert2';
+import VehicleModal, { vehicleFormData } from './Forms';
+import { CSVExporter } from '@/utils';
 
-type Vehicle = {
-  make: string;
-  model: string;
-  year: number;
-  eixo: number;
-  plate: string;
-  id: string;
-};
-
-const DefaultUser = {
+const DefaulFilter = {
   make: '',
   model: '',
   plate: '',
-}
-const DefaultForm = {
-  make: '',
-  model: '',
-  year: 0,
-  eixo: 0,
-  plate: '',
-  id: ''
 }
 
 export default function VehiclesTable() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: vehicles, error, mutate } = useSWR<Vehicle[]>('/api/vehicles', fetcher);
+  const { data: vehicles, error, mutate } = useSWR<vehicleFormData[]>('/api/vehicles', fetcher);
 
-  const [errors, setErrors] = React.useState<Record<string, string>>({});
-
-  const [openDialog, setOpenDialog] = React.useState<boolean>(false);
-  const [selectedVehicle, setSelectedVehicle] = React.useState<Vehicle | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState<vehicleFormData | null>(null);
 
   // Filtros
-  const [filters, setFilters] = React.useState(DefaultUser);
-
+  const [filters, setFilters] = React.useState(DefaulFilter);
   // Paginação
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const [formData, setFormData] = React.useState<Vehicle>(DefaultForm);
-
   // Função para filtrar veículos
   const filteredVehicles = React.useMemo(() => {
     if (!vehicles) return [];
@@ -92,82 +64,9 @@ export default function VehiclesTable() {
     setPage(0);
   };
 
-  const handleOpenDialog = (vehicle: Vehicle | null) => {
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setFormData(vehicle);
-    } else {
-      setSelectedVehicle(null);
-      setFormData(DefaultForm);
-    }
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedVehicle(null);
-    setFormData(DefaultForm);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value, }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (selectedVehicle) {
-        const response = await fetch('/api/vehicles', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, id: selectedVehicle.id }),
-        });
-        if (!response.ok) throw new Error('Failed to update vehicle');
-        setErrors({});
-        mutate();
-        handleCloseDialog();
-      } else {
-        const response = await fetch('/api/vehicles', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-
-        const res = await response.json();
-        if (res.message) throw new Error(res.message);
-        if (!response.ok) throw new Error('Failed to create vehicle');
-
-        setErrors({});
-        mutate();
-        handleCloseDialog();
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const formattedErrors = error.errors.reduce((acc, curr) => ({
-          ...acc,
-          [curr.path[0]]: curr.message
-        }), {});
-        setErrors(formattedErrors);
-        console.log({ formattedErrors });
-      }
-
-      if (error instanceof Error) {
-        setErrors({ message: error.message });
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message,
-        });
-      } else {
-        setErrors({ message: 'An unknown error occurred' });
-      }
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este veículo?')) return;
-    
+
     try {
       const response = await fetch('/api/vehicles', {
         method: 'DELETE',
@@ -184,22 +83,18 @@ export default function VehiclesTable() {
   if (error) return <Typography color="error">Erro de carregamento de veículos</Typography>;
   if (!vehicles) return <Loading />;
 
-  
+
+  const k = (e: number) => ['DIANTEIRA', 'TRAÇÃO', 'TRUCK', 'Quarto Eixo'][--e]
+  const eixoss = (vehicles: vehicleFormData[]) => {
+    return vehicles.map(vehicle => ({ ...vehicle, eixo: k(Number(vehicle.eixo)) }))
+  }
+
 
   return (
     <Stack spacing={2}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
-        <Typography variant="h5"></Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog(null)}
-        >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Button variant="outlined" onClick={() => CSVExporter.exportToCSV(eixoss(paginatedVehicles))}>Exportar csv</Button>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setIsModalOpen(true)}>
           Adicionar veículo
         </Button>
       </Stack>
@@ -207,13 +102,7 @@ export default function VehiclesTable() {
       {/* Filtros */}
       <Paper sx={{ p: 2 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <TextField
-            name="make"
-            label="Filtrar por fabricante"
-            value={filters.make}
-            onChange={handleFilterChange}
-            size="small"
-            fullWidth
+          <TextField name="make" label="Filtrar por fabricante" value={filters.make} onChange={handleFilterChange} size="small" fullWidth
             InputProps={{
               startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
             }}
@@ -261,16 +150,16 @@ export default function VehiclesTable() {
                 <TableCell>{vehicle.make}</TableCell>
                 <TableCell>{vehicle.model}</TableCell>
                 {!isMobile && <TableCell>{vehicle.year}</TableCell>}
-                {!isMobile && <TableCell>{vehicle.eixo}</TableCell>}
+                {!isMobile && <TableCell>{k(Number(vehicle.eixo))}</TableCell>}
                 <TableCell>{vehicle.plate}</TableCell>
                 <TableCell align="right">
                   <IconButton
                     color="primary"
-                    onClick={() => handleOpenDialog(vehicle)}
+                    onClick={() => { setIsModalOpen(true); setSelected(vehicle) }}
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(vehicle.id)}>
+                  <IconButton color="error" onClick={() => vehicle.id && handleDelete(vehicle.id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -289,77 +178,15 @@ export default function VehiclesTable() {
         />
       </TableContainer>
 
-
-
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>
-            {selectedVehicle ? 'Editar veículo' : 'Adicione um veículo novo'}
-          </DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <TextField
-                name="make"
-                label="Fabricante"
-                value={formData.make}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                error={!!errors.make}
-                helperText={errors.make}
-              />
-              <TextField
-                name="model"
-                label="Modelo"
-                value={formData.model}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                error={!!errors.model}
-                helperText={errors.model}
-              />
-              <TextField
-                name="year"
-                label="Ano"
-                type="number"
-                value={formData.year}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                error={!!errors.year}
-                helperText={errors.year}
-              />
-              <TextField
-                name="eixo"
-                label="Eixo"
-                type="number"
-                value={formData.eixo}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                error={!!errors.eixo}
-                helperText={errors.eixo}
-              />
-              <TextField
-                name="plate"
-                label="Placa"
-                value={formData.plate}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                error={!!errors.plate}
-                helperText={errors.plate}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancelar</Button>
-            <Button type="submit" variant="contained">
-              {selectedVehicle ? 'Atualizar' : 'Criar'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+      <VehicleModal
+        isOpen={isModalOpen}
+        data={selected}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelected(null);
+        }}
+        onSubmit={async (data) => console.log(data)}
+      />
     </Stack>
   );
 }

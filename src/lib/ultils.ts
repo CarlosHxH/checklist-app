@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const fakeArray = (value: number) =>
-  Array.from({ length: value }, (_, i) => i + 1);
+export const fakeArray = (value: number) =>Array.from({ length: value }, (_, i) => i + 1);
+
 export const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export const hoje = (()=> new Date().toLocaleString('pt-BR'))();
@@ -8,6 +8,7 @@ export const hoje = (()=> new Date().toLocaleString('pt-BR'))();
 export const formatDate = (dateString: string | Date) => {
   return new Date(dateString).toLocaleDateString("pt-BR");
 };
+
 export const stringToDate = (isoString: string) => {
   return isoString.slice(0, 16);
 };

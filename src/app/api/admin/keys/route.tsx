@@ -11,6 +11,9 @@ export async function GET() {
           user: u,
           vehicle: v,
         },
+        orderBy: {
+          createdAt: 'desc'
+        }
       }),
       prisma.user.findMany(u),
       prisma.vehicle.findMany(v),

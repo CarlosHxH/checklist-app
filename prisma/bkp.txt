@@ -50,3 +50,30 @@ model VehicleKey {
 }
 
 */
+
+
+
+recente 28-01-25
+
+model VehicleKey {
+  id            String       @id @default(cuid())
+  userId        String
+  lastUser      String?
+  vehicleId     String
+
+  isAccept      Boolean      @default(false)
+  dataAccept    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  parentId      String?
+
+  // Relações
+  user          user         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  vehicle       vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([lastUser])
+  @@index([vehicleId])
+  @@index([parentId])
+  @@index([createdAt])
+}

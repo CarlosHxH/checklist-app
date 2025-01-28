@@ -22,7 +22,7 @@ const createNavigation = (): Navigation => [
     icon: <DashboardIcon />,
   }, { kind: 'header', title: 'Chaves' }, {
     segment: 'dashboard/keys',
-    title: 'Controle de Chaves',
+    title: 'Chaves',
     icon: <KeyIcon />,
   }, { kind: 'header', title: 'Inspeções' },{
     segment: 'dashboard/inspection',
