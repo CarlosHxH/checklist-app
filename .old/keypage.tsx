@@ -16,7 +16,7 @@ import {
   useTheme
 } from '@mui/material'
 import { Check, Close } from '@mui/icons-material'
-import ResponsiveAppBar from '@/components/ResponsiveAppBar'
+import ResponsiveAppBar from '@/components/_ui/ResponsiveAppBar'
 import Loading from '@/components/Loading'
 import { formatDate } from '@/utils'
 import { useSession } from 'next-auth/react'

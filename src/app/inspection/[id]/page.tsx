@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Paper, Typography, Grid, Box, Container, Chip, Card, CardContent, Stack } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
-import ResponsiveAppBar from "@/components/ResponsiveAppBar";
-import CustomFab from "@/components/CustomFab";
+import ResponsiveAppBar from "@/components/_ui/ResponsiveAppBar";
+import CustomFab from "@/components/_ui/CustomFab";
 import Loading from "@/components/Loading";
 
 const ViewInspectionPage: React.FC = () => {

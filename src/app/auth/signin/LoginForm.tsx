@@ -49,6 +49,9 @@ export default function LoginForm() {
   if (!mounted) return null;
 
   return (
+    <>
+    <Typography component="h1" variant="h5" color={'primary'} sx={{ mb: 2, fontWeight: 'bold' }}>Informe o usuario e senha</Typography>
+    
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
       <TextField
         variant="outlined"
@@ -89,5 +92,6 @@ export default function LoginForm() {
         {isLoading ? (<CircularProgress size={24} />) : ('Entrar')}
       </Button>
     </Box>
+    </>
   )
 }

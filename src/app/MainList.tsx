@@ -1,21 +1,10 @@
 "use client";
 import React from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Chip,
-  Grid,
-  IconButton,
-  List,
-  ListItem,
-  Divider,
-} from "@mui/material";
+import { Box, Card, CardContent, Typography, Chip, Grid, IconButton, List, ListItem, Divider, Button } from "@mui/material";
 import { Edit as EditIcon, Visibility as ViewIcon } from "@mui/icons-material";
 import { fetcher, formatDate } from "@/lib/ultils";
 import useSWR from "swr";
-import Loading from "./Loading";
+import Loading from "@/components/Loading";
 
 interface Props {
   onEdit?: (id: string) => void;
@@ -37,10 +26,11 @@ interface VehicleInspection {
     model: string;
   };
   isFinished: boolean;
+  status: "INICIO" | "FINAL"
 }
 
-export default function VehicleInspectionList({ onEdit, onView, userId }: Props) {
-  const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher);
+export default function MainList({ onEdit, onView, userId }: Props) {
+  const { data, isLoading } = useSWR<VehicleInspection[]>(`/api/inspections/user/${userId}`, fetcher, { refreshInterval: 5000 });
 
   const getStatusChip = (status: string | boolean) => {
     let config = { label: status, color: "error" as "error" | "success" };
@@ -58,7 +48,7 @@ export default function VehicleInspectionList({ onEdit, onView, userId }: Props)
   }
 
   return (
-    <List sx={{paddingBottom:20}}>
+    <List sx={{ paddingBottom: 20 }}>
       {isLoading || !data && <Loading />}
       {data &&
         data.map((inspection, index) => (
@@ -70,7 +60,7 @@ export default function VehicleInspectionList({ onEdit, onView, userId }: Props)
                     {/* Main Info */}
                     <Grid item xs={12} sm={6}>
                       <Typography variant="h6" gutterBottom>
-                        {inspection.vehicle.plate} -{" "}
+                        {inspection.vehicle.plate}{" - "}
                         {inspection.vehicle.model}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -80,30 +70,20 @@ export default function VehicleInspectionList({ onEdit, onView, userId }: Props)
 
                     {/* Status Indicators */}
                     <Grid item xs={12} sm={6}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 1,
-                        }}
-                      >
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1}}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Typography variant="body2" sx={{ minWidth: 120 }}>
                             CRLV: { }
                           </Typography>
                           {getStatusChip(inspection.crlvEmDia)}
                         </Box>
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Typography variant="body2" sx={{ minWidth: 120 }}>
                             Tacógrafo:
                           </Typography>
                           {getStatusChip(inspection.certificadoTacografoEmDia)}
                         </Box>
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Typography variant="body2" sx={{ minWidth: 120 }}>
                             Parte Elétrica:
                           </Typography>
@@ -113,31 +93,9 @@ export default function VehicleInspectionList({ onEdit, onView, userId }: Props)
                     </Grid>
 
                     {/* Actions */}
-                    <Grid
-                      item
-                      xs={12}
-                      sx={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        gap: 1,
-                      }}
-                    >
-                      {onView && (
-                        <IconButton
-                          onClick={() => onView(inspection.id)}
-                          color="primary"
-                        >
-                          <ViewIcon />
-                        </IconButton>
-                      )}
-                      {onEdit && !inspection.isFinished && (
-                        <IconButton
-                          onClick={() => onEdit(inspection.id)}
-                          color="primary"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      )}
+                    <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
+                      {onView && (<IconButton onClick={() => onView(inspection.id)} color="primary"><ViewIcon /></IconButton>)}
+                      {onEdit && !inspection.isFinished && (<IconButton onClick={() => onEdit(inspection.id)} color="primary"><EditIcon /></IconButton>)}
                     </Grid>
                   </Grid>
                 </CardContent>

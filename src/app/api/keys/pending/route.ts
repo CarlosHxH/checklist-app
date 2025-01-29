@@ -9,8 +9,20 @@ export async function GET() {
         status: 'PENDING'
       },
       include: {
-        user: true,
-        vehicle: true
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          }
+        },
+        vehicle: {
+          select: {
+            id: true,
+            plate: true,
+            model: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'

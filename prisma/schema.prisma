@@ -26,6 +26,8 @@ model user {
   inspection     inspection[]
   sessions       Session[]
   vehiclekey     VehicleKey[]
+
+  Inspect Inspect[] @relation(map: "Access_userId_fkey")
 }
 
 model Account {
@@ -80,10 +82,23 @@ model access {
   @@index([userId], map: "Access_userId_fkey")
 }
 
+model Inspect {
+  id            String  @id @default(cuid())
+  userId        String
+  startId       String?
+  endId         String?
+  start         inspection? @relation("StartInspection", fields: [startId], references: [id])
+  end           inspection? @relation("EndInspection", fields: [endId], references: [id])
+  user          user     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model inspection {
-  id                         String    @id @default(cuid())
-  userId                     String
-  vehicleId                  String
+  id        String @id @default(cuid())
+  userId    String
+  vehicleId String
+
   vehicleKey                 String?
   dataInspecao               DateTime? @default(now())
   status                     String?
@@ -114,6 +129,9 @@ model inspection {
   user                       user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
   vehicle                    vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
 
+  startInspection Inspect[] @relation("StartInspection")
+  endInspection   Inspect[] @relation("EndInspection")
+
   @@index([userId], map: "Inspection_userId_fkey")
   @@index([vehicleId], map: "Inspection_vehicleId_fkey")
 }
@@ -131,20 +149,18 @@ model vehicle {
   vehiclekey VehicleKey[]
 }
 
-
-
 model VehicleKey {
-  id             String           @id @default(uuid())
-  userId         String
-  vehicleId      String
-  parentId       String?
-  status         TransferStatus   @default(PENDING)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  user           user             @relation(fields: [userId], references: [id])
-  vehicle        vehicle          @relation(fields: [vehicleId], references: [id])
-  parent         VehicleKey?      @relation("KeyHistory", fields: [parentId], references: [id])
-  children       VehicleKey[]     @relation("KeyHistory")
+  id        String         @id @default(uuid())
+  userId    String
+  vehicleId String
+  parentId  String?
+  status    TransferStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      user           @relation(fields: [userId], references: [id])
+  vehicle   vehicle        @relation(fields: [vehicleId], references: [id])
+  parent    VehicleKey?    @relation("KeyHistory", fields: [parentId], references: [id])
+  children  VehicleKey[]   @relation("KeyHistory")
 }
 
 enum TransferStatus {

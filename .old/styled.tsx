@@ -5,7 +5,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import Stack from "@mui/material/Stack";
 import FormControl from "@mui/material/FormControl";
 import Label from "@mui/icons-material/Label";
-import { HelperText, StyledInput } from "@/components/CustomStyled";
+import { HelperText, StyledInput } from "@/components/_ui/CustomStyled";
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 
@@ -59,7 +59,5 @@ export const StyledTableRow = styled(TableRow)(({ theme }) => ({
     backgroundColor: theme.palette.action.hover,
   },
   // hide last border
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
+  '&:last-child td, &:last-child th': { border: 0 },
 }));

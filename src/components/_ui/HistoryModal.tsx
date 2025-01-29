@@ -20,7 +20,6 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
-import zIndex from '@mui/material/styles/zIndex';
 
 interface User {
   id: string
@@ -43,6 +42,7 @@ interface VehicleKey {
   parentId: string | null
   user: User
   vehicle: Vehicle
+  status: "CONFIRMED" | "REJECTED" | "PENDING";
 }
 
 interface HistoryModalProps {
@@ -122,11 +122,11 @@ const HistoryModal = ({
                   
                   <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
                     <Typography variant="body2">
-                      <strong>ID:</strong> {key.id.slice(0, 10)}...
+                      <strong>Placa:</strong> {key.vehicle.plate}...
                     </Typography>
-                    {key.parentId && (
+                    {key.status && (
                       <Typography variant="body2">
-                        <strong>Parent ID:</strong> {key.parentId.slice(0, 10)}...
+                        <strong>Status:</strong> {key.status}
                       </Typography>
                     )}
                   </Box>

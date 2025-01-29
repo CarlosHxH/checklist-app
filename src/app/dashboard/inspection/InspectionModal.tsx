@@ -18,7 +18,7 @@ interface Props {
   callback?: (event: Response) => void;
 }
 
-export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData, onChange, callback }) => {
+export const InspectionModal: React.FC<Props> = ({ open, onClose, data, formData, callback }) => {
   const { register, watch, reset, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: {}
   });

@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import ResponsiveAppBar from "@/components/ResponsiveAppBar";
+import ResponsiveAppBar from "@/components/_ui/ResponsiveAppBar";
 import InspectionForm from "./InspectionForm";
 
 export default function InspectionPage() {

@@ -66,7 +66,6 @@ export default function VehiclesTable() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este veículo?')) return;
-
     try {
       const response = await fetch('/api/vehicles', {
         method: 'DELETE',
@@ -185,7 +184,7 @@ export default function VehiclesTable() {
           setIsModalOpen(false);
           setSelected(null);
         }}
-        onSubmit={async (data) => console.log(data)}
+        onSubmit={async () => {mutate()}}
       />
     </Stack>
   );
