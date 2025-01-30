@@ -19,39 +19,34 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, user, vehicle, ...data } = body;
 
-    // Validate required fields
-    if (!data.userId || !data.vehicleId || !data.status) {
+    if (!body || typeof body !== 'object') {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid request body' },
         { status: 400 }
       );
     }
 
-    // Crie ou atualize a inspeção
-    const result = await createInspectionWithTransaction({ data, id: id ?? undefined });
-
-    return NextResponse.json(result, { status: 201 });
-  } catch (error) {
-    console.error('Error creating inspection:', error);
-    
-    if (error instanceof Error && error.message === 'No open inspection found for this vehicle') {
+    // Validar campos obrigatórios
+    if (!body.userId || !body.vehicleId || !body.status) {
       return NextResponse.json(
-        { error: error.message },
-        { status: 404 }
+        { error: 'Missing required fields: userId, vehicleId, or status' },
+        { status: 400 }
       );
     }
 
+    const result = await createInspectionWithTransaction(body);
+    
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    console.error('Error creating inspection:', error);
     return NextResponse.json(
       { 
         error: 'Failed to create inspection', 
         details: error instanceof Error ? error.message : 'Unknown error' 
       },
-      { status: 403 }
+      { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
