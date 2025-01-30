@@ -47,6 +47,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
         start: true,
         end: true,
+        vehicle: true
       },
       orderBy: {
         createdAt: 'desc',

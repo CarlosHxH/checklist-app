@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+    
     const result = await createInspectionWithTransaction(body);
     
     return NextResponse.json(result, { status: 201 });
