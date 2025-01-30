@@ -66,6 +66,9 @@ export default function MainList({ onEdit, onView, userId }: Props) {
                       <Typography variant="body2" color="text.secondary">
                         Data da Inspeção: {formatDate(inspection.dataInspecao)}
                       </Typography>
+                      <Typography mt={2}>
+                        {inspection.status&&`STATUS: ${inspection.status} DA VIAGEM`}
+                      </Typography>
                     </Grid>
 
                     {/* Status Indicators */}

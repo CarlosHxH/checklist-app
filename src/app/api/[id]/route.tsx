@@ -34,9 +34,11 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id: st
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const id = (await params).id;
     const inspections = await prisma.inspect.findMany({
+      where: { userId: id },
       include: {
         user: {
           select: {
@@ -56,16 +58,3 @@ export async function GET(request: Request) {
     return NextResponse.json(error)
   }
 }
-
-export async function POST(request: Request) {
-  try {
-    const { id, ...data } = await request.json();
-    const res = await createInspectionWithTransaction({ data, id })
-    return NextResponse.json(res, { status: 400 });
-
-  } catch (error) {
-    console.error('Prisma error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
-}
-

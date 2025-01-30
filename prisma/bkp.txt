@@ -77,3 +77,14 @@ model VehicleKey {
   @@index([parentId])
   @@index([createdAt])
 }
+
+
+model Inspect {
+  id        String   @id @default(cuid())
+  start     Json?    // For status INICIO
+  end       Json?    // For status FINAL
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
