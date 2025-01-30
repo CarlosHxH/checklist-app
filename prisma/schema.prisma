@@ -89,9 +89,11 @@ model Inspect {
   userId        String
   startId       String?
   endId         String?
+  vehicleId     String?
   start         inspection? @relation("StartInspection", fields: [startId], references: [id])
   end           inspection? @relation("EndInspection", fields: [endId], references: [id])
-  user          user     @relation(fields: [userId], references: [id])
+  vehicle       vehicle? @relation("EndInspection", fields: [vehicleId], references: [id])
+  user          user     @relation(fields: [userId], references: [id], map: "Inspect_userId_fkey")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -149,6 +151,7 @@ model vehicle {
   updatedAt  DateTime?
   inspection inspection[]
   vehiclekey VehicleKey[]
+  endInspection   Inspect[] @relation("EndInspection")
 }
 
 model VehicleKey {

@@ -47,7 +47,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
 
   const renderInspectionDetails = (detail: InspectionDetail | null, type: 'start' | 'end') => {
     if (!detail) return null;
-
+    
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle1" color="text.secondary">
@@ -56,7 +56,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12} sm={6}>
             <Typography variant="body2">
-              <strong>Quilometragem:</strong> {detail.kilometer}
+              <strong>Quilometragem:</strong> {detail.start.kilometer}
             </Typography>
             <Typography variant="body2">
               <strong>CRLV em dia:</strong> {detail.crlvEmDia}

@@ -42,7 +42,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         user: {
           select: {
-            id: true,
             name: true,
           },
         },

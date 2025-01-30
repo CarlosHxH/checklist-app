@@ -45,7 +45,7 @@ const InspectionForm: React.FC = () => {
         encType={'application/json'}
         onSuccess={async ({ response }) => {
           const res = await response.json()
-          router.push(`/inspection/${res.id}`);
+          router.push(`/inspection/${res.inspection.id}`);
         }}
         onError={async (error) => {
           alert("Erro ao enviar os dados!");
@@ -61,11 +61,8 @@ const InspectionForm: React.FC = () => {
       >
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
         
-
         <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Divider>Dados do usuário</Divider>
-          </Grid>
+          <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
 
           <Grid item xs={12}>
             <ButtonLabel label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />

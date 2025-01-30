@@ -4,6 +4,7 @@ export interface User {
   }
   
   export interface InspectionDetail {
+    start: any;
     id: string;
     userId: string;
     vehicleId: string;

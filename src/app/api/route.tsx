@@ -10,7 +10,7 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id: st
       const inspect = await tx.inspect.upsert({
         where: {
           id: id ?? 'dummy-id',
-          ...(inspection.vehicleId?{}:{}),
+          //...(inspection.vehicleId?{}:{}),
         },
         create: {
           userId: data.userId,
@@ -20,9 +20,7 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id: st
         },
         update: {
           userId: data.userId,
-          ...(data.status === "INICIO"
-            ? { startId: inspection.id }
-            : { endId: inspection.id }),
+          ...(data.status === "INICIO" ? { startId: inspection.id } : { endId: inspection.id }),
         },
       })
       return { inspection, inspect }
@@ -38,18 +36,11 @@ export async function GET(request: Request) {
   try {
     const inspections = await prisma.inspect.findMany({
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        user: { select: { name: true }},
         start: true,
         end: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(inspections)
   } catch (error) {
