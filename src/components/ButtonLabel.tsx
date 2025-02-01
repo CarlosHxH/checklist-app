@@ -9,6 +9,7 @@ interface ButtonLabelProps {
   options: string[];
   control: Control<any>;
   rules?: Record<string, any>;
+  disabled?: boolean;
 }
 
 const StyledToggleButton = styled(ToggleButton)({
@@ -30,10 +31,8 @@ const StyledToggleButton = styled(ToggleButton)({
   },
 });
 
-export default function ButtonLabel({ label, name, options, control, rules, ...props }: ButtonLabelProps) {
-
+export default function ButtonLabel({ label, name, options, control, rules, disabled, ...props }: ButtonLabelProps) {
   const { field: { value, onChange }, fieldState: { error }} = useController({ name, control, rules});
-  
   const handleChange = (_: React.MouseEvent<HTMLElement>, newValue: string | null) => {
     if (newValue !== null) onChange(newValue);
   };
@@ -41,9 +40,9 @@ export default function ButtonLabel({ label, name, options, control, rules, ...p
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }} {...props}>
       <Typography variant="body1" color="#444">{label}</Typography>
-      <ToggleButtonGroup value={value} exclusive onChange={handleChange} aria-label={label}>
+      <ToggleButtonGroup disabled={disabled} value={value} exclusive onChange={handleChange} aria-label={label}>
         {options.map(option => (
-          <StyledToggleButton key={option} value={option}>
+          <StyledToggleButton disabled={disabled} key={option} value={option}>
             {option}
           </StyledToggleButton>
         ))}

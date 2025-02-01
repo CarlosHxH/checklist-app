@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const users = await prisma.vehicle.findMany();
-    return NextResponse.json(users);
+    const vehicle = await prisma.vehicle.findMany();
+    return NextResponse.json(vehicle);
   } catch (error) {
     console.error('Error fetching:', error);
     return NextResponse.json({ error: 'Failed to fetch' },{ status: 500 });

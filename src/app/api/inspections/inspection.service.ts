@@ -49,6 +49,7 @@ export async function createInspectionWithTransaction(data: InspectionInput) {
         inspect = await tx.inspect.create({
           data: {
             userId: data.userId,
+            vehicleId: data.vehicleId,
             startId: inspection.id
           }
         });
@@ -69,7 +70,8 @@ export async function createInspectionWithTransaction(data: InspectionInput) {
           inspect = await tx.inspect.create({
             data: {
               userId: data.userId,
-              endId: inspection.id
+              endId: inspection.id,
+              vehicleId: data.vehicleId,
             }
           });
         } else {
@@ -83,7 +85,7 @@ export async function createInspectionWithTransaction(data: InspectionInput) {
       return { inspection, inspect };
     });
   } catch (error) {
-    console.error("Transaction failed:", error);
+    console.error("A transação falhou:", error);
     throw error;
   }
 }

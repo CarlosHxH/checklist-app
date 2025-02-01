@@ -1,27 +1,15 @@
 // components/InspectionCardList.tsx
 import React from 'react';
+import { Card, CardContent, Typography, Grid, Chip, Box, IconButton, Collapse, Stack } from '@mui/material';
 import {
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Chip,
-  Box,
-  IconButton,
-  Collapse,
-  Stack,
-} from '@mui/material';
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-  DirectionsCar as CarIcon,
-  CheckCircle as CheckCircleIcon,
-  Edit as EditIcon,
-  Visibility as ViewIcon
+  KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon,
+  DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon, Edit as EditIcon, Visibility as ViewIcon
 } from '@mui/icons-material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { InspectionData, InspectionDetail } from './inspection';
 import { formatDate } from '@/utils';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface InspectionCardProps {
   inspection: InspectionData;
@@ -34,7 +22,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
   const getStatusColor = (status: string | undefined) => {
     if (status === 'INICIO') return 'primary';
     if (status === 'FINAL') return 'success';
-    return 'default';
+    return 'error';
   };
 
   const format = (date: string) => {
@@ -44,11 +32,9 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
   const handleView = (id: string) => router.push(`/inspection/${id}`);
   const handleEdit = (id: string) => router.push(`/inspection/${id}/edit`);
 
-  console.log(inspection);
-  
   const renderInspectionDetails = (detail: InspectionDetail | null, type: 'start' | 'end') => {
     if (!detail) return null;
-    
+
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle1" color="text.secondary">
@@ -100,18 +86,20 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
               <IconButton onClick={() => handleView(inspection.id)} color="primary"><ViewIcon /></IconButton>
               {!inspection.isFinished && (<IconButton onClick={() => handleEdit(inspection.id)} color="primary"><EditIcon /></IconButton>)}
             </Grid>
-            <Box sx={{ display: 'flex', gap: 1, mt:2 }}>
-              {inspection.start && (
-                <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />}
-                />
+            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+              {inspection.start ? (
+                <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
+              ) : (
+                <Link href={`/inspection/create/inicio/${inspection.id}`}>
+                  <Chip label="Pendente" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+                </Link>
               )}
-              {inspection.end && (
-                <Chip
-                  label="Final"
-                  color={getStatusColor('FINAL')}
-                  size="small"
-                  icon={<CheckCircleIcon />}
-                />
+              {inspection.end ? (
+                <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
+              ) : (
+                <Link href={`/inspection/create/final/${inspection.id}`}>
+                  <Chip label="Pendente" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+                </Link>
               )}
               <IconButton onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label="mostrar mais">
                 {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -121,7 +109,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
         </Box>
 
         <Typography color="text.secondary" sx={{ mt: 1 }}>
-          Veiculo: {inspection.start?.vehicleId||inspection.end?.vehicleId}
+          Veiculo: {inspection.vehicle?.plate + " - " + inspection.vehicle?.model}
         </Typography>
 
         <Collapse in={expanded} timeout="auto" unmountOnExit>
@@ -138,7 +126,7 @@ const InspectionCardList = ({ inspections }: { inspections: InspectionData[] }) 
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" sx={{ mb: 3 }}>Lista de Inspeções</Typography>
-      {inspections.map((inspection) => (
+      {inspections.length > 0 && inspections.map((inspection) => (
         <InspectionCard key={inspection.id} inspection={inspection} />
       ))}
     </Box>

@@ -36,9 +36,9 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id: st
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = (await params).id;
+    const userId = (await params).id;
     const inspections = await prisma.inspect.findMany({
-      where: { userId: id },
+      where: { userId },
       include: {
         user: {
           select: {
