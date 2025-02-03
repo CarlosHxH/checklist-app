@@ -25,7 +25,7 @@ export interface EixoSectionProps {
 }
 
 export const EixoSection: React.FC<EixoSectionProps> = ({ eixoNumber, label, fieldName, selectedVehicle, control, register, watch, setValue }) => {
-    if (!selectedVehicle || selectedVehicle.eixo < eixoNumber) return null;
+    if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
     setValue("eixo", String(eixoNumber));
     const currentValue = watch(fieldName);
     const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;

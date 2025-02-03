@@ -15,7 +15,7 @@ import LogoutButton from "./LogoutButton";
 
 const pages = ["Home"];
 
-function ResponsiveAppBar() {
+function AppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -127,4 +127,4 @@ function ResponsiveAppBar() {
     </Box>
   );
 }
-export default ResponsiveAppBar;
+export default AppBar;

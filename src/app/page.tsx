@@ -1,28 +1,32 @@
-"use client";
-import React, { Suspense } from "react";
-import CustomFab from "@/components/_ui/CustomFab";
-import ResponsiveAppBar from "@/components/_ui/ResponsiveAppBar";
-import MainList from "./MainList";
-import Loading from "@/components/Loading";
-import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+"use client"
+import { Container } from '@mui/material';
+import AppBar from '@/components/_ui/AppBar';
+import CustomFab from '@/components/_ui/CustomFab';
+import { useSession } from 'next-auth/react';
+import InspectionCardList from './InspectionCardList';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/ultils';
+import { Suspense } from 'react';
+import Loading from '@/components/Loading';
 
-export default function Home()
-{
-  const router = useRouter();
-  const { data, status } = useSession();
-  if(status === "unauthenticated") signIn();
+export default function Home() {
+  const { data: session } = useSession();
+  const { data, isLoading } = useSWR(`/api/${session?.user.id || ""}`, fetcher)
 
-  const handleView = (id: string) => router.push(`/inspection/${id}`);
-  const handleEdit = (id: string) => router.push(`/inspection/${id}/edit`);
-  
+  if(isLoading) return <Loading/>;
+
+  const Fab = () => {
+    if(!data) return;
+    if(data[0]?.end === null) return;
+    return <CustomFab href={'/inspection/create'} variant={"Plus"} />
+  }
   return (
-    <div>
-      <Suspense fallback={<Loading />}>
-        <ResponsiveAppBar />
-        <MainList userId={data?.user.id||""} onEdit={handleEdit} onView={handleView} />
-        <CustomFab href={'/inspection/create'} variant={"Plus"} />
-      </Suspense>
-    </div>
+    <Suspense fallback={isLoading}>
+      <Container maxWidth="lg">
+        <AppBar />
+        <Fab />
+        {data&&<InspectionCardList inspections={data} />}
+      </Container>
+    </Suspense>
   );
 }

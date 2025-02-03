@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server";
 
-async function createInspectionWithTransaction({ data, id }: { data: any, id?: string }) {
+async function createInspectionWithTransaction({ data, id }: { data: any, id: string }) {
   try {
     const result = await prisma.$transaction(async (tx) => {
       // Crie o registro de inspeção
@@ -10,6 +10,7 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
       const inspect = await tx.inspect.upsert({
         where: {
           id: id ?? 'dummy-id',
+          ...(inspection.vehicleId?{}:{}),
         },
         create: {
           userId: data.userId,
@@ -19,7 +20,9 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
         },
         update: {
           userId: data.userId,
-          ...(data.status === "INICIO" ? { startId: inspection.id } : { endId: inspection.id }),
+          ...(data.status === "INICIO"
+            ? { startId: inspection.id }
+            : { endId: inspection.id }),
         },
       })
       return { inspection, inspect }
@@ -31,30 +34,27 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const inspections = await prisma.inspect.findMany({
+    const id = (await params).id;
+    const inspections = await prisma.inspect.findFirst({
+      where: { id },
       include: {
-        user: { select: { name: true }},
+        user: {
+          select: {
+            name: true,
+          },
+        },
         start: true,
         end: true,
+        vehicle: true
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
     return NextResponse.json(inspections)
   } catch (error) {
     return NextResponse.json(error)
   }
 }
-
-export async function POST(request: Request) {
-  try {
-    const { id, ...data } = await request.json();
-    const res = await createInspectionWithTransaction({ data, id })
-    return NextResponse.json(res, { status: 400 });
-  } catch (error) {
-    console.error('Prisma error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
-}
-

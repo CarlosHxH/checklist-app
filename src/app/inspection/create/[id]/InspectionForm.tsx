@@ -10,25 +10,37 @@ import { useForm, Form } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
-import ComboBox from "@/components/ComboBox";
 
+interface Data {
+  vehicleId: string;
+  user: {
+    id: string;
+  }
+  vehicle: Vehicle;
+}
 
-const InspectionForm: React.FC = () => {
+const InspectionForm: React.FC<{id:string}> = ({id}) => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { data, isLoading } = useSWR<Data, { [key: string]: any }>(`/api/inspect/${id}`, fetcher);
+  const { register, watch, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
 
-  const { register, watch, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
-    defaultValues: { userId: session?.user?.id, status: 'INICIO', vehicleId: "", eixo: "0", isFinished: true }
-  });
+  React.useEffect(() => {
+    const defaultValues: Partial<InspectionFormData> = {};
+    defaultValues.id = id;
+    defaultValues.userId = session?.user?.id;
+    defaultValues.vehicleId = data?.vehicleId;
+    defaultValues.status = 'FINAL';
+    defaultValues.eixo = data?.vehicle?.eixo ?? "0";
+    defaultValues.isFinished = true;
+    reset({ ...defaultValues });
+  }, [data, id, reset, session?.user?.id]);
 
-  if (!vehicles) return <Loading />;
-  if (error) return <div>Error loading vehicles</div>;
+  if (isLoading) return <Loading />;
 
-  const selectedVehicleId = watch("vehicleId");
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+  const selectedVehicle = data?.vehicle;
 
-  // Observe os valores para campos condicionais
+  // Watch values for conditional fields
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
@@ -41,9 +53,11 @@ const InspectionForm: React.FC = () => {
       {isSubmitting && <Loading />}
       <Form
         method="post"
-        action={"/api/inspections"}
         encType={'application/json'}
-        onSuccess={async () => { router.push(`/`) }}
+        action={"/api/inspections"}
+        onSuccess={async ({ response }) => {
+          router.push(`/`);
+        }}
         onError={async (error) => {
           alert("Erro ao enviar os dados!");
           if (error.response) {
@@ -53,11 +67,11 @@ const InspectionForm: React.FC = () => {
           } else {
             console.log(error);
           }
-        }}
+         }}
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
-
+        
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
 
@@ -66,7 +80,7 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
+            <TextField disabled value={`${data?.vehicle?.plate} - ${data?.vehicle?.model}`} fullWidth size="small" label="Selecione um veículo" />
           </Grid>
 
           <Grid item xs={12} md={6}>
@@ -108,14 +122,14 @@ const InspectionForm: React.FC = () => {
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
-              <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoAvariasCabine",{ required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
           </Grid>
 
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
-              <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoAvariasBau",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
           </Grid>
 
@@ -123,7 +137,7 @@ const InspectionForm: React.FC = () => {
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
-              <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
+              <TextField {...register("descricaoParteEletrica",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
           </Grid>
 

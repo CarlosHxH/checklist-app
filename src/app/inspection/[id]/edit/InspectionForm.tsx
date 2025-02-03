@@ -20,24 +20,32 @@ interface Vehicle extends Option {
   model: string;
 }
 
+
 const InspectionForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { data: form, isLoading } = useSWR<InspectionFormData, { [key: string]: any }>(`/api/inspections/${id}`, fetcher);
+
   const { register, watch, control, setValue, formState: { errors, isSubmitting }} = useForm<InspectionFormData>({
     defaultValues: async () => {
       const response = await fetch(`/api/inspections/${id}`);
-      const data = await response.json();
-      if (data.isFinished) router.replace('/');
-      else return{...data, isFinished: true}
+      const res = await response.json();
+      console.log(res);
+    
+      if (res.isFinished) {
+        router.replace('/');
+      } else {
+        const { vehicle, user, ...data } = res;
+        return {
+          ...data,
+          isFinished: true
+        };
+      }
     }
   });
   
-  if (!vehicles) return <Loading />;
-  if (error) return <div>Error loading vehicles</div>;
-
-  const selectedVehicleId = watch("vehicleId");
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+  if (isLoading) return <Loading />;
+  const selectedVehicle = form?.vehicle;
 
   // Watch values for conditional fields
   const avariasCabine = watch("avariasCabine");
@@ -49,10 +57,9 @@ const InspectionForm: React.FC = () => {
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
-      {isSubmitting &&<Loading/>}
       <Form
         method="put"
-        action={"/api/inspections"}
+        action={"/api/inspect"}
         encType={'application/json'}
         onSuccess={async({response}) => {
           const res = await response.json()
@@ -69,12 +76,15 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <ButtonLabel label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
+            <ButtonLabel disabled label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }}/>
           </Grid>
 
-          <Grid item xs={12} md={12}>
-            <Typography>Quilometragem:</Typography>
-            <TextField type="number" {...register("kilometer",{required: "Este campo é obrigatório"})} fullWidth size="small"/>
+          <Grid item xs={12} md={6}>
+            <TextField label={'Veiculo:'} disabled value={`${form?.vehicle.plate} - ${form?.vehicle.model}`} fullWidth size="small"/>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField label={'Quilometragem:'} type="number" {...register("kilometer",{required: "Este campo é obrigatório"})} fullWidth size="small"/>
           </Grid>
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>

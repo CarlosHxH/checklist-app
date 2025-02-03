@@ -1,14 +1,13 @@
-// components/InspectionCardList.tsx
+"use client"
 import React from 'react';
 import { Card, CardContent, Typography, Grid, Chip, Box, IconButton, Collapse, Stack } from '@mui/material';
 import {
   KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon,
-  DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon, Edit as EditIcon, Visibility as ViewIcon
+  DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { InspectionData, InspectionDetail } from './inspection';
 import { formatDate } from '@/utils';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface InspectionCardProps {
@@ -16,7 +15,6 @@ interface InspectionCardProps {
 }
 
 const InspectionCard = ({ inspection }: InspectionCardProps) => {
-  const router = useRouter();
   const [expanded, setExpanded] = React.useState(false);
 
   const getStatusColor = (status: string | undefined) => {
@@ -28,9 +26,6 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
   const format = (date: string) => {
     return formatDate(new Date(date), 'dd/MM/yyyy HH:mm');
   };
-
-  const handleView = (id: string) => router.push(`/inspection/${id}`);
-  const handleEdit = (id: string) => router.push(`/inspection/${id}/edit`);
 
   const renderInspectionDetails = (detail: InspectionDetail | null, type: 'start' | 'end') => {
     if (!detail) return null;
@@ -82,29 +77,27 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
             </Typography>
           </Box>
           <Stack>
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
-              <IconButton onClick={() => handleView(inspection.id)} color="primary"><ViewIcon /></IconButton>
-              {!inspection.isFinished && (<IconButton onClick={() => handleEdit(inspection.id)} color="primary"><EditIcon /></IconButton>)}
-            </Grid>
-            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-              {inspection.start ? (
+            <Grid item xs={12} direction={'column'} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
+              {inspection.start?.isFinished ? (
                 <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/inspection/create/inicio/${inspection.id}`}>
-                  <Chip label="Pendente" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+                <Link href={`/inspection/${inspection.start?.id}/edit`}>
+                  <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}
-              {inspection.end ? (
-                <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
-              ) : (
-                <Link href={`/inspection/create/final/${inspection.id}`}>
-                  <Chip label="Pendente" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
-                </Link>
-              )}
-              <IconButton onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label="mostrar mais">
+              {!inspection.start?.isFinished ?
+                (<></>)
+                : inspection.end ? (
+                  <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
+                ) : (
+                  <Link href={`/inspection/create/${inspection.id}`}>
+                    <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+                  </Link>
+                )}
+              <IconButton sx={{ width: 40, ml: 'auto' }} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label="mostrar mais">
                 {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
               </IconButton>
-            </Box>
+            </Grid>
           </Stack>
         </Box>
 
@@ -121,10 +114,10 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
   );
 };
 
-// Main component
+// Componente principal
 const InspectionCardList = ({ inspections }: { inspections: InspectionData[] }) => {
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 1 }}>
       <Typography variant="h5" sx={{ mb: 3 }}>Lista de Inspeções</Typography>
       {inspections.length > 0 && inspections.map((inspection) => (
         <InspectionCard key={inspection.id} inspection={inspection} />

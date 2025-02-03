@@ -1,83 +1,207 @@
-// components/InspectionTable.tsx
-import {
-  Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Paper, IconButton, TablePagination, useTheme, useMediaQuery
-} from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { formatDate } from "@/lib/ultils";
-import { InspectionType } from "@/lib/formDataTypes";
+import React from 'react';
+import { DataGrid, GridColDef, GridRenderCellParams, GridEventListener, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarExport, GridToolbarQuickFilter } from '@mui/x-data-grid';
+import { formatDate } from '@/utils';
+import { Box, Button, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@mui/material';
 
-interface InspectionTableProps {
-  inspections: InspectionType[];
-  page: number;
-  rowsPerPage: number;
-  onPageChange: (page: number) => void;
-  onRowsPerPageChange: (rowsPerPage: number) => void;
-  onEdit: (inspection: InspectionType) => void;
-  onDelete: (id: string) => void;
-}
+// Define the type based on the provided object structure
+type VehicleInspection = {
+  id: string;
+  userId: string;
+  vehicleId: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    name: string;
+  };
+  vehicle: {
+    make: string;
+    model: string;
+    year: string;
+    plate: string;
+  };
+  start: {
+    dataInspecao: string;
+    status: string;
+    kilometer: string;
+    isFinished: boolean;
+    crlvEmDia: boolean;
+    certificadoTacografoEmDia: boolean;
+    nivelAgua: string;
+    nivelOleo: string;
+    dianteira: string;
+    tracao: string;
+    truck: string;
+    avariasCabine: string;
+    bauPossuiAvarias: string;
+    funcionamentoParteEletrica: string;
+  };
+  end: {
+    dataInspecao: string;
+    status: string;
+    kilometer: string;
+    isFinished: boolean;
+  };
+};
+
+type InspectionTableProps = {
+  data: VehicleInspection[];
+};
 
 
-export const InspectionTable = ({
-  inspections,
-  page,
-  rowsPerPage,
-  onPageChange,
-  onRowsPerPageChange,
-  onEdit,
-  onDelete,
-}: InspectionTableProps) => {
-  
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
+function ExpandableRow({ row }: { row: VehicleInspection }) {
   return (
     <TableContainer component={Paper}>
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Usuário</TableCell>
-            <TableCell>Placa</TableCell>
-            <TableCell>Status</TableCell>
-            {!isMobile && <TableCell>Modelo</TableCell>}
-            {!isMobile && <TableCell>Data</TableCell>}
-            <TableCell align="right">Ações</TableCell>
-          </TableRow>
-        </TableHead>
         <TableBody>
-          {inspections
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((inspection) => {
-              const color = {color: inspection?.isFinished?'#43a047':'#e53935'}
-              return(
-              <TableRow key={inspection.id}>
-                <TableCell sx={color}>{inspection.user?.name}</TableCell>
-                <TableCell sx={color}>{inspection?.vehicle?.plate}</TableCell>
-                <TableCell sx={color}>{inspection?.isFinished?"Finalizada":"Não finalizada"}</TableCell>
-                {!isMobile && <TableCell sx={color}>{inspection?.vehicle?.model}</TableCell>}
-                {!isMobile && <TableCell sx={color}>{formatDate(inspection.dataInspecao)}</TableCell>}
-                <TableCell align="right" sx={color}>
-                  <IconButton color="primary" onClick={() => onEdit(inspection)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(inspection.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            )})}
+          <TableRow>
+            <TableCell><strong>Start Inspection Details</strong></TableCell>
+            <TableCell><strong>End Inspection Details</strong></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>
+              <Typography>CRLV: {row.start.crlvEmDia}</Typography>
+              <Typography>Tacógrafo: {row.start.certificadoTacografoEmDia}</Typography>
+              <Typography>Água: {row.start.nivelAgua}</Typography>
+              <Typography>Óleo: {row.start.nivelOleo}</Typography>
+              <Typography>Dianteira: {row.start.dianteira}</Typography>
+              <Typography>Tração: {row.start.tracao}</Typography>
+              <Typography>Truck: {row.start.truck}</Typography>
+              <Typography>Avarias Cabine: {row.start.avariasCabine}</Typography>
+              <Typography>Avarias Baú: {row.start.bauPossuiAvarias}</Typography>
+              <Typography>Parte Elétrica: {row.start.funcionamentoParteEletrica}</Typography>
+            </TableCell>
+            <TableCell>
+              <Typography>Data Inspeção: {row.end.dataInspecao}</Typography>
+              <Typography>Status: {row.end.status}</Typography>
+              <Typography>Quilometragem: {row.end.kilometer}</Typography>
+              <Typography>Finalizado: {row.end.isFinished ? 'Sim' : 'Não'}</Typography>
+            </TableCell>
+          </TableRow>
         </TableBody>
       </Table>
-      <TablePagination
-        component="div"
-        count={inspections.length}
-        page={page || 0}
-        rowsPerPage={rowsPerPage}
-        onPageChange={(_, newPage) => onPageChange(newPage)}
-        onRowsPerPageChange={(e) => onRowsPerPageChange(parseInt(e.target.value, 10))}
-        rowsPerPageOptions={[5, 10, 25]}
-        labelRowsPerPage="Resultados por página:"
-      />
     </TableContainer>
   );
+}
+
+const InspectionTable: React.FC<InspectionTableProps> = ({ data }) => {
+  const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
+
+  const handleRowClick: GridEventListener<'rowClick'> = (params) => {
+    const rowId = params.row.id;
+    const isCurrentlyExpanded = expandedRows.includes(rowId);
+    
+    setExpandedRows(prevRows => 
+      isCurrentlyExpanded 
+        ? prevRows.filter(id => id !== rowId)
+        : [...prevRows, rowId]
+    );
+  };
+
+  function CustomToolbar() {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton />
+        <GridToolbarFilterButton />
+        <GridToolbarExport slotProps={{ tooltip: { sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Stack direction="row" spacing={2} alignItems={'center'}>
+          <GridToolbarQuickFilter variant="outlined" size="small" />
+        </Stack>
+      </GridToolbarContainer>
+    );
+  }
+
+  const columns: GridColDef[] = [
+    {
+      field: 'vehicleInfo',
+      headerName: 'Vehicle',
+      width: 200,
+      valueGetter: (value, row) => {
+        return `${row.vehicle.make} ${row.vehicle.model} (${row.vehicle.plate})`;
+      }
+    },
+    {
+      field: 'userName',
+      headerName: 'User',
+      width: 150,
+      valueGetter: (value, row) => {
+        return row.user.name;
+      }
+    },
+    {
+      field: 'startInspection',
+      headerName: 'Start Inspection',
+      width: 170,
+      renderCell: (params: GridRenderCellParams) => {
+        const record = params.row as VehicleInspection;
+        if (record.start === null) {
+          return <Typography color='error'>Pendente</Typography>
+        }
+        return (
+          <div>
+            <div>{formatDate(new Date(record.start.dataInspecao), 'yyyy-MM-dd HH:mm:ss')}</div>
+            <div>Km: {record.start.kilometer}</div>
+            <div>Status: {record.start.status}</div>
+          </div>
+        );
+      }
+    },
+    {
+      field: 'endInspection',
+      headerName: 'End Inspection',
+      width: 170,
+      renderCell: (params: GridRenderCellParams) => {
+        const record = params.row as VehicleInspection;
+        if (record.end === null) {
+          return <Typography color='error'>Pendente</Typography>
+        }
+        return (
+          <div>
+            <div>{formatDate(new Date(record.end.dataInspecao), 'yyyy-MM-dd HH:mm:ss')}</div>
+            <div>Km: {record.end.kilometer}</div>
+            <div>Status: {record.end.status}</div>
+          </div>
+        );
+      }
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      width: 170,
+      valueFormatter: (value, row) => formatDate(new Date(value), 'yyyy-MM-dd HH:mm:ss')
+    }
+  ];
+
+  return (
+    <div style={{ height: 500, width: '100%' }}>
+      <DataGrid
+        rows={data}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: { page: 0, pageSize: 5 }
+          }
+        }}
+        slots={{ toolbar: CustomToolbar }}
+        localeText={{
+          toolbarColumns: "",
+          toolbarFilters: "",
+          toolbarExport: "",
+          toolbarDensity: ""
+        }}
+        density="standard"
+        pageSizeOptions={[5, 10]}
+        rowSelection={false}
+        getRowHeight={() => 'auto'}
+        rowHeight={52}
+        getDetailPanelContent={({ row }) => (
+          <Box sx={{ p: 2 }}>
+            <ExpandableRow row={row as VehicleInspection} />
+          </Box>
+        )}
+      />
+    </div>
+  );
 };
+
+export default InspectionTable;

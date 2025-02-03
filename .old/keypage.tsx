@@ -16,7 +16,7 @@ import {
   useTheme
 } from '@mui/material'
 import { Check, Close } from '@mui/icons-material'
-import ResponsiveAppBar from '@/components/_ui/ResponsiveAppBar'
+import AppBar from '@/components/_ui/AppBar'
 import Loading from '@/components/Loading'
 import { formatDate } from '@/utils'
 import { useSession } from 'next-auth/react'
@@ -134,7 +134,7 @@ export default function KeyConfirmationPage() {
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
 
-      <ResponsiveAppBar title={"5sTransportes"} showBackButton/>
+      <AppBar title={"5sTransportes"} showBackButton/>
 
       <Typography variant="h5" gutterBottom>
         Confirmação de Recebimento de Chaves

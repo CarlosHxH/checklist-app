@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { AppBar, IconButton, Toolbar, Typography, Container, Box, Chip, Avatar } from "@mui/material";
+import { AppBar as App, IconButton, Toolbar, Typography, Container, Box, Chip, Avatar } from "@mui/material";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
@@ -15,7 +15,7 @@ interface Props {
 }
 
 
-const ResponsiveAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
+const AppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -35,7 +35,7 @@ const ResponsiveAppBar: React.FC<Props> = ({ title, showBackButton = false, onBa
 
   return (
     <>
-      <AppBar component="nav">
+      <App component="nav">
         <Container maxWidth="xl">
           <Toolbar>
             {showBackButton && (
@@ -43,9 +43,10 @@ const ResponsiveAppBar: React.FC<Props> = ({ title, showBackButton = false, onBa
                 <ArrowBackIcon />
               </IconButton>
             )}
-            <Typography onClick={handleNext} component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>
-              {title||<Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%'}} />}
+            <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>
+              {title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
             </Typography>
+
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 2 }}>
               <Chip
                 sx={{ color: '#fff' }}
@@ -58,10 +59,10 @@ const ResponsiveAppBar: React.FC<Props> = ({ title, showBackButton = false, onBa
             </Box>
           </Toolbar>
         </Container>
-      </AppBar>
+      </App>
       <Toolbar />
     </>
   );
 };
 
-export default ResponsiveAppBar;
+export default AppBar;
