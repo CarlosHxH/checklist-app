@@ -5,13 +5,7 @@ import { Notifications, Check, Close } from '@mui/icons-material';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import { useSession } from 'next-auth/react';
-import ComboBox from '../ComboBox';
-import { useForm, Form } from 'react-hook-form';
 
-interface Users {
-  id: string;
-  name: string;
-}
 interface Transfer {
   plate: string;
   model: string;
@@ -28,12 +22,9 @@ interface Transfer {
 const NotificationModal = () => {
   const { data: session } = useSession()
   const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/keys/pending/${session?.user.id}`, fetcher, { refreshInterval: 5000 });
-  const { data: users } = useSWR<Users[]>(`/api/users`, fetcher);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const { control } = useForm();
 
   const handleConfirm = async (transferId: string) => {
     try {
@@ -42,6 +33,7 @@ const NotificationModal = () => {
       mutate();
     } catch (err) {
       setError('Failed to confirm transfer');
+      alert(error)
     }
   };
 
@@ -52,14 +44,12 @@ const NotificationModal = () => {
       mutate();
     } catch (err) {
       setError('Failed to reject transfer');
+      alert(error)
     }
   };
 
   const handleClose = () => setOpen(false);
 
-  const options: Partial<Transfer> = pendingTransfers?.filter(v => v.status === 'CONFIRMED')[0] ?? {};
-  console.log(options);
-  
   return (
     <>
       <IconButton color="inherit" onClick={() => setOpen(true)} style={{ position: 'relative' }}>
@@ -79,39 +69,6 @@ const NotificationModal = () => {
         </Box>
 
         <DialogContent>
-          <Form
-            method="post"
-            encType={'application/json'}
-            onSubmit={async(data)=>{
-              const formData = {...data.data, parentId:options.id};
-              const res = axios.post('/api/admin/keys',formData)
-              console.log(res);
-            }}
-            onSuccess={async (result) => { console.log({result});}}
-            onError={async (error) => {
-              alert("Erro ao enviar os dados!");
-              if (error.response) {
-                const res = await error.response.json();
-                console.log(res);
-                alert("Error ao criar a inspeção!")
-              } else {
-                console.log(error);
-              }
-            }}
-            control={control}
-          >
-            <Typography>Transferir chave</Typography>
-            <Grid container>
-              <Grid item xs={12} md={4} p={1}>
-                <ComboBox name="vehicleId" label="Selecione um veículo" options={[{ label: `${options?.vehicle?.plate ?? ''}`, value: options?.vehicle?.id ?? '' }]} control={control} rules={{ required: 'Veículo é obrigatório' }} />
-              </Grid>
-              <Grid item xs={12} md={4} p={1}>
-                <ComboBox name="userId" label="Selecione um usuario" options={users ? users.map((v) => ({ label: v.name, value: v.id })) : []} control={control} rules={{ required: 'Chaves' }} />
-              </Grid>
-              <Grid item xs={12} md={4} p={1}><Button type='submit' variant='outlined'>Transferir</Button></Grid>
-            </Grid>
-          </Form>
-
           {isLoading ? (
             <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>
           ) : pendingTransfers?.length === 0 ? (
