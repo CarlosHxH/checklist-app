@@ -44,20 +44,22 @@ export const authOptions: NextAuthOptions = {
           if (!credentials?.username || !credentials?.password) {
             return null;
           }
+
+          console.log({credentials});
+          
           // Buscar usuário
           const user = await prisma.user.findUnique({
             where: { username: credentials.username }
           });
 
-          console.log("Resultado da busca:",user ? "Usuário encontrado: "+user.email : "Usuário não encontrado");
+          console.log("Resultado da busca:",user ? "Usuário encontrado: "+user.email : "Usuário não encontrado. code: 0x01");
 
-          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo!";
+          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo! code: 0x02";
 
           // Verificar senha
           const isPasswordValid = await compare(credentials.password, user.password);
-          console.log({isPasswordValid});
           
-          if (!isPasswordValid) return null;
+          if (!isPasswordValid) throw "Credenciais inválidas ou usuário não ativo! code: 0x04";
 
           // Atualizar ou criar Account
           try {
@@ -99,7 +101,6 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role
           };
-          
         } catch (error) {
           console.error("Erro na autenticação:", error);
           return null;

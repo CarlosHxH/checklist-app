@@ -29,13 +29,13 @@ export default function LoginForm() {
 
     try {
       const result = await signIn('credentials', {
-        redirect: false,
+        redirect: true,
         username: credentials.username,
         password: credentials.password
       })
 
       if (result?.error) {
-        setError(result.error)
+        setError('Erro ao processar o login')
       } else if (result?.ok) { router.replace('/') }
       setIsLoading(false)
     } catch (err:unknown) {
@@ -51,7 +51,6 @@ export default function LoginForm() {
   return (
     <>
     <Typography component="h1" variant="h5" color={'primary'} sx={{ mb: 2, fontWeight: 'bold' }}>Informe o usuario e senha</Typography>
-    
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
       <TextField
         variant="outlined"
