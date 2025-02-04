@@ -6,10 +6,11 @@ import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { useForm, Form } from "react-hook-form";
+import { useForm, Form, Controller, ErrorOption, Field, FieldArray, FieldArrayPath, FieldError, FieldName, FieldRefs, FieldValues, FormState, InternalFieldName, RegisterOptions, SubmitErrorHandler, SubmitHandler, UseFormRegisterReturn } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
+import { Control, FieldErrors } from "react-hook-form";
 
 interface Data {
   vehicleId: string;
@@ -19,7 +20,22 @@ interface Data {
   vehicle: Vehicle;
 }
 
-const InspectionForm: React.FC<{id:string}> = ({id}) => {
+
+
+const ButtonArray: React.FC<{ label: string, name1: string, name2: string, control: Control<any>, validate: boolean, errors: FieldErrors<any>, options: string[] }> =
+({ label, name1, name2, control, validate, errors, options }) => (
+  <>
+    <ButtonLabel label={label} name={name1} options={options} control={control} rules={{ required: "Este campo é obrigatório" }} />
+    <Controller
+      control={control}
+      name={name2}
+      render={({ field }) => (<>
+        {validate && <TextField {...field} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />}
+      </>)}
+    />
+  </>
+)
+const InspectionForm: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const { data, isLoading } = useSWR<Data, { [key: string]: any }>(`/api/inspect/${id}`, fetcher);
@@ -36,17 +52,20 @@ const InspectionForm: React.FC<{id:string}> = ({id}) => {
     reset({ ...defaultValues });
   }, [data, id, reset, session?.user?.id]);
 
-  if (isLoading) return <Loading />;
-
-  const selectedVehicle = data?.vehicle;
-
-  // Watch values for conditional fields
+  // Observe os valores para campos condicionais
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
-  if (avariasCabine === "SIM") setValue("descricaoAvariasCabine", "");
-  if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
-  if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
+
+  React.useEffect(() => {
+    // Redefinir campos de descrição com base nos valores principais do campo
+    if (avariasCabine === "NÃO") setValue("descricaoAvariasCabine", undefined);
+    if (bauPossuiAvarias === "NÃO") setValue("descricaoAvariasBau", undefined);
+    if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
+  }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
+
+  if (isLoading) return <Loading />;
+  const selectedVehicle = data?.vehicle;
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
@@ -67,11 +86,11 @@ const InspectionForm: React.FC<{id:string}> = ({id}) => {
           } else {
             console.log(error);
           }
-         }}
+        }}
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar inspeção</Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
 
@@ -121,24 +140,19 @@ const InspectionForm: React.FC<{id:string}> = ({id}) => {
 
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {watch("avariasCabine") === "SIM" && (
-              <TextField {...register("descricaoAvariasCabine",{ required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
-            )}
+            {(avariasCabine === "SIM") && <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />}
           </Grid>
 
           <Grid item xs={12} md={6}>
+
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {watch("bauPossuiAvarias") === "SIM" && (
-              <TextField {...register("descricaoAvariasBau",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
-            )}
+            {(bauPossuiAvarias === "SIM") && <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />}
           </Grid>
 
           <Grid item xs={12}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {watch("funcionamentoParteEletrica") === "RUIM" && (
-              <TextField {...register("descricaoParteEletrica",{ required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
-            )}
+            {funcionamentoParteEletrica === "RUIM" && <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />}
           </Grid>
 
           <Grid item xs={12}>

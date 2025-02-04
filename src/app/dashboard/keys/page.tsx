@@ -196,6 +196,10 @@ export default function VehicleKeysPage() {
     return groupedVehicleKeys[vehicleId]?.latestKey?.user?.name || 'Nenhum'
   }
 
+  const getCurrentKeyStatusPending = (vehicleId: string)=>{
+    return (groupedVehicleKeys[vehicleId]?.latestKey?.status === "PENDING")
+  }
+
   if (loading && !data.vehicleKeys.length) {
     return <Backdrop open={true}><CircularProgress color="primary" /></Backdrop>
   }
@@ -230,6 +234,7 @@ export default function VehicleKeysPage() {
 
               // Rejeita a transferência
               const handleCancelNotification = async (latestKey: VehicleKey) => {
+                if (!confirm("Deseja cancelar da transferencia de chave?")) return;
                 if (!latestKey) return
                 try {
                   const response = await fetch(`/api/keys/reject/${latestKey.id}`, {method: 'POST'})
@@ -260,13 +265,11 @@ export default function VehicleKeysPage() {
                           <Refresh fontSize="small" color="primary" />
                         </IconButton>
                       )}
-                      {
-                        status === 'PENDING' && (
-                          <IconButton onClick={() => handleCancelNotification(group.latestKey)} title="Reenviar notificação" sx={{ ml: 1 }}>
-                            <CloseIcon fontSize="small" color='error' />
-                          </IconButton>
-                        )
-                      }
+                      {status === 'PENDING' && (
+                        <IconButton onClick={() => handleCancelNotification(group.latestKey)} title="Reenviar notificação" sx={{ ml: 1 }}>
+                          <CloseIcon fontSize="small" color='error' />
+                        </IconButton>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -276,6 +279,9 @@ export default function VehicleKeysPage() {
         </Table>
       </TableContainer>
 
+
+
+
       <Dialog open={open} onClose={handleCloseModal} fullWidth maxWidth="sm">
         <DialogTitle>Nova Transferência de Chave</DialogTitle>
         <DialogContent>
@@ -283,12 +289,14 @@ export default function VehicleKeysPage() {
           <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
             <InputLabel>Veículo</InputLabel>
             <Select value={formData.vehicleId} label="Veículo" onChange={(e) => { setError(null); setFormData({ ...formData, vehicleId: e.target.value }) }}>
-              {data.vehicles.map((v) => (
+              {data.vehicles.map((v) => {
+                if(getCurrentKeyStatusPending(v.id)) return;
+                return (
                 <MenuItem key={v.id} value={v.id}>
                   {`${v.plate} - ${v.model}`}
                   {formData.vehicleId === v.id && ` (Atual: ${getCurrentKeyHolder(v.id)})`}
                 </MenuItem>
-              ))}
+              )})}
             </Select>
           </FormControl>
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -308,6 +316,9 @@ export default function VehicleKeysPage() {
           <Button onClick={handleSubmit} variant="contained" disabled={loading || !formData.userId || !formData.vehicleId}>Transferir</Button>
         </DialogActions>
       </Dialog>
+
+
+
 
       <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
         <DialogTitle>Confirmar Transferência</DialogTitle>

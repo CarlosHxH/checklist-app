@@ -11,30 +11,34 @@ import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
+import Link from "next/link";
 
 
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
-
+  
   const { register, watch, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { userId: session?.user?.id, status: 'INICIO', vehicleId: "", eixo: "0", isFinished: true }
   });
 
-  if (!vehicles) return <Loading />;
-  if (error) return <div>Error loading vehicles</div>;
-
-  const selectedVehicleId = watch("vehicleId");
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-
-  // Observe os valores para campos condicionais
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
-  if (avariasCabine === "SIM") setValue("descricaoAvariasCabine", "");
-  if (bauPossuiAvarias === "SIM") setValue("descricaoAvariasBau", "");
-  if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", "");
+  React.useEffect(() => {
+    // Redefinir campos de descrição com base nos valores principais do campo
+    if (avariasCabine === "NÃO") setValue("descricaoAvariasCabine", undefined);
+    if (bauPossuiAvarias === "NÃO") setValue("descricaoAvariasBau", undefined);
+    if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
+  }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
+
+
+  if (!vehicles) return <Loading />;
+  if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
+
+  const selectedVehicleId = watch("vehicleId");
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
