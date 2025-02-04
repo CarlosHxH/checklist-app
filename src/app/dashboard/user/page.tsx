@@ -42,7 +42,6 @@ const UserDataGrid: React.FC = () => {
     }
   };
 
-
   // Column definitions
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Name', flex: isMobile ? 2 : 3, minWidth: 90},

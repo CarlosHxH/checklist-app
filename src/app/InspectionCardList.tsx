@@ -73,7 +73,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CarIcon />
             <Typography variant="h6">
-              Inspeção {format(inspection.createdAt)}
+              Viagem {format(inspection.createdAt)}
             </Typography>
           </Box>
           <Stack>
@@ -118,7 +118,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
 const InspectionCardList = ({ inspections }: { inspections: InspectionData[] }) => {
   return (
     <Box sx={{ p: 1 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Lista de Inspeções</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>Lista de Viagens</Typography>
       {inspections.length > 0 && inspections.map((inspection) => (
         <InspectionCard key={inspection.id} inspection={inspection} />
       ))}

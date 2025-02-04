@@ -56,6 +56,8 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
   // Retornar o estado nulo ou de carregamento durante a SSR
   if (!mounted || status === "loading") return null;
   if (!session || !["ADMIN", "USER"].some(role => session?.user.role?.includes(role))) redirect('/');
+  console.log();
+  
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
       <DashboardLayout>
