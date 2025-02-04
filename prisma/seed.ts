@@ -25,7 +25,6 @@ async function main() {
         role: 'ADMIN'
       },
       update: {
-        
       }
     })
   ])

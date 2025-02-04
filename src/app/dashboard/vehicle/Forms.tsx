@@ -14,7 +14,7 @@ const vehicleSchema = z.object({
   model: z.string().min(1, { message: 'Required' }),
   year: z.string().min(4, { message: "Formato invalido!" }),
   eixo: z.string().min(1, { message: 'Required' }),
-  plate: z.string().min(7, { message: 'Placa Invalida!' }).max(7, { message: 'Placa Invalida!' })
+  plate: z.string().min(7, { message: 'Placa Invalida!' }).max(8, { message: 'Placa Invalida!' })
 });
 
 export type vehicleFormData = z.infer<typeof vehicleSchema>;
@@ -116,7 +116,7 @@ export default function VehicleModal({
             <Controller
               name="year"
               control={control}
-              render={({ field }) => (<TextField variant='outlined' label="Ano" {...field} placeholder="Ano de fabricação" fullWidth />)}
+              render={({ field }) => (<TextField type="number" variant='outlined' label="Ano" {...field} placeholder="Ano de fabricação" fullWidth />)}
             />
             {errors.year && (<Typography color="error">{errors.year.message}</Typography>)}
 
