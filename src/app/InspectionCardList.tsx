@@ -77,20 +77,22 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
             </Typography>
           </Box>
           <Stack>
+
             <Grid item xs={12} direction={'column'} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
               {inspection.start?.isFinished ? (
                 <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/inspection/${inspection.start?.id}/edit`}>
+                <Link href={`/viagem/${inspection.start?.id}/edit`}>
                   <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}
+              
               {!inspection.start?.isFinished ?
                 (<></>)
                 : inspection.end ? (
                   <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
                 ) : (
-                  <Link href={`/inspection/create/${inspection.id}`}>
+                  <Link href={`/viagem/create/${inspection.id}`}>
                     <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                   </Link>
                 )}
@@ -99,6 +101,7 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
               </IconButton>
             </Grid>
           </Stack>
+          
         </Box>
 
         <Typography color="text.secondary" sx={{ mt: 1 }}>
@@ -114,11 +117,13 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
   );
 };
 
+
+
+
 // Componente principal
 const InspectionCardList = ({ inspections }: { inspections: InspectionData[] }) => {
   return (
-    <Box sx={{ p: 1 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Lista de Viagens</Typography>
+    <Box sx={{ py: 1 }}>
       {inspections.length > 0 && inspections.map((inspection) => (
         <InspectionCard key={inspection.id} inspection={inspection} />
       ))}

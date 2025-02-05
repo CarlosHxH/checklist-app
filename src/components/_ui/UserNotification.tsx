@@ -25,6 +25,7 @@ const NotificationModal = () => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
 
   const handleConfirm = async (transferId: string) => {
     try {

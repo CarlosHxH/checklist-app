@@ -13,19 +13,19 @@ export default function Home() {
   const { data: session } = useSession();
   const { data, isLoading } = useSWR(`/api/${session?.user.id || ""}`, fetcher)
 
-  if(isLoading) return <Loading/>;
-
+  if(isLoading) return <Loading/>
+  
   const Fab = () => {
-    if(!data) return;
-    if(data[0]?.end === null) return;
-    return <CustomFab href={'/inspection/create'} variant={"Plus"} />
+    if(!data || !data[0]?.end) return;
+    return <CustomFab href={'/viagem/create'} variant={"Plus"} />
   }
+
   return (
-    <Suspense fallback={isLoading}>
+    <Suspense>
       <Container maxWidth="lg">
         <AppBar />
         <Fab />
-        {data&&<InspectionCardList inspections={data} />}
+        <InspectionCardList inspections={data} />
       </Container>
     </Suspense>
   );

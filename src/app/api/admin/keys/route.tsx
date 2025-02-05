@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       data: {
         userId: body.userId,
         vehicleId: body.vehicleId,
+        status: 'PENDING',
         parentId: find?.id || null,
       },
     })

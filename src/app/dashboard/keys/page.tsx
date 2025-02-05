@@ -10,7 +10,9 @@ import {
 import { History, Refresh } from '@mui/icons-material'
 import CloseIcon from '@mui/icons-material/Close';
 import HistoryModal from '@/components/_ui/HistoryModal'
-import { mutate } from 'swr';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/ultils';
+import Loading from '@/components/Loading';
 
 interface User {
   id: string
@@ -58,10 +60,9 @@ interface FormData {
 export default function VehicleKeysPage() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const { data, isLoading, mutate } = useSWR<DataType>('/api/admin/keys', fetcher, { refreshInterval: 3000 })
 
-  const [data, setData] = useState<DataType>({ users: [], vehicles: [], vehicleKeys: [] })
   const [groupedVehicleKeys, setGroupedVehicleKeys] = useState<GroupedVehicleKeys>({})
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
@@ -71,34 +72,15 @@ export default function VehicleKeysPage() {
   const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
   const [formData, setFormData] = useState<FormData>({ userId: '', vehicleId: '' })
   const [resendingKey, setResendingKey] = useState<VehicleKey | null>(null)
-
+  
   useEffect(() => {
-    fetchVehicleKeys()
-  }, [])
-
-  useEffect(() => {
-    if (data.vehicleKeys.length > 0) {
+    if (data && data.vehicleKeys.length > 0) {
       groupVehicleKeys()
     }
-  }, [data.vehicleKeys])
-
-  const fetchVehicleKeys = async () => {
-    setLoading(true)
-    try {
-      const response = await fetch('/api/admin/keys')
-      if (!response.ok) throw new Error('Erro ao carregar dados')
-      const fetchedData: DataType = await response.json()
-      setData(fetchedData)
-    } catch (error) {
-      console.error('Error fetching vehicle keys:', error)
-      setError('Erro ao carregar os dados. Tente novamente.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [data])
 
   const groupVehicleKeys = () => {
-    const grouped = data.vehicleKeys.reduce<GroupedVehicleKeys>((acc, key) => {
+    const grouped = data?.vehicleKeys?.reduce<GroupedVehicleKeys>((acc, key) => {
       if (!acc[key.vehicleId]) {
         acc[key.vehicleId] = {
           vehicle: {
@@ -115,7 +97,9 @@ export default function VehicleKeysPage() {
       }
       return acc
     }, {})
-    setGroupedVehicleKeys(grouped)
+    if (grouped) {
+      setGroupedVehicleKeys(grouped)
+    }
   }
 
   const validateForm = (): string | null => {
@@ -142,8 +126,6 @@ export default function VehicleKeysPage() {
 
   const handleConfirmResend = async () => {
     if (!resendingKey) return
-
-    setLoading(true)
     setResendConfirmDialogOpen(false)
     try {
       const response = await fetch(`/api/keys/resend`, {
@@ -151,19 +133,17 @@ export default function VehicleKeysPage() {
         body: JSON.stringify({ id: resendingKey.id })
       })
       if (!response.ok) throw new Error('Erro ao reenviar notificação')
-      await fetchVehicleKeys()
+      mutate();
       setSuccessMessage('Notificação reenviada com sucesso!')
     } catch (error) {
       console.error('Error resending notification:', error)
       setError('Erro ao reenviar a notificação. Tente novamente.')
     } finally {
-      setLoading(false)
       setResendingKey(null)
     }
   }
 
   const handleConfirmedSubmit = async () => {
-    setLoading(true)
     setConfirmDialogOpen(false)
     try {
       const response = await fetch('/api/admin/keys', {
@@ -175,14 +155,14 @@ export default function VehicleKeysPage() {
         }),
       })
       if (!response.ok) throw new Error('Erro ao transferir chave')
-      await fetchVehicleKeys()
+        mutate();
       setSuccessMessage('Chave transferida com sucesso!')
       handleCloseModal()
     } catch (error) {
       console.error('Error creating vehicle key:', error)
       setError('Erro ao transferir a chave. Tente novamente.')
     } finally {
-      setLoading(false)
+      mutate()
     }
   }
 
@@ -200,9 +180,7 @@ export default function VehicleKeysPage() {
     return (groupedVehicleKeys[vehicleId]?.latestKey?.status === "PENDING")
   }
 
-  if (loading && !data.vehicleKeys.length) {
-    return <Backdrop open={true}><CircularProgress color="primary" /></Backdrop>
-  }
+  if (isLoading) return <Loading/>;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
@@ -234,7 +212,7 @@ export default function VehicleKeysPage() {
 
               // Rejeita a transferência
               const handleCancelNotification = async (latestKey: VehicleKey) => {
-                if (!confirm("Deseja cancelar da transferencia de chave?")) return;
+                if (!confirm("Deseja cancelar a transferencia de chave?")) return;
                 if (!latestKey) return
                 try {
                   const response = await fetch(`/api/keys/reject/${latestKey.id}`, {method: 'POST'})
@@ -243,7 +221,7 @@ export default function VehicleKeysPage() {
                   console.error('Error:', error)
                   setError('Erro ao rejeitar transferência')
                 } finally {
-                  await fetchVehicleKeys()
+                  mutate();
                 }
               }
 
@@ -289,7 +267,7 @@ export default function VehicleKeysPage() {
           <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
             <InputLabel>Veículo</InputLabel>
             <Select value={formData.vehicleId} label="Veículo" onChange={(e) => { setError(null); setFormData({ ...formData, vehicleId: e.target.value }) }}>
-              {data.vehicles.map((v) => {
+              {data?.vehicles?.map((v) => {
                 if(getCurrentKeyStatusPending(v.id)) return;
                 return (
                 <MenuItem key={v.id} value={v.id}>
@@ -302,7 +280,7 @@ export default function VehicleKeysPage() {
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Novo Responsável</InputLabel>
             <Select value={formData.userId} label="Novo Responsável" onChange={(e) => { setError(null); setFormData({ ...formData, userId: e.target.value }) }}>
-              {data.users.map((u) => (
+              {data?.users?.map((u) => (
                 <MenuItem key={u.id} value={u.id} disabled={groupedVehicleKeys[formData.vehicleId]?.latestKey?.userId === u.id}>
                   {u.name}
                   {groupedVehicleKeys[formData.vehicleId]?.latestKey?.userId === u.id && ' (Responsável Atual)'}
@@ -313,18 +291,15 @@ export default function VehicleKeysPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={loading || !formData.userId || !formData.vehicleId}>Transferir</Button>
+          <Button onClick={handleSubmit} variant="contained" disabled={!formData.userId || !formData.vehicleId}>Transferir</Button>
         </DialogActions>
       </Dialog>
-
-
-
 
       <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
         <DialogTitle>Confirmar Transferência</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Deseja transferir a chave do veículo {formData.vehicleId && data.vehicles.find(v => v.id === formData.vehicleId)?.model} para {formData.userId && data.users.find(u => u.id === formData.userId)?.name}?
+            Deseja transferir a chave do veículo {formData.vehicleId && data?.vehicles.find(v => v.id === formData.vehicleId)?.model} para {formData.userId && data?.users.find(u => u.id === formData.userId)?.name}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -358,7 +333,7 @@ export default function VehicleKeysPage() {
         <Alert onClose={() => setSuccessMessage(null)} severity="success" sx={{ width: '100%' }}>{successMessage}</Alert>
       </Snackbar>
 
-      <Backdrop sx={{ color: '#fff', zIndex: theme.zIndex.drawer + 1 }} open={loading}>
+      <Backdrop sx={{ color: '#fff', zIndex: theme.zIndex.drawer + 1 }} open={isLoading}>
         <CircularProgress color="inherit" />
       </Backdrop>
     </Container>

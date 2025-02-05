@@ -59,11 +59,10 @@ const InspectionForm: React.FC = () => {
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       <Form
         method="put"
-        action={"/api/inspect"}
+        action={"/api/inspections"}
         encType={'application/json'}
         onSuccess={async({response}) => {
-          const res = await response.json()
-          router.push(`/inspection/${res.id}`);
+          router.push('/');
         }}
         onError={(e) => {alert("Erro ao enviar os dados!")}}
         control={control}
