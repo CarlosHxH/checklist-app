@@ -2,9 +2,10 @@
 import React from 'react';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import ButtonOptions from '@/components/ButtonOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 // Esquema de usuário para validação
@@ -17,7 +18,6 @@ const vehicleSchema = z.object({
   plate: z.string().min(7, { message: "Este campo é obrigatório" }).max(7, { message: "Este campo é obrigatório" }),
   tacografo: z.boolean({ message: "Este campo é obrigatório" }),
   fixo: z.boolean({ message: "Este campo é obrigatório" }),
-  cidadeBase: z.string({ message: "Este campo é obrigatório" }).optional().nullable(),
 });
 export type vehicleFormData = z.infer<typeof vehicleSchema>;
 
@@ -30,22 +30,18 @@ interface UserModalProps {
 
 export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserModalProps) {
 
-  const { watch, control, handleSubmit, reset, setValue,formState: { errors } } = useForm<vehicleFormData>({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<vehicleFormData>({
     resolver: zodResolver(vehicleSchema)
   });
 
-  const fixo = watch('fixo');
   React.useEffect(() => { reset(data || {}); }, [isOpen, data, reset]);
-  React.useEffect(() => { setValue('cidadeBase',!fixo?null:data?.cidadeBase); }, [fixo, reset]);
 
   const handleFormSubmit = async (data: vehicleFormData) => {
     try {
-
       const method = data.id ? axios.put : axios.post; // Determine o método baseado na presença de `id`
       const response = await method('/api/vehicles', { ...data }); // Chame o método apropriado
       await onSubmit(response.data); // Lidar com a resposta
       onClose(); // Feche o formulário
-
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Erro ao salvar'; // Obtenha a mensagem de erro
       Swal.fire({ icon: "error", title: "Oops...", text: errorMessage });
@@ -59,50 +55,23 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
           {data ? "Editar" : "Adicione"}
         </DialogTitle>
         <DialogContent>
-
           <Stack spacing={2} sx={{ mt: 2 }}>
-            <Controller
+
+            <ButtonOptions
+              label="Possui Tacografo?"
               name="tacografo"
+              options={[{ label: 'SIM', value: true }, { label: 'NÃO', value: false }]}
               control={control}
-              defaultValue={data?.fixo}
-              render={({ field }) => (
-                <FormControl fullWidth>
-                  <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Possui Tacografo?" />
-                </FormControl>
-              )}
+              rules={{ required: "Este campo é obrigatório" }}
             />
 
-            <Controller
+            <ButtonOptions
+              label="Veiculo de base?"
               name="fixo"
+              options={[{ label: 'SIM', value: true }, { label: 'NÃO', value: false }]}
               control={control}
-              defaultValue={data?.fixo}
-              render={({ field }) => (
-                <FormControl fullWidth>
-                  <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Veiculo fixo?" />
-                </FormControl>
-              )}
+              rules={{ required: "Este campo é obrigatório" }}
             />
-
-            {fixo && <Controller
-              name="cidadeBase"
-              defaultValue={data?.cidadeBase}
-              control={control}
-              rules={{ required: 'Campo obrigatório' }}
-              render={({ field: { onChange, value, ...rest } }) => (
-                <TextField
-                  {...rest}
-                  value={value || ''}
-                  onChange={(e) => {
-                    const uppercaseValue = e.target.value.toUpperCase();
-                    onChange(uppercaseValue);
-                  }}
-                  fullWidth
-                  label="Qual Cidade"
-                  error={!!errors.plate}
-                  helperText={errors.plate?.message}
-                />
-              )}
-            />}
 
             <Controller
               name="plate"

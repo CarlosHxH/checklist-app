@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ToggleButtonGroup, Box, Typography, ToggleButton, styled } from "@mui/material";
+import { ToggleButtonGroup, Box, Typography, ToggleButton, styled, InputLabel } from "@mui/material";
 import { useController, Control } from "react-hook-form";
 
 interface ButtonLabelProps {
@@ -13,10 +13,12 @@ interface ButtonLabelProps {
 }
 
 const StyledToggleButton = styled(ToggleButton)({
-  border: "1px solid #ccc",
-  borderRadius: "8px",
   padding: "5px",
   width: "100%",
+  "&.error":{
+    color: 'red',
+    border: `1px solid red`,
+  },
   "&:hover": {
     backgroundColor: "#999",
     color: "#fff",
@@ -39,12 +41,10 @@ export default function ButtonLabel({ label, name, options, control, rules, disa
   
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }} {...props}>
-      <Typography variant="body1" color="#444">{label}</Typography>
+      <InputLabel>{label}</InputLabel>
       <ToggleButtonGroup disabled={disabled} value={value} exclusive onChange={handleChange} aria-label={label}>
         {options.map(option => (
-          <StyledToggleButton disabled={disabled} key={option} value={option}>
-            {option}
-          </StyledToggleButton>
+          <StyledToggleButton className={!!error?"error":""} disabled={disabled} key={option} value={option}>{option}</StyledToggleButton>
         ))}
       </ToggleButtonGroup>
       {error && <Typography color="error" variant="caption">{error.message}</Typography>}

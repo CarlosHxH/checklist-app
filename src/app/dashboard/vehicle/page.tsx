@@ -1,191 +1,129 @@
-'use client';
+"use client"
 import React from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, useMediaQuery,
-  TableHead, TableRow, Paper, IconButton, Button,
-  TextField, Stack, Typography, useTheme, TablePagination
-} from '@mui/material';
-import {Edit as EditIcon,Delete as DeleteIcon,Add as AddIcon,Search as SearchIcon } from '@mui/icons-material';
+  DataGrid, GridColDef, GridToolbar,
+  GridRowParams, GridToolbarQuickFilter, GridToolbarContainer,
+  GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarExport
+} from '@mui/x-data-grid';
+import { Box, Button, Stack, useMediaQuery, useTheme } from '@mui/material';
 import useSWR from 'swr';
-import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
+import axios from 'axios';
 import VehicleModal, { vehicleFormData } from './Forms';
-import { CSVExporter } from '@/utils';
+import VerticalActions from '@/components/_ui/VerticalActions';
 
-const DefaulFilter = {
-  make: '',
-  model: '',
-  plate: '',
-}
-
-export default function VehiclesTable() {
+// Vechicle interface definition
+const VechicleDataGrid: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: vehicles, error, mutate } = useSWR<vehicleFormData[]>('/api/vehicles', fetcher);
-
+  const { data: vehicles, isLoading, mutate } = useSWR<vehicleFormData[]>('/api/vehicles', fetcher);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<vehicleFormData | null>(null);
+  const [selected, setSelected] = React.useState(null);
+  const [paginationModel, setPaginationModel] = React.useState({ pageSize: 10, page: 0 });
 
-  // Filtros
-  const [filters, setFilters] = React.useState(DefaulFilter);
-  // Paginação
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  // Função para filtrar veículos
-  const filteredVehicles = React.useMemo(() => {
-    if (!vehicles) return [];
-
-    return vehicles.filter((vehicle) => {
-      const makeMatch = vehicle.make.toLowerCase().includes(filters.make.toLowerCase());
-      const modelMatch = vehicle.model.toLowerCase().includes(filters.model.toLowerCase());
-      const plateMatch = vehicle.plate.toLowerCase().includes(filters.plate.toLowerCase());
-      return makeMatch && modelMatch && plateMatch;
-    });
-  }, [vehicles, filters]);
-
-  // Veículos paginados
-  const paginatedVehicles = React.useMemo(() => {
-    const startIndex = page * rowsPerPage;
-    return filteredVehicles.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredVehicles, page, rowsPerPage]);
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(0);
-  };
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este veículo?')) return;
-    try {
-      const response = await fetch('/api/vehicles', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (!response.ok) throw new Error('Failed to delete vehicle');
-      mutate();
-    } catch (error) {
-      console.error('Error deleting vehicle:', error);
+  const handleDelete = (id: string) => {
+    if (vehicles) {
+      if (confirm(`Temcerteza que deseja deletar o veiculo: ${vehicles.find(Vechicle => Vechicle.id === id)?.plate}`)) {
+        axios.delete(`/api/vehicles/${id}`)
+          .then(function (response) {
+            console.log({ response });
+            mutate();
+          })
+          .catch(function (error) {
+            alert(error.response.data);
+          });
+      }
     }
   };
 
-  if (error) return <Typography color="error">Erro de carregamento de veículos</Typography>;
-  if (!vehicles) return <Loading />;
+  // Column definitions
+  const columns: GridColDef[] = [
+    { field: 'make', headerName: 'FABRICANTE', flex: isMobile ? 1 : 0.8, maxWidth: 120 },
+    { field: 'plate', headerName: 'PLACA', flex: isMobile ? 1 : 2, minWidth: 80 },
+    { field: 'model', headerName: 'MODELO', flex: isMobile ? 1 : 0.8, maxWidth: 100 },
+    { field: 'year', headerName: 'ANO', flex: isMobile ? 1 : 0.8, maxWidth: 60 },
+    { field: 'eixo', headerName: 'EIXOS', flex: isMobile ? 1 : 0.8, maxWidth: 80, valueFormatter: (v) => isMobile ? v : ['DIANTEIRA', 'TRAÇÃO', 'TRUCK', '4° Eixo'][--v] },
+    { field: 'tacografo', headerName: 'TACOGRAFO', flex: isMobile ? 1 : 0.8, maxWidth: 120, valueFormatter: (v) => v ? "SIM" : "NÃO" },
+    { field: 'cidadeBase', headerName: 'BASE', flex: 1, maxWidth: 180 },
+    {
+      field: 'actions', type: 'actions', headerName: 'Ações', flex: 1, maxWidth: 70,
+      getActions: ({ row }: GridRowParams) => [
+        <VerticalActions key={row.id as string}
+          isMobile={isMobile}
+          params={row}
+          handleEdit={() => {
+            setSelected(row);
+            setIsModalOpen(true);
+          }}
+          handleDelete={handleDelete} />
+      ]
+    }
+  ];
 
-
-  const k = (e: number) => ['DIANTEIRA', 'TRAÇÃO', 'TRUCK', 'Quarto Eixo'][--e]
-  const eixoss = (vehicles: vehicleFormData[]) => {
-    return vehicles.map(vehicle => ({ ...vehicle, eixo: k(Number(vehicle.eixo)) }))
+  function CustomToolbar() {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton />
+        <GridToolbarFilterButton />
+        <GridToolbarExport slotProps={{ tooltip: { sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
+        <Box sx={{ flexGrow: 1 }} />
+        <Stack direction="row" spacing={2} alignItems={'center'}>
+          <GridToolbarQuickFilter variant="outlined" size="small" />
+          <Button onClick={() => setIsModalOpen(true)} variant="contained" size='large' color="primary">Novo</Button>
+        </Stack>
+      </GridToolbarContainer>
+    );
   }
 
-
+  const xs = isMobile ? { year: false, eixo: false, model: false } : null
   return (
-    <Stack spacing={2}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Button variant="outlined" onClick={() => CSVExporter.exportToCSV(eixoss(paginatedVehicles))}>Exportar csv</Button>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setIsModalOpen(true)}>
-          Adicionar veículo
-        </Button>
-      </Stack>
-
-      {/* Filtros */}
-      <Paper sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <TextField name="make" label="Filtrar por fabricante" value={filters.make} onChange={handleFilterChange} size="small" fullWidth
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
-            }}
-          />
-          <TextField
-            name="model"
-            label="Filtrar por modelo"
-            value={filters.model}
-            onChange={handleFilterChange}
-            size="small"
-            fullWidth
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
-            }}
-          />
-          <TextField
-            name="plate"
-            label="Filtrar por placa"
-            value={filters.plate}
-            onChange={handleFilterChange}
-            size="small"
-            fullWidth
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
-            }}
-          />
-        </Stack>
-      </Paper>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Fabricante</TableCell>
-              <TableCell>Modelo</TableCell>
-              {!isMobile && <TableCell>Ano</TableCell>}
-              {!isMobile && <TableCell>eixo</TableCell>}
-              <TableCell>Placa</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedVehicles.map((vehicle) => (
-              <TableRow key={vehicle.id}>
-                <TableCell>{vehicle.make}</TableCell>
-                <TableCell>{vehicle.model}</TableCell>
-                {!isMobile && <TableCell>{vehicle.year}</TableCell>}
-                {!isMobile && <TableCell>{k(Number(vehicle.eixo))}</TableCell>}
-                <TableCell>{vehicle.plate}</TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    color="primary"
-                    onClick={() => { setIsModalOpen(true); setSelected(vehicle) }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => vehicle.id && handleDelete(vehicle.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredVehicles.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
+    <Box sx={{ height: 'auto', width: '100%' }}>
+      <DataGrid
+        rows={vehicles}
+        columns={columns}
+        loading={isLoading}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        disableRowSelectionOnClick
+        slots={{ toolbar: CustomToolbar || GridToolbar }}
+        localeText={{
+          toolbarColumns: "",
+          toolbarFilters: "",
+          toolbarExport: "",
+          toolbarDensity: ""
+        }}
+        autoHeight
+        density="standard"
+        slotProps={{
+          toolbar: {
+            showQuickFilter: true,
+            quickFilterProps: { debounceMs: 500 },
+          },
+        }}
+        initialState={{
+          pagination: {
+            paginationModel: { pageSize: 10 },
+          },
+          columns: {
+            columnVisibilityModel: { ...xs },
+          },
+        }}
+      />
 
       <VehicleModal
         isOpen={isModalOpen}
-        data={selected}
         onClose={() => {
           setIsModalOpen(false);
           setSelected(null);
         }}
-        onSubmit={async () => {mutate()}}
+        data={selected}
+        onSubmit={async (data) => { await mutate() }}
       />
-    </Stack>
+
+    </Box>
   );
-}
+};
+
+export default VechicleDataGrid;

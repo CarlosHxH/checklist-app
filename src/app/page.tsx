@@ -15,16 +15,15 @@ export default function Home() {
 
   if(isLoading) return <Loading/>
   
-  const Fab = () => {
-    if(!data || !data[0]?.end) return;
-    return <CustomFab href={'/viagem/create'} variant={"Plus"} />
-  }
+  const CustomFabs = () => {
+    return (data.length === 0 || !!data[0]?.end)?<CustomFab href={'/viagem/create'} variant={"Plus"} />:<></>;
+  };
 
   return (
     <Suspense>
       <Container maxWidth="lg">
         <AppBar />
-        <Fab />
+        <CustomFabs />
         <InspectionCardList inspections={data} />
       </Container>
     </Suspense>

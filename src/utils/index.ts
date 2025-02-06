@@ -94,7 +94,7 @@ export class CSVExporter {
   ): void {
     const {
       filename = `export_${this.formatDate(new Date(), 'yyyy-MM-dd_HHmmss')}.csv`,
-      delimiter = ',',
+      delimiter = ';',
       headers,
       dateFormat
     } = options;

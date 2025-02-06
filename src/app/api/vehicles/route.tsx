@@ -12,9 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const data = { ...body };
-  delete data.id;
+  const {id, ...data} = await request.json();
   if (!data) return NextResponse.json({ message: 'Is are required.' }, { status: 400 });
   try {
     const isExist = await prisma.vehicle.findUnique({where:{plate:data.plate}})

@@ -2,8 +2,40 @@ import * as React from 'react';
 import { styled } from '@mui/system';
 import clsx from 'clsx';
 import { useFormControlContext } from '@mui/base/FormControl';
-import { Input, inputClasses } from '@mui/material';
+import { Input, inputClasses, TextField } from '@mui/material';
+import { Control, Controller } from 'react-hook-form';
 
+export const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
+
+export const formField = (name: string, control: Control, label: string, rules: any, errors:any,type = 'text') => (
+  <Controller
+    name={name}
+    control={control}
+    defaultValue=""
+    rules={rules}
+    render={({ field }) => (
+      <TextField
+        {...field}
+        variant='outlined'
+        label={label}
+        fullWidth
+        type={type}
+        error={!!errors[name]}
+        helperText={errors[name]?.message}
+      />
+    )}
+  />
+);
 
 export const StyledInput = styled(Input)(
   ({ theme }) => `

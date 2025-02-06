@@ -98,47 +98,56 @@ model Inspect {
   updatedAt     DateTime @updatedAt
 }
 
+model InspectionPhoto {
+  id            String     @id @default(cuid())
+  inspectionId  String
+  description   String?
+  photo         String     @db.LongText
+  createdAt     DateTime   @default(now())
+  inspection    inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionId])
+}
+
 model inspection {
-  id        String @id @default(cuid())
-  userId    String
-  vehicleId String
-
-  vehicleKey                 String?
-  dataInspecao               DateTime? @default(now())
-  status                     String?
-  crlvEmDia                  String?
-  certificadoTacografoEmDia  String?
-  nivelAgua                  String?
-  nivelOleo                  String?
-  eixo                       String?
-  dianteira                  String?
-  descricaoDianteira         String?
-  tracao                     String?
-  descricaoTracao            String?
-  truck                      String?
-  descricaoTruck             String?
-  quartoEixo                 String?
-  descricaoQuartoEixo        String?
-  avariasCabine              String?
-  descricaoAvariasCabine     String?
-  bauPossuiAvarias           String?
-  descricaoAvariasBau        String?
-  funcionamentoParteEletrica String?
-  descricaoParteEletrica     String?
-  fotoVeiculo                String?   @db.LongText
-  createdAt                  DateTime  @default(now())
-  updatedAt                  DateTime?
-  kilometer                  String?
-  isFinished                 Boolean?  @default(false)
-  user                       user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
-  vehicle                    vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
-
-  startInspection            Inspect[] @relation("StartInspection")
-  endInspection              Inspect[] @relation("EndInspection")
+  id                          String            @id @default(cuid())
+  userId                      String
+  vehicleId                   String
+  vehicleKey                  String?
+  dataInspecao                DateTime?         @default(now())
+  status                      String?
+  crlvEmDia                   String?
+  certificadoTacografoEmDia   String?
+  nivelAgua                   String?
+  nivelOleo                   String?
+  eixo                        String?
+  dianteira                   String?
+  descricaoDianteira          String?
+  tracao                      String?
+  descricaoTracao             String?
+  truck                       String?
+  descricaoTruck              String?
+  quartoEixo                  String?
+  descricaoQuartoEixo         String?
+  avariasCabine               String?
+  descricaoAvariasCabine      String?
+  bauPossuiAvarias            String?
+  descricaoAvariasBau         String?
+  funcionamentoParteEletrica  String?
+  descricaoParteEletrica      String?
+  fotoVeiculo                 String?           @db.LongText
+  createdAt                   DateTime          @default(now())
+  updatedAt                   DateTime?
+  kilometer                   String?
+  isFinished                  Boolean?          @default(false)
+  photos                      InspectionPhoto[]
+  user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
+  vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
+  startInspection             Inspect[]         @relation("StartInspection")
+  endInspection               Inspect[]         @relation("EndInspection")
 
   @@index([userId], map: "Inspection_userId_fkey")
   @@index([vehicleId], map: "Inspection_vehicleId_fkey")
-  
 }
 
 model vehicle {
@@ -150,10 +159,12 @@ model vehicle {
   plate           String       @unique(map: "Vehicle_plate_key")
   createdAt       DateTime     @default(now())
   updatedAt       DateTime?
+  fixo            Boolean      @default(false)
+  cidadeBase      String?
+  tacografo       Boolean      @default(false)
   inspection      inspection[]
   vehiclekey      VehicleKey[]
   endInspection   Inspect[]    @relation("EndInspection")
-  fixo            Boolean      @default(false)
 }
 
 model VehicleKey {

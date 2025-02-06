@@ -36,21 +36,20 @@ const UserDataGrid: React.FC = () => {
     }
   };
 
-  const handleView = (id: string) => {
-    if (users) {
-      console.log(users.find(user => user.id === id));
-    }
-  };
-
+  const role = {
+    ADMIN: 'ADMIN',
+    USER: 'USUARIO',
+    DRIVER: 'MOTORISTA'
+  }
   // Column definitions
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Name', flex: isMobile ? 2 : 3, minWidth: 90},
-    { field: 'username', headerName: 'Login', flex: isMobile ? 1 : 0.8, minWidth: 80 },
-    { field: 'role', headerName: 'Perfil', flex: isMobile ? 1 : 0.5, minWidth: 80, valueOptions: ['ADMIN', 'USER', 'DRIVER']},
-    { field: 'isActive', headerName: 'Status', flex: isMobile ? 1 : 2, type: 'singleSelect', valueOptions: ['active', 'inactive'],
+    { field: 'name', headerName: 'NOME', flex: isMobile ? 2 : 3, minWidth: 90, valueFormatter: (v) => (v as string).toUpperCase() },
+    { field: 'username', headerName: 'USUARIO', flex: isMobile ? 1 : 0.8, minWidth: 100 },
+    { field: 'role', headerName: 'PERFIL', flex: 1, minWidth: 80, valueFormatter: (v) => role[v]},
+    { field: 'isActive', headerName: 'STATUS', flex: isMobile ? 1 : 2, type: 'singleSelect', valueOptions: ['active', 'inactive'],
       renderCell: (params) => <>{params.value ? <CheckIcon color='success' /> : <CloseIcon color='error' />}</>,
     },
-    { field: 'actions', type: 'actions', headerName: 'Ações', flex: 1, minWidth: 70,
+    { field: 'actions', type: 'actions', headerName: 'AÇÕES', flex: 1, minWidth: 70,
       getActions: ({ row }: GridRowParams) => [
         <VerticalActions key={row.id as string}
           isMobile={isMobile}
@@ -59,7 +58,6 @@ const UserDataGrid: React.FC = () => {
             setSelectedUser(row);
             setIsModalOpen(true);
           }}
-          handleView={handleView}
           handleDelete={handleDelete} />
       ]
     }
