@@ -135,19 +135,30 @@ model inspection {
   descricaoAvariasBau         String?
   funcionamentoParteEletrica  String?
   descricaoParteEletrica      String?
-  fotoVeiculo                 String?           @db.LongText
   createdAt                   DateTime          @default(now())
   updatedAt                   DateTime?
   kilometer                   String?
   isFinished                  Boolean?          @default(false)
+  
+  extintor                    String?
+  fotoExtintor                String?           @db.LongText
+
+  fotoDocumento               String?           @db.LongText
+  fotoTacografo               String?           @db.LongText
+
+  fotoAvarias1                String?           @db.LongText
+  fotoAvarias2                String?           @db.LongText
+  fotoAvarias3                String?           @db.LongText
+  fotoAvarias4                String?           @db.LongText
+  
   photos                      InspectionPhoto[]
   user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
   vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
   startInspection             Inspect[]         @relation("StartInspection")
   endInspection               Inspect[]         @relation("EndInspection")
 
-  @@index([userId], map: "Inspection_userId_fkey")
-  @@index([vehicleId], map: "Inspection_vehicleId_fkey")
+  @@index([userId],           map: "Inspection_userId_fkey")
+  @@index([vehicleId],        map: "Inspection_vehicleId_fkey")
 }
 
 model vehicle {

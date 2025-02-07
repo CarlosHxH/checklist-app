@@ -6,7 +6,7 @@ export const InspectionSchema = z.object({
   kilometer: z.string().optional().nullable(),
   userId: z.string().min(1),
   vehicleId: z.string().min(1),
-  crlvEmDia: z.enum(["SIM", "NÃO"]),
+  crlvEmDia: z.string(),
   certificadoTacografoEmDia: z.string(),
   nivelAgua: z.enum(["NORMAL", "BAIXO", "CRITICO"]),
   nivelOleo: z.enum(["NORMAL", "BAIXO", "CRITICO"]),
@@ -28,7 +28,6 @@ export const InspectionSchema = z.object({
   funcionamentoParteEletrica: z.string(),
   descricaoParteEletrica: z.string().optional().nullable(),
   fotoVeiculo: z.string().optional().nullable(),
-  extitor: z.enum(["SIM", "NÃO"]),
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;

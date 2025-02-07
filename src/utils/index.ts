@@ -1,3 +1,14 @@
+export async function getBase64(file: File) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      resolve(reader.result)
+    }
+    reader.onerror = reject
+  })
+}
+
 export function getDaysInMonth(
   month: number = new Date().getMonth() + 1,
   year: number = new Date().getFullYear()

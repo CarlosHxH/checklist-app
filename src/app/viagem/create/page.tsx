@@ -1,11 +1,11 @@
 import Box from '@mui/material/Box';
-import AppBar from '@/components/_ui/AppBar';
+import CustomAppBar from '@/components/_ui/CustomAppBar';
 import InspectionForm from './InspectionForm';
 
 export default function InspectionPage() {
   return (
     <div>
-      <AppBar showBackButton/>
+      <CustomAppBar showBackButton/>
       <Box component="main" sx={{ flex: 1 }}><InspectionForm /></Box>
     </div>
   );

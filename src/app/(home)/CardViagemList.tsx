@@ -6,15 +6,15 @@ import {
   DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { InspectionData, InspectionDetail } from './inspection';
 import { formatDate } from '@/utils';
 import Link from 'next/link';
+import { InspectionData, InspectionDetail } from '../inspection';
 
-interface InspectionCardProps {
+
+interface CardViagemProps {
   inspection: InspectionData;
 }
-
-const InspectionCard = ({ inspection }: InspectionCardProps) => {
+const CardViagem = ({ inspection }: CardViagemProps) => {
   const [expanded, setExpanded] = React.useState(false);
 
   const getStatusColor = (status: string | undefined) => {
@@ -121,14 +121,14 @@ const InspectionCard = ({ inspection }: InspectionCardProps) => {
 
 
 // Componente principal
-const InspectionCardList = ({ inspections }: { inspections: InspectionData[] }) => {
+const CardViagemList = ({ data }: { data: InspectionData[] }) => {
   return (
     <Box sx={{ py: 1 }}>
-      {inspections.length > 0 && inspections.map((inspection) => (
-        <InspectionCard key={inspection.id} inspection={inspection} />
+      {data.length > 0 && data.map((data) => (
+        <CardViagem key={data.id} inspection={data} />
       ))}
     </Box>
   );
 };
 
-export default InspectionCardList;
+export default CardViagemList;

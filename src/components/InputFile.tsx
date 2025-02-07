@@ -1,9 +1,9 @@
-// components/CameraInput.js
+// components/InputFile.js
 import React, { useRef, useState } from 'react';
 import { Button, Box, Typography } from '@mui/material';
 import Image from 'next/image';
 
-interface CameraInputProps {
+interface InputFileProps {
     name?: string;
     label?: string | React.ReactNode | null;
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -12,7 +12,7 @@ interface CameraInputProps {
     value?: string | null;
 }
 
-const CameraInput: React.FC<CameraInputProps> = ({ label, name, error, helperText, value, onChange }) => {
+const InputFile: React.FC<InputFileProps> = ({ label, name, error, helperText, value, onChange }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [image, setImage] = useState<string | ArrayBuffer | null>(value ?? null);
 
@@ -53,4 +53,4 @@ const CameraInput: React.FC<CameraInputProps> = ({ label, name, error, helperTex
     );
 };
 
-export default CameraInput;
+export default InputFile;

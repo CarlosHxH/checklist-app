@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { AppBar as App, IconButton, Toolbar, Typography, Container, Box, Chip, Avatar } from "@mui/material";
+import { AppBar as App, IconButton, Toolbar, Typography, Container, Box, Chip, Avatar, useTheme, useMediaQuery } from "@mui/material";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
@@ -15,7 +15,9 @@ interface Props {
 }
 
 
-const AppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
+const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -47,11 +49,11 @@ const AppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick })
               {title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
             </Typography>
 
-            <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 2 }}>
+            <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 1 }}>
               <Chip
-                sx={{ color: '#fff' }}
+                sx={{ color: '#fff', p:0 }}
                 avatar={<Avatar alt={session?.user.name || ""} src={session?.user.image || ""} />}
-                label={session?.user.name}
+                label={isMobile?'':session?.user.name}
                 variant="outlined"
               />
               <NotificationModal />
@@ -65,4 +67,4 @@ const AppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick })
   );
 };
 
-export default AppBar;
+export default CustomAppBar;
