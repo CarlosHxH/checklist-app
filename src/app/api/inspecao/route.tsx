@@ -36,13 +36,12 @@ async function transaction(validatedData: InspectionFormData) {
 export async function POST(request: NextRequest) {
   try {
     const body: InspectionInput = await request.json();
-
     // Validar os dados recebidos
     const validatedData = InspectionSchema.parse(body);
-    console.log({is: validatedData.userId});
+    const data = await transaction(validatedData);
+    console.log({data});
     
-
-    return NextResponse.json(validatedData, { status: 201 });
+    return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar inspeção:', error);
 

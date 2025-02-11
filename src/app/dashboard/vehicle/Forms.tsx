@@ -78,7 +78,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
               defaultValue={data?.fixo}
               render={({ field }) => (
                 <FormControl fullWidth>
-                  <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Veiculo fixo?" />
+                  <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Veiculo de base?" />
                 </FormControl>
               )}
             />
@@ -111,7 +111,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
               rules={{
                 required: 'Placa é obrigatória',
                 pattern: {
-                  value: /^[a-zA-Z]{3}[0-9][A-Za-z0-9][0-9]{2}$/,
+                  value: /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/,
                   message: 'Placa inválida (formato: ABC1234)'
                 }
               }}
@@ -119,9 +119,8 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
                 <TextField
                   {...rest}
                   value={value || ''}
-                  onChange={(e) => {
-                    const uppercaseValue = e.target.value.toUpperCase();
-                    onChange(uppercaseValue);
+                  onChange={({target}) => {
+                    onChange(target.value.toUpperCase());
                   }}
                   slotProps={{ htmlInput: { maxLength: 7 } }}
                   fullWidth

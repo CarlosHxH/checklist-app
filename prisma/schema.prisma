@@ -90,8 +90,11 @@ model Inspect {
   startId       String?
   endId         String?
   vehicleId     String?
-  start         inspection? @relation("StartInspection", fields: [startId], references: [id])
-  end           inspection? @relation("EndInspection", fields: [endId], references: [id])
+
+  // These relations need opposite relations in the inspection model
+  start         inspection?  @relation("StartInspection", fields: [startId], references: [id])
+  end           inspection?  @relation("EndInspection", fields: [endId], references: [id])
+
   vehicle       vehicle? @relation("EndInspection", fields: [vehicleId], references: [id])
   user          user     @relation(fields: [userId], references: [id], map: "Inspect_userId_fkey")
   createdAt     DateTime @default(now())
@@ -104,7 +107,15 @@ model InspectionPhoto {
   description   String?
   photo         String     @db.LongText
   createdAt     DateTime   @default(now())
+  type          String?    // To identify the type of photo (documento, tacografo, extintor, avarias)
+  
   inspection    inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  // Relations for specific photo types
+  documentoInspections inspection[] @relation("fotoDocumento")
+  tacografoInspections inspection[] @relation("fotoTacografo")
+  extintorInspections  inspection[] @relation("fotoExtintor")
+  avariasInspections   inspection[] @relation("fotoAvarias")
 
   @@index([inspectionId])
 }
@@ -141,24 +152,23 @@ model inspection {
   isFinished                  Boolean?          @default(false)
   
   extintor                    String?
-  fotoExtintor                String?           @db.LongText
 
-  fotoDocumento               String?           @db.LongText
-  fotoTacografo               String?           @db.LongText
+  // Relations
+  user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  fotoAvarias1                String?           @db.LongText
-  fotoAvarias2                String?           @db.LongText
-  fotoAvarias3                String?           @db.LongText
-  fotoAvarias4                String?           @db.LongText
-  
+  // Photo relations
   photos                      InspectionPhoto[]
-  user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
-  vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
-  startInspection             Inspect[]         @relation("StartInspection")
-  endInspection               Inspect[]         @relation("EndInspection")
+  fotoDocumento               InspectionPhoto[] @relation("fotoDocumento")
+  fotoTacografo               InspectionPhoto[] @relation("fotoTacografo")
+  fotoExtintor                InspectionPhoto[] @relation("fotoExtintor")
+  fotoAvarias                 InspectionPhoto[] @relation("fotoAvarias")
 
-  @@index([userId],           map: "Inspection_userId_fkey")
-  @@index([vehicleId],        map: "Inspection_vehicleId_fkey")
+  inspectionsAsStart          Inspect[]         @relation("StartInspection")
+  inspectionsAsEnd            Inspect[]         @relation("EndInspection")
+
+  @@index([userId])
+  @@index([vehicleId])
 }
 
 model vehicle {

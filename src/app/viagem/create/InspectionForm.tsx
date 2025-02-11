@@ -74,7 +74,7 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <TextField {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
+            <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
           </Grid>
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>

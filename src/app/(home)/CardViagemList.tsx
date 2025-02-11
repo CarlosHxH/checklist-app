@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import { Card, CardContent, Typography, Grid, Chip, Box, IconButton, Collapse, Stack } from '@mui/material';
+import { Card, CardContent, Typography, Grid, Chip, Box, IconButton, Collapse, Stack, CardHeader, styled } from '@mui/material';
 import {
   KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon,
   DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon
@@ -9,11 +9,26 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { formatDate } from '@/utils';
 import Link from 'next/link';
 import { InspectionData, InspectionDetail } from '../inspection';
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface CardViagemProps {
   inspection: InspectionData;
 }
+
+
+// Styled expand icon to rotate when expanded
+const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<typeof IconButton>) => {
+  const { expanded, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expanded }) => ({
+  transform: !expanded ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
+
+
 const CardViagem = ({ inspection }: CardViagemProps) => {
   const [expanded, setExpanded] = React.useState(false);
 
@@ -68,45 +83,47 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
 
   return (
     <Card sx={{ mb: 2 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <CardHeader
+        title={`${inspection.vehicle.make} ${inspection.vehicle.model}`}
+        subheader={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CarIcon />
-            <Typography variant="h6">
-              Viagem {format(inspection.createdAt)}
+            <Typography>
+              <CarIcon />
+              {`Placa: ${inspection.vehicle.plate} | Viagem: ${format(inspection.createdAt)} `}
             </Typography>
           </Box>
-          <Stack>
+        }
+        action={
+          <ExpandMore expanded={expanded} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label="mostre mais">
+            <ExpandMoreIcon />
+          </ExpandMore>
+        }
+      />
+      <CardContent>
+        <Stack flexDirection={'row'} justifyContent={'space-between'}>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            Veiculo: {inspection.vehicle?.plate + " - " + inspection.vehicle?.model}
+          </Typography>
+          <Grid item xs={12} direction={'column'} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
+            {inspection.start?.isFinished ? (
+              <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
+            ) : (
+              <Link href={`/viagem/${inspection.start?.id}/edit`}>
+                <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+              </Link>
+            )}
 
-            <Grid item xs={12} direction={'column'} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
-              {inspection.start?.isFinished ? (
-                <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
+            {!inspection.start?.isFinished ?
+              (<></>)
+              : inspection.end ? (
+                <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/viagem/${inspection.start?.id}/edit`}>
-                  <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
+                <Link href={`/viagem/create/${inspection.id}`}>
+                  <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}
-              
-              {!inspection.start?.isFinished ?
-                (<></>)
-                : inspection.end ? (
-                  <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
-                ) : (
-                  <Link href={`/viagem/create/${inspection.id}`}>
-                    <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
-                  </Link>
-                )}
-              <IconButton sx={{ width: 40, ml: 'auto' }} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label="mostrar mais">
-                {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-              </IconButton>
-            </Grid>
-          </Stack>
-          
-        </Box>
-
-        <Typography color="text.secondary" sx={{ mt: 1 }}>
-          Veiculo: {inspection.vehicle?.plate + " - " + inspection.vehicle?.model}
-        </Typography>
+          </Grid>
+        </Stack>
 
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           {renderInspectionDetails(inspection.start, 'start')}

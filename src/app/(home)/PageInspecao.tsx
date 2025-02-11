@@ -7,16 +7,16 @@ import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import VehicleInspectionCard from './CardInspecaoList';
 
-export default function Inspecao({id}: {id:string}) {
+export default function Inspecao({ id }: { id: string }) {
   const { data, isLoading } = useSWR(`/api/inspections/byUser/${id || ""}`, fetcher)
 
-  if(isLoading) return <Loading/>
+  if (isLoading) return <Loading />
 
   return (
     <Suspense>
       <Container maxWidth="lg">
-      <CustomFab href={'/inspecao'} variant={"Plus"} color='success'/>
-      <VehicleInspectionCard data={data} />
+        <CustomFab href={'/inspecao'} variant={"Plus"} color='success' />
+        <VehicleInspectionCard data={data} />
       </Container>
     </Suspense>
   );

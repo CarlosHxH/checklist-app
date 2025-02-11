@@ -50,12 +50,12 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
             </Typography>
 
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 1 }}>
-              <Chip
+              {!isMobile&&<Chip
                 sx={{ color: '#fff', p:0 }}
                 avatar={<Avatar alt={session?.user.name || ""} src={session?.user.image || ""} />}
-                label={isMobile?'':session?.user.name}
+                label={session?.user.name}
                 variant="outlined"
-              />
+              />}
               <NotificationModal />
               <LogoutButton />
             </Box>

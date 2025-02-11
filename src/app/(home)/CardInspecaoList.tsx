@@ -8,10 +8,13 @@ import {
   Collapse,
   IconButton,
   Grid,
-  Chip
+  Chip,
+  Box
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // Type definition for the inspection data
 interface VehicleInspection {
@@ -51,16 +54,19 @@ const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<t
 }));
 
 const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) => {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
 
   const handleExpandClick = () => { setExpanded(!expanded) };
 
   return (
-    <Card sx={{ maxWidth: 400, margin: 2 }}>
+    <Card sx={{ margin: 2 }}>
       <CardHeader
         title={`${inspection.vehicle.make} ${inspection.vehicle.model}`}
         subheader={`Placa: ${inspection.vehicle.plate} | Ano: ${inspection.vehicle.year}`}
         action={
+          <>
+
           <ExpandMore
             expanded={expanded}
             onClick={handleExpandClick}
@@ -69,20 +75,20 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
           >
             <ExpandMoreIcon />
           </ExpandMore>
+            <IconButton onClick={()=>router.push(`/inspecao/${inspection.id}`)}><VisibilityIcon/></IconButton>
+          </>
         }
       />
 
       <CardContent>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid item xs={8}>
             <Typography variant="body2" component="div">
               Data Inspeção: {new Date(inspection.dataInspecao).toLocaleDateString()}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" component="div">
-              TIPO: <Chip label={inspection.status} color={'primary'} size="small" />
-            </Typography>
+          <Grid item xs={4} textAlign={'end'}>
+            <Chip label={inspection.status} color={'primary'} size="small" />
           </Grid>
         </Grid>
       </CardContent>
@@ -120,11 +126,11 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
 // Componente principal
 const VehicleInspectionCard = ({ data }: { data: VehicleInspection[] }) => {
   return (
-    <>
+    <Box sx={{ py: 1 }}>
       {data.map((data) => (
         <CardList key={data.id} inspection={data} />
       ))}
-    </>
+    </Box>
   );
 };
 

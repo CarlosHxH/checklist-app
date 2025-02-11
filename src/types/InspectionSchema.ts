@@ -32,15 +32,14 @@ export const InspectionSchema = z.object({
   funcionamentoParteEletrica: z.enum(["BOM", "RUIM"]),
   descricaoParteEletrica:     z.string().optional().nullable(),
   
-  extintor:                   z.string().optional().nullable(),
-  extintorFile:               z.string().optional().nullable(),
-  
   isFinished:                 z.boolean().optional(),
   
   user:                       z.any(),
   vehicle:                    z.any(),
+  
+  photos:                     z.array(PhotoSchema).min(4).optional(),
 
-  photos:                     z.array(PhotoSchema).optional(),
+  extintor:                   z.string().optional().nullable(),
   fotoExtintor:               z.string().optional().nullable(),
 
   fotoDocumento:              z.string().optional().nullable(),

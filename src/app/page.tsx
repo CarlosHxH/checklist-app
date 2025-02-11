@@ -4,7 +4,6 @@ import { useTheme } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
 import { useSession } from 'next-auth/react';
@@ -52,11 +51,9 @@ export default function Page() {
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0} dir={theme.direction}>
-        <Typography variant='subtitle1' sx={{p:2, fontWeight:'bold'}}>VIAGENS</Typography>
         {session && <Viagens id={idUser} />}
       </TabPanel>
       <TabPanel value={value} index={1} dir={theme.direction}>
-        <Typography variant='subtitle1' sx={{p:2, fontWeight:'bold'}}>INSPEÇÕES</Typography>
         {session && <Inspecao id={idUser} />}
       </TabPanel>
     </Box>

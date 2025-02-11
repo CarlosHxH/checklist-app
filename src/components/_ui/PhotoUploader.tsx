@@ -21,7 +21,6 @@ const Container = styled(Box)({
   flexDirection: "column",
   alignItems: "center",
   padding: "10px",
-  border: "2px dashed #1976d2",
   borderRadius: "8px",
   backgroundColor: "#f5f5f5",
   transition: "border-color 0.3s",
@@ -35,16 +34,21 @@ interface PhotoUploaderProps {
   label: string;
   value?: string[];
   onChange: (photos: File[]) => void;
+  isRemoved?: boolean;
+  multiple?: boolean;
 }
 
-const PhotoUploader: React.FC<PhotoUploaderProps> = ({ name, label, onChange, value }) => {
+const PhotoUploader: React.FC<PhotoUploaderProps> = ({ name, label, onChange, multiple, isRemoved }) => {
   const [photos, setPhotos] = useState<File[]>([]);
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newPhotos = Array.from(event.target.files);
-      setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
-      onChange(photos);
+      setPhotos(prevPhotos => {
+        const photos = multiple?[...prevPhotos, ...newPhotos]:newPhotos;
+        onChange(photos)
+        return photos;
+      });
     }
   };
 
@@ -58,7 +62,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ name, label, onChange, va
       <Grid item xs={12}>
         <Button component="label" variant="outlined" startIcon={<CameraAltIcon />} fullWidth>
           {label}
-          <VisuallyHiddenInput name={name} type="file" multiple capture accept="image/*" onChange={handlePhotoUpload}/>
+          <VisuallyHiddenInput name={name} type="file" multiple={multiple} capture accept="image/*" onChange={handlePhotoUpload}/>
         </Button>
       </Grid>
 
@@ -66,14 +70,14 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ name, label, onChange, va
         <Grid item xs={12}>
           <Grid container spacing={2}>
             {photos.map((photo, index) => (
-              <Grid item key={index} xs={4} sm={2}>
+              <Grid item key={index} xs={12}>
                 <Container>
                   <img
                     src={URL.createObjectURL(photo)}
                     alt={`Foto ${index + 1}`}
-                    style={{ width: '100%', height: 'auto', objectFit: 'cover'}}
+                    style={{ width: 'auto', height: '100px', objectFit: 'cover'}}
                   />
-                  <Button color="error" size='small' onClick={() => removePhoto(index)} fullWidth variant="outlined" sx={{ mt: 1 }}><ClearIcon/></Button>
+                  {isRemoved&&<Button color="error" sx={{mt:'auto'}} size='small' onClick={() => removePhoto(index)} fullWidth variant="outlined"><ClearIcon/></Button>}
                 </Container>
               </Grid>
             ))}

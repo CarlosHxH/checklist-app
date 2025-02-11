@@ -6,7 +6,7 @@ import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { useForm, Form } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
@@ -20,99 +20,19 @@ const InspectionForm: React.FC = () => {
   const { data: session } = useSession();
   const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
 
-  const { register, watch, control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
-    defaultValues: { 
-      userId: session?.user?.id, 
-      status: 'INSPECAO', 
-      vehicleId: "", 
-      eixo: "0", 
-      isFinished: true 
-    }
+  const { register, watch, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
+    defaultValues: { userId: session?.user?.id, status: 'INSPECAO', vehicleId: "", eixo: "0", isFinished: true }
   });
 
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
-
   React.useEffect(() => {
+    // Redefinir campos de descrição com base nos valores principais do campo
     if (avariasCabine === "NÃO") setValue("descricaoAvariasCabine", undefined);
     if (bauPossuiAvarias === "NÃO") setValue("descricaoAvariasBau", undefined);
     if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
   }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
-
-  const onSubmit = async (data: InspectionFormData) => {
-    try {
-      // Prepare photos array for the transaction
-      const photos = [];
-
-      // Add documento photo if exists
-      if (data.fotoDocumento) {
-        photos.push({
-          photo: data.fotoDocumento,
-          type: 'documento',
-          description: 'Documento do veículo'
-        });
-      }
-
-      // Add tacografo photo if exists
-      if (data.fotoTacografo) {
-        photos.push({
-          photo: data.fotoTacografo,
-          type: 'tacografo',
-          description: 'Tacógrafo'
-        });
-      }
-
-      // Add extintor photo if exists
-      if (data.fotoExtintor) {
-        photos.push({
-          photo: data.fotoExtintor,
-          type: 'extintor',
-          description: 'Extintor'
-        });
-      }
-
-      // Add avarias photos if they exist
-      if (data.photos && Array.isArray(data.photos)) {
-        data.photos.forEach((photo, index) => {
-          if (photo.photo) {
-            photos.push({
-              photo: photo.photo,
-              type: 'avarias',
-              description: `Avaria ${index + 1}`
-            });
-          }
-        });
-      }
-
-      // Validate minimum 4 photos for avarias
-      const avariasPhotos = photos.filter(p => p.type === 'avarias');
-      if (avariasPhotos.length < 4) {
-        alert('É necessário enviar no mínimo 4 fotos de avarias');
-        return;
-      }
-
-      const response = await fetch('/api/inspecao/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          photos
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao criar inspeção');
-      }
-      const result = await response.json();
-      router.push('/');
-    } catch (error) {
-      console.error('Erro ao enviar os dados:', error);
-      alert('Erro ao criar a inspeção!');
-    }
-  };
 
   if (!vehicles) return <Loading />;
   if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
@@ -123,7 +43,27 @@ const InspectionForm: React.FC = () => {
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting && <Loading />}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <Form
+        method="post"
+        action={"/api/inspecao"}
+        encType={'application/json'}
+        onSuccess={async ({response}) => {
+          const res = await response.json();
+          router.push(`/`)
+        }}
+        onError={async (error) => {
+          alert("Erro ao enviar os dados!");
+          if (error.response) {
+            const res = await error.response.json();
+            console.log(res);
+            alert("Error ao criar a inspeção!")
+          } else {
+            console.log(error);
+          }
+        }}
+        control={control}
+      >
+
         <Typography variant="h4" gutterBottom>CRIAR INSPEÇÃO</Typography>
 
         <Grid container spacing={3}>
@@ -245,27 +185,16 @@ const InspectionForm: React.FC = () => {
             }}/>
           </Grid>
 
-
-
-
           <Grid item xs={12} md={12}>
             {Object.keys(errors).length > 0 && (
               <Typography color="error" align="center" gutterBottom>
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
-            <Button 
-              fullWidth 
-              type="submit" 
-              variant="contained" 
-              color="primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
-            </Button>
+            <Button fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
           </Grid>
         </Grid>
-      </form>
+      </Form>
     </Paper>
   );
 };
