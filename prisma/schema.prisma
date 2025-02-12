@@ -115,7 +115,7 @@ model InspectionPhoto {
   documentoInspections inspection[] @relation("fotoDocumento")
   tacografoInspections inspection[] @relation("fotoTacografo")
   extintorInspections  inspection[] @relation("fotoExtintor")
-  avariasInspections   inspection[] @relation("fotoAvarias")
+  veiculoInspections   inspection[] @relation("fotoVeiculo")
 
   @@index([inspectionId])
 }
@@ -162,7 +162,7 @@ model inspection {
   fotoDocumento               InspectionPhoto[] @relation("fotoDocumento")
   fotoTacografo               InspectionPhoto[] @relation("fotoTacografo")
   fotoExtintor                InspectionPhoto[] @relation("fotoExtintor")
-  fotoAvarias                 InspectionPhoto[] @relation("fotoAvarias")
+  fotoVeiculo                 InspectionPhoto[] @relation("fotoVeiculo")
 
   inspectionsAsStart          Inspect[]         @relation("StartInspection")
   inspectionsAsEnd            Inspect[]         @relation("EndInspection")

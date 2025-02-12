@@ -66,14 +66,19 @@ const InspectionDashboard: React.FC = () => {
       switch (value) {
         case 'BOM':
         case 'NORMAL':
-        case 'SIM': return { color: 'success' as const, label: value };
+        case 'SIM':
+          return { color: 'success' as const, label: value };
         case 'RUIM':
         case 'BAIXO':
-        case 'NÃO': return { color: 'error' as const, label: value };
-        case 'CRITICO': return { color: 'error' as const, label: value, variant: 'outlined' as const };
-        default: return { color: 'default' as const, label: value };
+        case 'NÃO':
+          return { color: 'error' as const, label: value };
+        case 'CRITICO':
+          return { color: 'error' as const, label: value, variant: 'outlined' as const };
+        default:
+          return { color: 'default' as const, label: value };
       }
     };
+
     return <Chip size="small" {...getChipProps()} />;
   };
 
@@ -110,20 +115,20 @@ const InspectionDashboard: React.FC = () => {
     },
     {
       field: 'nivelAgua',
-      headerName: 'Agua',
+      headerName: 'Água',
       width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
       field: 'nivelOleo',
-      headerName: 'Oleo',
+      headerName: 'Óleo',
       width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
       field: 'extintor',
       headerName: 'Extintor',
-      width: 80,
+      width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
@@ -140,9 +145,7 @@ const InspectionDashboard: React.FC = () => {
       renderCell: (params: GridRenderCellParams) => (
         <Box>
           <Tooltip title="Visualizar">
-            <IconButton size="small"
-              onClick={() => router.push(`/dashboard/inspecao/${params.row.id}`)}
-            >
+            <IconButton size="small" onClick={() => router.push(`/dashboard/inspecao/${params.row.id}`)}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
@@ -197,7 +200,8 @@ const InspectionDashboard: React.FC = () => {
           toolbarExport: "",
           toolbarDensity: ""
         }}
-        pageSizeOptions={[5, 10, 25, 50,75,100]}
+        density="standard"
+        pageSizeOptions={[5, 10, 25, 50]}
         rowSelection={false}
         getRowHeight={() => 'auto'}
         rowHeight={48}

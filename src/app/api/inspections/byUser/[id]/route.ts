@@ -6,7 +6,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const id = (await params).id;
     const inspections = await prisma.inspection.findMany({
       where: { userId: id, status: "INSPECAO" },
-      include: { vehicle: true }
+      include: { vehicle: true },
+      orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(inspections, { status: 200 });
   } catch (error) {

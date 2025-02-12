@@ -78,35 +78,30 @@ const InspectionForm: React.FC = () => {
           if (photo.photo) {
             photos.push({
               photo: photo.photo,
-              type: 'avarias',
-              description: `Avaria ${index + 1}`
+              type: 'vehicle',
+              description: `Veiculo ${index + 1}`
             });
           }
         });
       }
 
       // Validate minimum 4 photos for avarias
-      const avariasPhotos = photos.filter(p => p.type === 'avarias');
-      if (avariasPhotos.length < 4) {
-        alert('É necessário enviar no mínimo 4 fotos de avarias');
+      const vehiclePhotos = photos.filter(p => p.type === 'vehicle');
+      if (vehiclePhotos.length < 4) {
+        alert('É necessário enviar no mínimo 4 fotos do veiculo!');
         return;
       }
 
       const response = await fetch('/api/inspecao/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          photos
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, photos }),
       });
 
       if (!response.ok) {
         throw new Error('Falha ao criar inspeção');
       }
-      const result = await response.json();
+      //const result = await response.json();
       router.push('/');
     } catch (error) {
       console.error('Erro ao enviar os dados:', error);
@@ -234,9 +229,9 @@ const InspectionForm: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={12}>
-            <Divider>FOTO DAS AVARIAS</Divider>
+            <Divider>FOTO DO VEICULO</Divider>
             <Typography color="error">Minimo 4 fotos</Typography>
-            <PhotoUploader name={'veiculo'} multiple label={'Foto das avarias'} isRemoved onChange={async (photos: File[]) => {
+            <PhotoUploader name={'veiculo'} multiple label={'Foto do veiculo'} isRemoved onChange={async (photos: File[]) => {
                 const photosBase64 = await Promise.all(photos.map(async (file) => {
                   const base64 = await getBase64(file);
                   return { photo: base64 as string };

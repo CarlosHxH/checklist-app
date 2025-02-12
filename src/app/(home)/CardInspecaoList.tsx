@@ -65,8 +65,6 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
         title={`${inspection.vehicle.make} ${inspection.vehicle.model}`}
         subheader={`Placa: ${inspection.vehicle.plate} | Ano: ${inspection.vehicle.year}`}
         action={
-          <>
-
           <ExpandMore
             expanded={expanded}
             onClick={handleExpandClick}
@@ -75,8 +73,6 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
           >
             <ExpandMoreIcon />
           </ExpandMore>
-            <IconButton onClick={()=>router.push(`/inspecao/${inspection.id}`)}><VisibilityIcon/></IconButton>
-          </>
         }
       />
 

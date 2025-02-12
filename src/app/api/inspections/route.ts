@@ -5,7 +5,13 @@ import { createInspectionWithTransaction } from './inspection.service';
 export async function GET(request: Request) {
   try {
     const inspections = await prisma.inspection.findMany({
-      include: { vehicle: true },
+      include: { vehicle: true,
+        user: {
+          select:{
+            name: true
+          }
+        }
+      },
       orderBy: { dataInspecao: "desc" }
     });
     return NextResponse.json(inspections, { status: 200 });

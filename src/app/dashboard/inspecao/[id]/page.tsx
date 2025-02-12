@@ -147,7 +147,7 @@ const InspectionViewPage: React.FC = () => {
   };
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 1200, margin: "auto" }}>
+    <Paper sx={{ p: 3, margin: "auto" }}>
       <Typography variant="h4" gutterBottom>DETALHES DA INSPEÇÃO</Typography>
       
       <Grid container spacing={3}>
@@ -201,7 +201,7 @@ const InspectionViewPage: React.FC = () => {
         <PhotoSection type="tacografo" title="Fotos do Tacógrafo" />
         </Grid>
         <Grid item xs={12}>
-          <PhotoSection type="avarias" title="Fotos das Avarias" />
+          <PhotoSection type="veiculo" title="Fotos do veiculo" />
         </Grid>
       </Grid>
     </Paper>

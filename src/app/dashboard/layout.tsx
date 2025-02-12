@@ -7,12 +7,13 @@ import { Navigation } from '@toolpad/core/AppProvider';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { signIn, signOut, useSession } from "next-auth/react";
 import { AppProvider } from '@toolpad/core/nextjs';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import { Avatar } from '@mui/material';
-import { Person2 } from '@mui/icons-material';
+import GroupIcon from '@mui/icons-material/Group';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { redirect } from 'next/navigation';
 import KeyIcon from '@mui/icons-material/Key';
+import MapIcon from '@mui/icons-material/Map';
+import RoomIcon from '@mui/icons-material/Room';
 
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
@@ -25,13 +26,17 @@ const createNavigation = (): Navigation => [
     title: 'Chaves',
     icon: <KeyIcon />,
   }, { kind: 'header', title: 'Inspeções' },{
-    segment: 'dashboard/inspection',
+    segment: 'dashboard/inspecao',
     title: 'Inspeções',
-    icon: <BarChartIcon />,
-  }, {
+    icon: <RoomIcon />,
+  },{
+    segment: 'dashboard/viagens',
+    title: 'Viagens',
+    icon: <MapIcon />,
+  }, { kind: 'header', title: 'Outros' }, {
     segment: 'dashboard/user',
     title: 'Usuários',
-    icon: <Person2 />,
+    icon: <GroupIcon />,
   }, {
     segment: 'dashboard/vehicle',
     title: 'Veiculos',
