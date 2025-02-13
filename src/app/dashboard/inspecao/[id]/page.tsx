@@ -147,12 +147,12 @@ const InspectionViewPage: React.FC = () => {
   };
 
   return (
-    <Paper sx={{ p: 3, margin: "auto" }}>
+    <Paper sx={{ p: 3,  margin: "auto" }}>
       <Typography variant="h4" gutterBottom>DETALHES DA INSPEÇÃO</Typography>
-      
+
       <Grid container spacing={3}>
         <Grid item xs={12}><Divider>Informações Gerais</Divider></Grid>
-        
+
         <InfoRow label="Veículo" value={`${inspection.vehicle.plate} - ${inspection.vehicle.model}`} />
         <InfoRow label="Quilometragem" value={inspection.kilometer} />
         <InfoRow label="Status" value={inspection.status} />
@@ -161,7 +161,7 @@ const InspectionViewPage: React.FC = () => {
         <Grid item xs={12}><Divider>Documentação</Divider></Grid>
         <InfoRow label="CRLV em dia" value={inspection.crlvEmDia} />
         <InfoRow label="Certificado Tacógrafo em dia" value={inspection.certificadoTacografoEmDia} />
-        
+
         <Grid item xs={12}><Divider>Níveis</Divider></Grid>
         <InfoRow label="Nível de Água" value={inspection.nivelAgua} />
         <InfoRow label="Nível de Óleo" value={inspection.nivelOleo} />
@@ -169,20 +169,20 @@ const InspectionViewPage: React.FC = () => {
         <Grid item xs={12}><Divider>Pneus</Divider></Grid>
         <InfoRow label="Dianteira" value={inspection.dianteira} />
         <DescriptionRow label="Descrição Dianteira" value={inspection.descricaoDianteira} />
-        
+
         <InfoRow label="Tração" value={inspection.tracao} />
         <DescriptionRow label="Descrição Tração" value={inspection.descricaoTracao} />
-        
+
         <InfoRow label="Truck" value={inspection.truck} />
         <DescriptionRow label="Descrição Truck" value={inspection.descricaoTruck} />
-        
+
         <InfoRow label="Quarto Eixo" value={inspection.quartoEixo} />
         <DescriptionRow label="Descrição Quarto Eixo" value={inspection.descricaoQuartoEixo} />
 
         <Grid item xs={12}><Divider>Avarias</Divider></Grid>
         <InfoRow label="Avarias na Cabine" value={inspection.avariasCabine} />
         <DescriptionRow label="Descrição Avarias Cabine" value={inspection.descricaoAvariasCabine} />
-        
+
         <InfoRow label="Avarias no Baú" value={inspection.bauPossuiAvarias} />
         <DescriptionRow label="Descrição Avarias Baú" value={inspection.descricaoAvariasBau} />
 

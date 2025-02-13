@@ -29,10 +29,12 @@ const createNavigation = (): Navigation => [
     segment: 'dashboard/inspecao',
     title: 'Inspeções',
     icon: <RoomIcon />,
+    pattern: 'dashboard/inspecao/:id',
   },{
     segment: 'dashboard/viagens',
     title: 'Viagens',
     icon: <MapIcon />,
+    pattern: 'dashboard/viagens/:id',
   }, { kind: 'header', title: 'Outros' }, {
     segment: 'dashboard/user',
     title: 'Usuários',
