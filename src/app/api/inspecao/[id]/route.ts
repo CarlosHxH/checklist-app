@@ -1,12 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = (await params).id;
+    const { id } = await params;
     const inspection = await prisma.inspection.findUnique({
       where: { id },
       include: {
@@ -36,10 +33,6 @@ export async function GET(
 
     return NextResponse.json(inspection);
   } catch (error) {
-    console.error("Error fetching inspection:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" },{ status: 500 });
   }
 }

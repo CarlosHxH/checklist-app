@@ -1,6 +1,6 @@
 import React, { Suspense } from "react"
 import InspectionForm from "./InspectionForm";
-import AppBar from "@/components/_ui/AppBar";
+import CustomAppBar from "@/components/_ui/CustomAppBar";
 import Loading from "@/components/Loading";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -9,7 +9,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <>
       <Suspense fallback={<div>Loading...</div>}>
-        <AppBar showBackButton />
+        <CustomAppBar showBackButton />
         <InspectionForm id={id} />
       </Suspense>
     </>

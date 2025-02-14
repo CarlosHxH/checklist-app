@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Paper, Typography, Grid, Box, Container, Chip, Card, CardContent, Stack } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
-import AppBar from "@/components/_ui/AppBar";
+import CustomAppBar from "@/components/_ui/CustomAppBar";
 import CustomFab from "@/components/_ui/CustomFab";
 import Loading from "@/components/Loading";
 
@@ -61,7 +61,7 @@ const ViewInspectionPage: React.FC = () => {
 
   return (
     <Box>
-      <AppBar
+      <CustomAppBar
         title={`Inspeção ${data?.vehicle?.plate || ""}`}
         onBackClick={() => router.push("/")}
         showBackButton

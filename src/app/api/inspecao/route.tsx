@@ -3,11 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { InspectionFormData, InspectionSchema } from "@/types/InspectionSchema";
 
-
-type InspectionInput = z.infer<typeof InspectionSchema>;
-
 async function transaction(validatedData: InspectionFormData) {
-  const { photos, ...data } = validatedData;
+  const { id, photos, ...data } = validatedData;
   // Executar a transação
   const result = await prisma.$transaction(async (tx) => {
     // 1. Criar a inspeção
@@ -35,12 +32,10 @@ async function transaction(validatedData: InspectionFormData) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: InspectionInput = await request.json();
+    const body = await request.json();
     // Validar os dados recebidos
     const validatedData = InspectionSchema.parse(body);
     const data = await transaction(validatedData);
-    console.log({data});
-    
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar inspeção:', error);

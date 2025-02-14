@@ -36,20 +36,9 @@ export const InspectionSchema = z.object({
   
   user:                       z.any(),
   vehicle:                    z.any(),
+  extintor:                   z.string().optional().nullable(),
   
   photos:                     z.array(PhotoSchema).min(4).optional(),
-
-  extintor:                   z.string().optional().nullable(),
-  fotoExtintor:               z.string().optional().nullable(),
-
-  fotoDocumento:              z.string().optional().nullable(),
-  fotoTacografo:              z.string().optional().nullable(),
-
-  fotoAvarias1:               z.string().optional().nullable(),
-  fotoAvarias2:               z.string().optional().nullable(),
-  fotoAvarias3:               z.string().optional().nullable(),
-  fotoAvarias4:               z.string().optional().nullable(),
-
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;
