@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  username       String         @unique(map: "User_username_key")
+  email          String?        @unique(map: "User_email_key")
+  emailVerified  DateTime?      @map("email_verified")
+  password       String
+  name           String
+  role           String         @default("DRIVER")
+  image          String?
+  isActive       Boolean?       @default(true)
+  lastLogin      DateTime?
+  loginCount     Int?           @default(0)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime?      @map("updated_at")
+  access         Access[]
+  accounts       Account[]
+  inspections    Inspection[]
+  sessions       Session[]
+  vehicleKeys    VehicleKey[]
+
+  @@map("users")
+  Inspect Inspect[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @db.Text @map("refresh_token")
+  accessToken       String? @db.Text @map("access_token")
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String?
+  idToken           String? @db.Text @map("id_token")
+  sessionState      String? @map("session_state")
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_user_id_fkey")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_user_id_fkey")
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Access {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  page      String
+  ipAddress String   @map("ip_address")
+  userAgent String   @map("user_agent")
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], map: "Access_userId_fkey")
+
+  @@index([userId], map: "Access_userId_fkey")
+  @@map("access")
+}
+
+model Inspect {
+  id            String  @id @default(cuid())
+  userId        String  @map("user_id")
+  startId       String?
+  endId         String?
+  start         Inspection? @relation("StartInspection", fields: [startId], references: [id])
+  end           Inspection? @relation("EndInspection", fields: [endId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("inspects")
+}
+
+model Inspection {
+  id                        String   @id @default(cuid())
+  userId                    String   @map("user_id")
+  vehicleId                 String   @map("vehicle_id")
+  vehicleKey                String?
+  dataInspecao              DateTime? @default(now()) @map("data_inspecao")
+  status                    String?
+  crlvEmDia                 String?  @map("crlv_em_dia")
+  certificadoTacografoEmDia String?  @map("certificado_tacografo_em_dia")
+  nivelAgua                 String?  @map("nivel_agua")
+  nivelOleo                 String?  @map("nivel_oleo")
+  eixo                      String?
+  dianteira                 String?
+  descricaoDianteira        String?  @map("descricao_dianteira")
+  tracao                    String?
+  descricaoTracao           String?  @map("descricao_tracao")
+  truck                     String?
+  descricaoTruck            String?  @map("descricao_truck")
+  quartoEixo                String?  @map("quarto_eixo")
+  descricaoQuartoEixo       String?  @map("descricao_quarto_eixo")
+  avariasCabine             String?  @map("avarias_cabine")
+  descricaoAvariasCabine    String?  @map("descricao_avarias_cabine")
+  bauPossuiAvarias          String?  @map("bau_possui_avarias")
+  descricaoAvariasBau       String?  @map("descricao_avarias_bau")
+  funcionamentoParteEletrica String? @map("funcionamento_parte_eletrica")
+  descricaoParteEletrica    String?  @map("descricao_parte_eletrica")
+  fotoVeiculo               String?  @db.LongText @map("foto_veiculo")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime? @map("updated_at")
+  kilometer                 String?
+  isFinished                Boolean? @default(false) @map("is_finished")
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Inspection_userId_fkey")
+  vehicle                   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade, map: "Inspection_vehicleId_fkey")
+
+  startInspection Inspect[] @relation("StartInspection")
+  endInspection   Inspect[] @relation("EndInspection")
+
+  @@index([userId], map: "Inspection_userId_fkey")
+  @@index([vehicleId], map: "Inspection_vehicleId_fkey")
+  @@map("inspections")
+}
+
+model Vehicle {
+  id         String       @id @default(cuid())
+  make       String?
+  model      String?
+  year       String?
+  eixo       String?
+  plate      String       @unique(map: "Vehicle_plate_key")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime?    @map("updated_at")
+  inspections Inspection[]
+  vehicleKeys VehicleKey[]
+
+  @@map("vehicles")
+}
+
+model VehicleKey {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  vehicleId String         @map("vehicle_id")
+  parentId  String?        @map("parent_id")
+  status    TransferStatus @default(PENDING)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  user      User           @relation(fields: [userId], references: [id])
+  vehicle   Vehicle        @relation(fields: [vehicleId], references: [id])
+  parent    VehicleKey?    @relation("KeyHistory", fields: [parentId], references: [id])
+  children  VehicleKey[]   @relation("KeyHistory")
+
+  @@map("vehicle_keys")
+}
+
+enum TransferStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
