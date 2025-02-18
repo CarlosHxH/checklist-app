@@ -3,7 +3,6 @@ import useSWR from "swr";
 import React from "react";
 import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
-import { useSession } from "next-auth/react";
 import { 
   Grid, 
   Typography, 
@@ -94,6 +93,7 @@ const InspectionViewPage: React.FC = () => {
   };
 
   const PhotoSection: React.FC<{ type: string; title: string }> = ({ type, title }) => {
+    
     const photos = getPhotosByType(type);
     if (photos.length === 0) return null;
 
@@ -201,7 +201,7 @@ const InspectionViewPage: React.FC = () => {
         <PhotoSection type="tacografo" title="Fotos do Tacógrafo" />
         </Grid>
         <Grid item xs={12}>
-          <PhotoSection type="veiculo" title="Fotos do veiculo" />
+          <PhotoSection type="vehicle" title="Fotos do veiculo" />
         </Grid>
       </Grid>
     </Paper>
