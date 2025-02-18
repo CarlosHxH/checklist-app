@@ -41,6 +41,9 @@ const InspectionDashboard: React.FC = () => {
   const { data: inspections, error, mutate } = useSWR<Inspection[]>('/api/inspections', fetcher);
   const [loading, setLoading] = React.useState(false);
 
+  console.log(inspections);
+
+  
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir esta inspeção?')) return;
 
@@ -49,9 +52,7 @@ const InspectionDashboard: React.FC = () => {
       const response = await fetch(`/api/inspections/${id}`, {
         method: 'DELETE',
       });
-
       if (!response.ok) throw new Error('Erro ao excluir inspeção');
-
       await mutate(); // Refresh the data
     } catch (error) {
       console.error('Erro ao excluir:', error);
@@ -95,6 +96,11 @@ const InspectionDashboard: React.FC = () => {
       width: 200,
       flex:1,
       valueGetter: (value, row) => `${row.vehicle.plate} - ${row.vehicle.model}`,
+    },{
+      field: 'status',
+      headerName: 'Tipo',
+      width: 80,
+      flex:1,
     },
     {
       field: 'kilometer',

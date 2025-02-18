@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { InspectionFormData, InspectionSchema } from "@/types/InspectionSchema";
 
+export const config = {
+  api: {
+      bodyParser: {
+          sizeLimit: '50mb'
+      }
+  }
+}
+
 async function transaction(validatedData: InspectionFormData) {
   const { id, photos, ...data } = validatedData;
   // Executar a transação
