@@ -1,7 +1,14 @@
 import { z } from "zod";
-
+/*
+interface PhotoData {
+  description?: string;
+  photo: string;
+  type: 'documento' | 'tacografo' | 'extintor' | 'vehicle';
+}*/
 const PhotoSchema = z.object({
   photo: z.string(),
+  type: z.string().optional().nullable(),
+  description: z.string().optional().nullable()
 });
 
 export const InspectionSchema = z.object({
@@ -43,7 +50,8 @@ export const InspectionSchema = z.object({
   
   extintor:                   z.string().optional().nullable(),
   
-  photos:                     z.array(PhotoSchema).min(4).optional(),
+  photos:                     z.array(PhotoSchema).optional(),
 });
 
 export type InspectionFormData = z.infer<typeof InspectionSchema>;
+export type PhotoData = z.infer<typeof PhotoSchema>;

@@ -25,18 +25,6 @@ export async function POST(req: NextRequest) {
 
     console.log(fileData.map(f => ({ name: f.name, size: f.size })));
     
-/*
-    const savedFiles = await prisma.inspection.createMany({
-      data: fileData.map(file => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: file.base64Data,
-        userId: 'someUserId',
-        vehicleId: 'someVehicleId'
-      }))
-    });
-*/
     return Response.json({ 
       message: 'Files uploaded successfully',
       count: 'teste'

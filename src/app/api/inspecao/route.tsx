@@ -46,8 +46,6 @@ export async function POST(request: NextRequest) {
     const data = await transaction(validatedData);
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar inspeção:', error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Dados inválidos', details: error.errors },

@@ -12,13 +12,15 @@ import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
+import PhotoUploader from "@/components/_ui/PhotoUploader";
+import { getBase64 } from "@/utils";
 
 
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
-  
+
   const { register, watch, control, setValue, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { userId: session?.user?.id, status: 'INICIO', vehicleId: "", eixo: "0", isFinished: true }
   });
@@ -33,7 +35,6 @@ const InspectionForm: React.FC = () => {
     if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
   }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
 
-
   if (!vehicles) return <Loading />;
   if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
 
@@ -45,19 +46,14 @@ const InspectionForm: React.FC = () => {
       {isSubmitting && <Loading />}
       <Form
         method="post"
-        action={"/api/inspections"}
         encType={'application/json'}
-        onSuccess={async () => { router.push(`/`) }}
-        onError={async (error) => {
-          alert("Erro ao enviar os dados!");
-          if (error.response) {
-            const res = await error.response.json();
-            console.log(res);
-            alert("Error ao criar a inspeção!")
-          } else {
-            console.log(error);
-          }
+        action={'/api/inspections'}
+        onSuccess={async (data) => {
+          const res = await data.response.json();
+          console.log(res)
+          /*router.push(`/`)*/
         }}
+        onError={async (error) => { alert("Erro ao enviar os dados!")}}
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar viagem</Typography>
@@ -79,13 +75,13 @@ const InspectionForm: React.FC = () => {
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={selectedVehicle?.fixo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {selectedVehicle?.fixo &&<Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
+          </Grid>}
 
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
 
@@ -123,12 +119,28 @@ const InspectionForm: React.FC = () => {
             )}
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} md={6}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
               <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Divider>Extintor</Divider>
+            <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+          </Grid>
+
+          <Grid item xs={12} md={12}>
+            <Divider>Foto da frente do veiculo</Divider>
+            <PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
+                const photos = await Promise.all(photo.map(async (f) => {
+                  const b64 = await getBase64(f);
+                  return { photo: b64 as string, type: 'vehicle', description: `Veiculo`}
+                }));
+                setValue('photos', photos);
+            }}/>
           </Grid>
 
           <Grid item xs={12}>

@@ -23,9 +23,3 @@ export async function GET() {
     return NextResponse.json(error)
   }
 }
-
-
-export async function PUT() {
-  // Implement the PUT function or remove it if not needed
-  return NextResponse.json({ message: "PUT method not implemented" },{status:403});
-}

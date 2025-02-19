@@ -50,7 +50,7 @@ const InspectionDashboard: React.FC = () => {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Erro ao excluir inspeção');
-      await mutate(); // Refresh the data
+      await mutate();
     } catch (error) {
       console.error('Erro ao excluir:', error);
       alert('Erro ao excluir inspeção');

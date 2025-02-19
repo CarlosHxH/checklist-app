@@ -13,7 +13,7 @@ interface InspectionData {
 interface PhotoData {
   description?: string;
   photo: string;
-  type: 'documento' | 'tacografo' | 'extintor' | 'avarias';
+  type: 'documento' | 'tacografo' | 'extintor' | 'vehicle';
 }
 
 export async function createInspectionWithPhotos(
@@ -61,8 +61,8 @@ export async function createInspectionWithPhotos(
               connect: { id: inspectionPhoto.id },
             };
             break;
-          case 'avarias':
-            updateData.fotoAvarias = {
+          case 'vehicle':
+            updateData.vehicle = {
               connect: { id: inspectionPhoto.id },
             };
             break;
