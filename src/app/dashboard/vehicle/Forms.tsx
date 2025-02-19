@@ -16,7 +16,7 @@ const vehicleSchema = z.object({
   eixo: z.string().min(1, { message: "Este campo é obrigatório" }),
   plate: z.string().min(7, { message: "Este campo é obrigatório" }).max(7, { message: "Este campo é obrigatório" }),
   tacografo: z.boolean({ message: "Este campo é obrigatório" }),
-  fixo: z.boolean({ message: "Este campo é obrigatório" }),
+  fixo: z.boolean({ message: "Este campo é obrigatório" }).optional().nullable(),
   cidadeBase: z.string({ message: "Este campo é obrigatório" }).optional().nullable(),
 });
 export type vehicleFormData = z.infer<typeof vehicleSchema>;
@@ -64,7 +64,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
             <Controller
               name="tacografo"
               control={control}
-              defaultValue={data?.fixo}
+              defaultValue={data?.fixo||false}
               render={({ field }) => (
                 <FormControl fullWidth>
                   <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Possui Tacografo?" />
@@ -78,7 +78,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
               defaultValue={data?.fixo}
               render={({ field }) => (
                 <FormControl fullWidth>
-                  <FormControlLabel control={<Checkbox checked={field.value} {...field} />} label="Veiculo de base?" />
+                  <FormControlLabel control={<Checkbox checked={field?.value||false} {...field} />} label="Veiculo de base?" />
                 </FormControl>
               )}
             />

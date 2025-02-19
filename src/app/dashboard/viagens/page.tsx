@@ -41,9 +41,6 @@ const InspectionDashboard: React.FC = () => {
   const { data: inspections, error, mutate } = useSWR<Inspection[]>('/api/inspections', fetcher);
   const [loading, setLoading] = React.useState(false);
 
-  console.log(inspections);
-
-  
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir esta inspeção?')) return;
 
