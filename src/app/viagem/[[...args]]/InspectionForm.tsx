@@ -10,34 +10,31 @@ import { useForm, Form } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
+import ComboBox from "@/components/ComboBox";
+import Link from "next/link";
+import PhotoUploader from "@/components/_ui/PhotoUploader";
+import { getBase64 } from "@/utils";
+import CustomAppBar from "@/components/_ui/CustomAppBar";
 
-interface Data {
-  vehicleId: string;
-  user: {
-    id: string;
-  }
-  vehicle: Vehicle;
-}
-
-
-const InspectionForm: React.FC<{ id: string }> = ({ id }) => {
+const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data, isLoading } = useSWR<Data, { [key: string]: any }>(`/api/inspect/${id}`, fetcher);
-  const { register, watch, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
+  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { register, watch, control, setValue, reset, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
+
+  const selectedVehicleId = watch("vehicleId");
+  const selectedVehicle = vehicles && vehicles.find((v) => v.id === id || v.id === selectedVehicleId);
 
   React.useEffect(() => {
     const defaultValues: Partial<InspectionFormData> = {};
-    defaultValues.id = id;
     defaultValues.userId = session?.user?.id;
-    defaultValues.vehicleId = data?.vehicleId;
-    defaultValues.status = 'FINAL';
-    defaultValues.eixo = data?.vehicle?.eixo ?? "0";
+    defaultValues.vehicleId = id;
+    defaultValues.status = type;
+    defaultValues.eixo = selectedVehicle?.eixo ?? "0";
     defaultValues.isFinished = true;
     reset({ ...defaultValues });
-  }, [data, id, reset, session?.user?.id]);
+  }, [ id, reset, session?.user?.id]);
 
-  // Observe os valores para campos condicionais
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
@@ -49,29 +46,22 @@ const InspectionForm: React.FC<{ id: string }> = ({ id }) => {
     if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
   }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
 
-  if (isLoading) return <Loading />;
-  const selectedVehicle = data?.vehicle;
-
+  if (!vehicles) return <Loading />;
+  if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
+  
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
+      <CustomAppBar showBackButton/>
       {isSubmitting && <Loading />}
       <Form
         method="post"
         encType={'application/json'}
-        action={"/api/inspections"}
-        onSuccess={async ({ response }) => {
-          router.push(`/`);
+        action={'/api/inspections'}
+        onSuccess={async (data) => {
+          const res = await data.response.json();
+          router.push(`/`)
         }}
-        onError={async (error) => {
-          alert("Erro ao enviar os dados!");
-          if (error.response) {
-            const res = await error.response.json();
-            console.log(res);
-            alert("Error ao criar a inspeção!")
-          } else {
-            console.log(error);
-          }
-        }}
+        onError={async (error) => { alert("Erro ao enviar os dados!")}}
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar viagem</Typography>
@@ -84,22 +74,22 @@ const InspectionForm: React.FC<{ id: string }> = ({ id }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <TextField disabled value={`${data?.vehicle?.plate} - ${data?.vehicle?.model}`} fullWidth size="small" label="Selecione um veículo" />
+            <ComboBox disabled={!!(vehicles.find((v) => v.id === id))} name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <TextField {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
+            <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
           </Grid>
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={selectedVehicle?.fixo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {selectedVehicle?.fixo &&<Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
+          </Grid>}
 
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
 
@@ -125,18 +115,40 @@ const InspectionForm: React.FC<{ id: string }> = ({ id }) => {
 
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {(avariasCabine === "SIM") && <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />}
+            {watch("avariasCabine") === "SIM" && (
+              <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
+            )}
           </Grid>
 
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {(bauPossuiAvarias === "SIM") && <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />}
+            {watch("bauPossuiAvarias") === "SIM" && (
+              <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
+            )}
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} md={6}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {funcionamentoParteEletrica === "RUIM" && <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />}
+            {watch("funcionamentoParteEletrica") === "RUIM" && (
+              <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Divider>Extintor</Divider>
+            <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+          </Grid>
+
+          <Grid item xs={12} md={12}>
+            <Divider>Foto da frente do veiculo</Divider>
+            <PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
+                const photos = await Promise.all(photo.map(async (f,i) => {
+                  const b64 = await getBase64(f);
+                  return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}`}
+                }));
+                setValue('photos', photos);
+            }}/>
           </Grid>
 
           <Grid item xs={12}>

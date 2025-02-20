@@ -17,13 +17,13 @@ async function transaction(validatedData: InspectionFormData) {
   const result = await prisma.$transaction(async (tx) => {
     // 1. Criar a inspeção
     const inspection = await tx.inspection.create({ data });
-
+    
     // 2. Se houver fotos, criar os registros de fotos
     if (photos && photos.length > 0) {
       await tx.inspectionPhoto.createMany({
         data: photos.map((photo) => ({
           inspectionId: inspection.id,
-          photo: photo.photo,
+          ...photo
         })),
       });
     }
@@ -59,3 +59,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';

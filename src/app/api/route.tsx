@@ -13,9 +13,7 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
         },
         create: {
           userId: data.userId,
-          ...(data.status === "INICIO"
-            ? { startId: inspection.id }
-            : { endId: inspection.id }),
+          ...(data.status === "INICIO" ? { startId: inspection.id } : { endId: inspection.id }),
         },
         update: {
           userId: data.userId,

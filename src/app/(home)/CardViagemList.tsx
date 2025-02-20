@@ -1,15 +1,12 @@
 "use client"
 import React from 'react';
 import { Card, CardContent, Typography, Grid, Chip, Box, IconButton, Collapse, Stack, CardHeader, styled } from '@mui/material';
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon,
-  DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon
-} from '@mui/icons-material';
+import { DirectionsCar as CarIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { formatDate } from '@/utils';
 import Link from 'next/link';
-import { InspectionData, InspectionDetail } from '../inspection';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { InspectionData, InspectionDetail } from '@/types/inspectionType';
 
 interface CardViagemProps {
   inspection: InspectionData;
@@ -118,7 +115,7 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
               : inspection.end ? (
                 <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/viagem/create/${inspection.id}`}>
+                <Link href={`/viagem/final/${inspection.vehicleId}`}>
                   <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}

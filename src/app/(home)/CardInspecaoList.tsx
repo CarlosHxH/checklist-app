@@ -1,47 +1,11 @@
 "use client"
 import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Collapse,
-  IconButton,
-  Grid,
-  Chip,
-  Box
-} from '@mui/material';
+import { Card, CardContent, CardHeader, Typography, Collapse, IconButton, Grid, Chip, Box } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
-import { useRouter } from 'next/navigation';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { VehicleInspection } from '@/types/VehicleInspection';
 
-// Type definition for the inspection data
-interface VehicleInspection {
-  id: string;
-  vehicle: {
-    make: string;
-    model: string;
-    year: string;
-    plate: string;
-    eixo: string;
-    cidadeBase: string;
-  };
-  dataInspecao: string;
-  status: string;
-  crlvEmDia: string;
-  certificadoTacografoEmDia: string;
-  nivelAgua: string;
-  nivelOleo: string;
-  dianteira: string;
-  tracao: string;
-  truck: string;
-  avariasCabine: string;
-  bauPossuiAvarias: string;
-  funcionamentoParteEletrica: string;
-}
-
-// Styled expand icon to rotate when expanded
+// Expanda o ícone de expansão para girar quando expandido
 const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<typeof IconButton>) => {
   const { expanded, ...other } = props;
   return <IconButton {...other} />;
@@ -50,11 +14,10 @@ const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<t
   marginLeft: 'auto',
   transition: theme.transitions.create('transform', {
     duration: theme.transitions.duration.shortest,
-  }),
+  })
 }));
 
 const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) => {
-  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
 
   const handleExpandClick = () => { setExpanded(!expanded) };
@@ -65,12 +28,7 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
         title={`${inspection.vehicle.make} ${inspection.vehicle.model}`}
         subheader={`Placa: ${inspection.vehicle.plate} | Ano: ${inspection.vehicle.year}`}
         action={
-          <ExpandMore
-            expanded={expanded}
-            onClick={handleExpandClick}
-            aria-expanded={expanded}
-            aria-label="show more"
-          >
+          <ExpandMore expanded={expanded} onClick={handleExpandClick} aria-expanded={expanded} aria-label="show more">
             <ExpandMoreIcon />
           </ExpandMore>
         }
@@ -109,7 +67,6 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
               <Typography variant="body2" component="div">Parte Elétrica: {inspection.funcionamentoParteEletrica}</Typography>
             </Grid>
           </Grid>
-
           <Typography variant="body2" sx={{ mt: 2 }} component="div">
             Cidade Base: {inspection.vehicle.cidadeBase}
           </Typography>
@@ -123,9 +80,7 @@ const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) =
 const VehicleInspectionCard = ({ data }: { data: VehicleInspection[] }) => {
   return (
     <Box sx={{ py: 1 }}>
-      {data.map((data) => (
-        <CardList key={data.id} inspection={data} />
-      ))}
+      {data.map((data) => (<CardList key={data.id} inspection={data} />))}
     </Box>
   );
 };

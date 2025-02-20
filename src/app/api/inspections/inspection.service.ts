@@ -28,7 +28,9 @@ export interface InspectionInput {
   descricaoParteEletrica: string;
   kilometer: string;
   isFinished: boolean;
-  photos: [{[x:string]:string}]
+  photos: [{
+    [x:string]: string,
+  }]
 }
 
 export async function createInspectionWithTransaction(validatedData: InspectionInput) {
@@ -44,6 +46,8 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           data: photos.map((photo) => ({
             inspectionId: inspection.id,
             photo: photo.photo,
+            description: photo.description,
+            type: photo.type
           })),
         });
       }
