@@ -5,6 +5,7 @@ import { createInspectionWithTransaction } from './inspection.service';
 export async function GET(request: Request) {
   try {
     const inspections = await prisma.inspection.findMany({
+      where: { status: 'INSPECAO'},
       include: {
         vehicle: true,
         user: {

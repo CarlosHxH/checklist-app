@@ -155,7 +155,6 @@ const InspectionForm: React.FC = () => {
             }} />
           </Grid>
 
-
           {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO TACOGRAFO'} onChange={async (photos: File[]) => {

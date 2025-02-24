@@ -27,7 +27,7 @@ export async function createInspectionWithPhotos(
         data: {
           ...inspectionData,
           createdAt: new Date(),
-          isFinished: false,
+          isFinished: true,
         },
       });
 
@@ -46,25 +46,13 @@ export async function createInspectionWithPhotos(
         // 3. Update inspection with photo relationships based on type
         const updateData: any = {};
         switch (photo.type) {
-          case 'documento':
-            updateData.fotoDocumento = {
-              connect: { id: inspectionPhoto.id },
-            };
+          case 'documento': updateData.fotoDocumento = {connect: { id: inspectionPhoto.id },};
             break;
-          case 'tacografo':
-            updateData.fotoTacografo = {
-              connect: { id: inspectionPhoto.id },
-            };
+          case 'tacografo': updateData.fotoTacografo = {connect: { id: inspectionPhoto.id }};
             break;
-          case 'extintor':
-            updateData.fotoExtintor = {
-              connect: { id: inspectionPhoto.id },
-            };
+          case 'extintor': updateData.fotoExtintor = {connect: { id: inspectionPhoto.id }};
             break;
-          case 'vehicle':
-            updateData.vehicle = {
-              connect: { id: inspectionPhoto.id },
-            };
+          case 'vehicle': updateData.vehicle = {connect: { id: inspectionPhoto.id }};
             break;
         }
 
@@ -72,22 +60,15 @@ export async function createInspectionWithPhotos(
           where: { id: inspection.id },
           data: updateData,
         });
-
         return inspectionPhoto;
       });
 
       const createdPhotos = await Promise.all(photoPromises);
 
-      return {
-        inspection,
-        photos: createdPhotos,
-      };
+      return { inspection, photos: createdPhotos };
     });
 
-    return {
-      success: true,
-      data: result,
-    };
+    return { success: true, data: result };
   } catch (error) {
     console.error('Transaction failed:', error);
     return {

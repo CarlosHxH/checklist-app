@@ -8,7 +8,7 @@ import Loading from '@/components/Loading';
 import CardViagemList from './CardViagemList';
 
 export default function Viagens({id}: {id:string}) {
-  const { data, isLoading } = useSWR(`/api/${id || ""}`, fetcher)
+  const { data, isLoading } = useSWR(`/api/viagens/${id || ""}`, fetcher)
   if(isLoading) return <Loading/>
 
   const CustomFabs = () =>  (data.length === 0 || !!data[0]?.end)?<CustomFab href={'/viagem/inicio/create'} variant={"Plus"} />:<></>;

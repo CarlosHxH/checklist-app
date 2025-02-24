@@ -139,7 +139,7 @@ function Row(props: { row: VehicleInspection }) {
   };
 
   // Diferença de quilometragem
-  const kmDifference = Number(row.end.kilometer) - Number(row.start.kilometer);
+  const kmDifference = Number(row?.end?.kilometer) || 0 - Number(row?.start?.kilometer) || 0;
 
   return (
     <React.Fragment>
@@ -157,11 +157,11 @@ function Row(props: { row: VehicleInspection }) {
           {row.user.name}
         </TableCell>
         <TableCell align="right">
-          <Typography sx={{display:'block'}} variant='caption'>{formatDate(row.start.createdAt)}</Typography>
-          <Typography sx={{display:'block'}} variant='caption'>{formatDate(row.end.createdAt)}</Typography>
+          <Typography sx={{ display: 'block' }} variant='caption'>{row?.start?.createdAt && formatDate(row.start.createdAt)}</Typography>
+          <Typography sx={{ display: 'block' }} variant='caption'>{row?.end?.createdAt && formatDate(row.end.createdAt)}</Typography>
         </TableCell>
-        <TableCell align="right">{row.start.kilometer} km</TableCell>
-        <TableCell align="right">{row.end.kilometer} km</TableCell>
+        <TableCell align="right">{row?.start?.kilometer || 0} km</TableCell>
+        <TableCell align="right">{row?.end?.kilometer || 0} km</TableCell>
         <TableCell align="right">
           <Chip
             label={`+${kmDifference} km`}
@@ -239,7 +239,7 @@ function Row(props: { row: VehicleInspection }) {
                   </Table>
                 </Box>
 
-                <Box>
+                {row?.end && <Box>
                   <Typography variant="subtitle1" gutterBottom>
                     Final da Viagem ({formatDate(row.end.dataInspecao)})
                   </Typography>
@@ -297,7 +297,7 @@ function Row(props: { row: VehicleInspection }) {
                       </TableRow>
                     </TableBody>
                   </Table>
-                </Box>
+                </Box>}
               </Box>
             </Box>
           </Collapse>
@@ -333,8 +333,8 @@ export default function CollapsibleTable() {
         const searchLower = searchTerm.toLowerCase();
         result = result.filter(row =>
           row.user.name.toLowerCase().includes(searchLower) ||
-          row.start.kilometer.includes(searchTerm) ||
-          row.end.kilometer.includes(searchTerm)
+          row?.start?.kilometer.includes(searchTerm) ||
+          row?.end?.kilometer.includes(searchTerm)
         );
       }
 
@@ -412,12 +412,12 @@ export default function CollapsibleTable() {
 
   const handleFilterChange = (event: SelectChangeEvent<string>) => {
     const { name, value } = event.target;
-    setFilters(prev => ({...prev,[name]: value}));
+    setFilters(prev => ({ ...prev, [name]: value }));
     setPage(1); // Resetar para primeira página após filtro
   };
 
   // Obter lista de responsáveis únicos para o filtro
-  const responsaveis = Array.from(new Set(allRows&&allRows.map(row => row.user.name)));
+  const responsaveis = Array.from(new Set(allRows && allRows.map(row => row.user.name)));
 
   if (isLoading || !allRows) return <Loading />;
   return (
