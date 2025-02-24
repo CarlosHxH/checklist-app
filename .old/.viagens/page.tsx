@@ -3,10 +3,11 @@ import React from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import Loading from '@/components/Loading';
-import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { useSession } from 'next-auth/react';
+import { Box, Chip, IconButton, Tooltip, Button } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
 import { useRouter } from 'next/navigation';
-import { Visibility } from '@mui/icons-material';
+import { Visibility as VisibilityIcon } from '@mui/icons-material';
 
 interface Vehicle {
   plate: string;
@@ -32,21 +33,46 @@ interface Inspection {
 
 const InspectionDashboard: React.FC = () => {
   const router = useRouter();
-  const { data: inspections, isLoading, error, mutate } = useSWR<Inspection[]>('/api/inspections', fetcher);
+  const { data: session } = useSession();
+  const { data: inspections, error, mutate } = useSWR<Inspection[]>('/api/inspections', fetcher);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta inspeção?')) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/inspections/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Erro ao excluir inspeção');
+      await mutate();
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      alert('Erro ao excluir inspeção');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const StatusChip: React.FC<{ value: string }> = ({ value }) => {
     const getChipProps = () => {
       switch (value) {
         case 'BOM':
         case 'NORMAL':
-        case 'SIM': return { color: 'success' as const, label: value };
+        case 'SIM':
+          return { color: 'success' as const, label: value };
         case 'RUIM':
         case 'BAIXO':
-        case 'NÃO': return { color: 'error' as const, label: value };
-        case 'CRITICO': return { color: 'error' as const, label: value, variant: 'outlined' as const };
-        default: return { color: 'default' as const, label: value };
+        case 'NÃO':
+          return { color: 'error' as const, label: value };
+        case 'CRITICO':
+          return { color: 'error' as const, label: value, variant: 'outlined' as const };
+        default:
+          return { color: 'default' as const, label: value };
       }
     };
+
     return <Chip size="small" {...getChipProps()} />;
   };
 
@@ -60,13 +86,14 @@ const InspectionDashboard: React.FC = () => {
     {
       field: 'vehicle',
       headerName: 'Veículo',
-      minWidth: 100,
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => (<Box>
-        <Typography variant='subtitle2'>{params.formattedValue.plate}</Typography>
-        <Typography variant='caption'>{params.formattedValue.model}</Typography>
-      </Box>
-      ),
+      width: 200,
+      flex:1,
+      valueGetter: (value, row) => `${row.vehicle.plate} - ${row.vehicle.model}`,
+    },{
+      field: 'status',
+      headerName: 'Tipo',
+      width: 80,
+      flex:1,
     },
     {
       field: 'kilometer',
@@ -87,40 +114,56 @@ const InspectionDashboard: React.FC = () => {
     },
     {
       field: 'nivelAgua',
-      headerName: 'Agua',
+      headerName: 'Água',
       width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
       field: 'nivelOleo',
-      headerName: 'Oleo',
+      headerName: 'Óleo',
       width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
       field: 'extintor',
       headerName: 'Extintor',
-      width: 80,
+      width: 100,
       renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} />,
     },
     {
       field: 'user',
       headerName: 'Usuario',
-      width: 110,
+      width: 150,
       valueGetter: (value, row) => `${row.user.name}`
     },
     {
       field: 'actions',
       headerName: 'Ações',
-      width: 55,
+      width: 60,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Box>
           <Tooltip title="Visualizar">
             <IconButton size="small" onClick={() => router.push(`/dashboard/inspecao/${params.row.id}`)}>
-              <Visibility />
+              <VisibilityIcon />
             </IconButton>
           </Tooltip>
+          {/*<Tooltip title="Editar">
+            <IconButton
+              size="small"
+              onClick={() => router.push(`/inspections/${params.row.id}/edit`)}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Excluir">
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(params.row.id)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>*/}
         </Box>
       ),
     },
@@ -131,6 +174,16 @@ const InspectionDashboard: React.FC = () => {
 
   return (
     <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => router.push('/inspections/new')}
+        >
+          Nova Inspeção
+        </Button>
+      </Box>
+
       <DataGrid
         rows={inspections}
         columns={columns}
@@ -146,7 +199,8 @@ const InspectionDashboard: React.FC = () => {
           toolbarExport: "",
           toolbarDensity: ""
         }}
-        pageSizeOptions={[5, 10, 25, 50, 75, 100]}
+        density="standard"
+        pageSizeOptions={[5, 10, 25, 50]}
         rowSelection={false}
         getRowHeight={() => 'auto'}
         rowHeight={48}

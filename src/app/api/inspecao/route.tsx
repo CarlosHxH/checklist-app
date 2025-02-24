@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { InspectionFormData, InspectionSchema } from "@/types/InspectionSchema";
-
-export const config = {
-  api: {
-      bodyParser: {
-          sizeLimit: '50mb'
-      }
-  }
-}
+import { InspectionFormData } from "@/types/InspectionSchema";
 
 async function transaction(validatedData: InspectionFormData) {
-  const { id, photos, ...data } = validatedData;
+  const { photos, ...data } = validatedData;
+  
   // Executar a transação
   const result = await prisma.$transaction(async (tx) => {
     // 1. Criar a inspeção
@@ -40,11 +33,10 @@ async function transaction(validatedData: InspectionFormData) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const data = await request.json();
     // Validar os dados recebidos
-    const validatedData = InspectionSchema.parse(body);
-    const data = await transaction(validatedData);
-    return NextResponse.json(data, { status: 201 });
+    const response = await transaction(data);
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -59,6 +51,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';

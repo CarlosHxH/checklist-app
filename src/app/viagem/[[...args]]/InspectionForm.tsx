@@ -83,11 +83,11 @@ const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) 
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
 
-          <Grid item xs={12} md={selectedVehicle?.fixo?6:12}>
+          <Grid item xs={12} md={selectedVehicle?.tacografo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
 
-          {selectedVehicle?.fixo &&<Grid item xs={12} md={6}>
+          {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>}
 

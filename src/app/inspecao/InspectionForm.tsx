@@ -91,15 +91,17 @@ const InspectionForm: React.FC = () => {
         alert('É necessário enviar no mínimo 4 fotos do veiculo!');
         return;
       }
-
-      const response = await fetch('/api/inspecao/create', {
+      const { fotoDocumento, fotoExtintor, fotoTacografo, ...fields } = data
+      if(fotoDocumento || fotoExtintor || fotoTacografo){}
+      
+      const response = await fetch('/api/inspecao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, photos }),
+        body: JSON.stringify({ ...fields, photos }),
       });
 
       if (!response.ok) {
-        //throw new Error('Falha ao criar inspeção');
+        throw new Error('Falha ao criar inspeção');
       }
       //const result = await response.json();
       router.push('/');
@@ -138,7 +140,7 @@ const InspectionForm: React.FC = () => {
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}  md={selectedVehicle?.tacografo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO DOCUMENTO'} onChange={async (photos: File[]) => {
               const [file] = photos;
@@ -153,7 +155,8 @@ const InspectionForm: React.FC = () => {
             }} />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+
+          {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO TACOGRAFO'} onChange={async (photos: File[]) => {
               const [file] = photos;
@@ -166,7 +169,7 @@ const InspectionForm: React.FC = () => {
                 alert('Erro ao processar a imagem, tente novamente.')
               }
             }} />
-          </Grid>
+          </Grid>}
 
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
 
@@ -239,8 +242,6 @@ const InspectionForm: React.FC = () => {
                 setValue('photos', photosBase64);
             }}/>
           </Grid>
-
-
 
 
           <Grid item xs={12} md={12}>
