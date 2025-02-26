@@ -145,7 +145,8 @@ function Row(props: { row: VehicleInspection }) {
           {row.user.name}
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.vehicle.plate} - {row.vehicle.model}
+          <Typography variant='subtitle2'>{row.vehicle.plate}</Typography>
+          <Typography variant='caption'>{row.vehicle.model}</Typography>
         </TableCell>
         <TableCell align="right">
           <Typography sx={{ display: 'block' }} variant='caption'>
