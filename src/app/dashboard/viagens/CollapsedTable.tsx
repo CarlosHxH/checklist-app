@@ -499,6 +499,7 @@ export default function CollapsibleTable() {
             <TableRow>
               <TableCell />
               <TableCell>Responsável</TableCell>
+              <TableCell align="right">Veiculo</TableCell>
               <TableCell align="right">Data</TableCell>
               <TableCell align="right">KM Inicial</TableCell>
               <TableCell align="right">KM Final</TableCell>
