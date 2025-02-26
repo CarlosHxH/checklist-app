@@ -33,6 +33,9 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import Loading from '@/components/Loading';
+import { PhotoProvider, PhotoView } from 'react-photo-view';
+import 'react-photo-view/dist/react-photo-view.css';
+import Image from 'next/image';
 
 // Definição do tipo para os dados
 interface VehicleInspection {
@@ -235,6 +238,18 @@ function Row(props: { row: VehicleInspection }) {
                         <TableCell>Extintor</TableCell>
                         <TableCell>{row.start.extintor}</TableCell>
                       </TableRow>
+
+                      <TableRow>
+                        <TableCell>Foto Veiculo</TableCell>
+                        <TableCell>
+                          <PhotoProvider>
+                            <PhotoView src="">
+                              <Image src={""} alt='' width={100} height={100} />
+                            </PhotoView>
+                          </PhotoProvider>
+                        </TableCell>
+                      </TableRow>
+
                     </TableBody>
                   </Table>
                 </Box>
@@ -295,6 +310,18 @@ function Row(props: { row: VehicleInspection }) {
                         <TableCell>Extintor</TableCell>
                         <TableCell>{row.end.extintor}</TableCell>
                       </TableRow>
+
+                      <TableRow>
+                        <TableCell>Foto Veiculo</TableCell>
+                        <TableCell>
+                          <PhotoProvider>
+                            <PhotoView src="">
+                              <Image src={""} alt='' width={100} height={100} />
+                            </PhotoView>
+                          </PhotoProvider>
+                        </TableCell>
+                      </TableRow>
+
                     </TableBody>
                   </Table>
                 </Box>}
