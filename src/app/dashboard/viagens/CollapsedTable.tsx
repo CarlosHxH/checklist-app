@@ -1,30 +1,11 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Collapse,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-  Paper,
-  Chip,
-  TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Stack,
-  Pagination,
-  InputAdornment,
-  Grid,
-  SelectChangeEvent,
-  Toolbar
+  Box, Collapse, IconButton, Table, TableBody, Paper,
+  TableCell, TableContainer, TableHead, TableRow, Typography,
+  Chip, TextField, MenuItem, FormControl, InputLabel, Toolbar,
+  Select, Stack, Pagination, InputAdornment, Grid, SelectChangeEvent,
+  Tooltip,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -33,9 +14,8 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import Loading from '@/components/Loading';
-import { PhotoProvider, PhotoView } from 'react-photo-view';
-import 'react-photo-view/dist/react-photo-view.css';
-import Image from 'next/image';
+import { Visibility } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 // Definição do tipo para os dados
 interface VehicleInspection {
@@ -123,9 +103,9 @@ interface FilterOptions {
 }
 
 
-
 // Componente de linha da tabela (Row)
 function Row(props: { row: VehicleInspection }) {
+  const router = useRouter();
   const { row } = props;
   const [open, setOpen] = useState(false);
 
@@ -142,7 +122,7 @@ function Row(props: { row: VehicleInspection }) {
   };
 
   // Diferença de quilometragem
-  const kmDifference = Number(row?.end?.kilometer) || 0 - Number(row?.start?.kilometer) || 0;
+  const kmDiff = row.end ? parseInt(row.end.kilometer) - parseInt(row.start.kilometer) : 0;
 
   return (
     <React.Fragment>
@@ -160,19 +140,33 @@ function Row(props: { row: VehicleInspection }) {
           {row.user.name}
         </TableCell>
         <TableCell align="right">
-          <Typography sx={{ display: 'block' }} variant='caption'>{row?.start?.createdAt && formatDate(row.start.createdAt)}</Typography>
-          <Typography sx={{ display: 'block' }} variant='caption'>{row?.end?.createdAt && formatDate(row.end.createdAt)}</Typography>
+          <Typography sx={{ display: 'block' }} variant='caption'>
+            {row?.start?.createdAt && 'Inicial: ' + formatDate(row.start.createdAt)}
+          </Typography>
+          <Typography color={row?.end ? 'textPrimary' : 'warning'} sx={{ display: 'block' }} variant='caption'>
+            {row?.end?.createdAt ? 'Final: ' + formatDate(row.end.createdAt) : 'Em andamento'}
+          </Typography>
         </TableCell>
         <TableCell align="right">{row?.start?.kilometer || 0} km</TableCell>
         <TableCell align="right">{row?.end?.kilometer || 0} km</TableCell>
         <TableCell align="right">
           <Chip
-            label={`+${kmDifference} km`}
-            color={kmDifference > 0 ? "success" : "error"}
-            size="small"
-          />
+            label={kmDiff ? `+${kmDiff} km` : 'Em andamento'}
+            color={kmDiff > 0 ? "success" : "warning"} size="small" />
         </TableCell>
+
+        <TableCell align="right">
+        <Box>
+            <Tooltip title="Visualizar">
+              <IconButton size="small" onClick={() => router.push(`/dashboard/viagens/${row.id}`)}>
+                <Visibility />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </TableCell>
+
       </TableRow>
+
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -239,17 +233,6 @@ function Row(props: { row: VehicleInspection }) {
                         <TableCell>{row.start.extintor}</TableCell>
                       </TableRow>
 
-                      <TableRow>
-                        <TableCell>Foto Veiculo</TableCell>
-                        <TableCell>
-                          <PhotoProvider>
-                            <PhotoView src="">
-                              <Image src={""} alt='' width={100} height={100} />
-                            </PhotoView>
-                          </PhotoProvider>
-                        </TableCell>
-                      </TableRow>
-
                     </TableBody>
                   </Table>
                 </Box>
@@ -311,17 +294,6 @@ function Row(props: { row: VehicleInspection }) {
                         <TableCell>{row.end.extintor}</TableCell>
                       </TableRow>
 
-                      <TableRow>
-                        <TableCell>Foto Veiculo</TableCell>
-                        <TableCell>
-                          <PhotoProvider>
-                            <PhotoView src="">
-                              <Image src={""} alt='' width={100} height={100} />
-                            </PhotoView>
-                          </PhotoProvider>
-                        </TableCell>
-                      </TableRow>
-
                     </TableBody>
                   </Table>
                 </Box>}
@@ -336,16 +308,12 @@ function Row(props: { row: VehicleInspection }) {
 
 // Componente principal da tabela
 export default function CollapsibleTable() {
-  const { data: allRows, isLoading } = useSWR<VehicleInspection[]>('/api', fetcher);
+  const { data: allRows, isLoading } = useSWR<VehicleInspection[]>('/api/dashboard/viagens', fetcher);
   // Estados para paginação, busca e filtros
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<FilterOptions>({
-    status: '',
-    responsavel: '',
-    periodo: ''
-  });
+  const [filters, setFilters] = useState<FilterOptions>({ status: '', responsavel: '', periodo: '' });
 
   // Estado para linhas filtradas
   const [filteredRows, setFilteredRows] = useState<VehicleInspection[]>(allRows || []);
@@ -395,22 +363,21 @@ export default function CollapsibleTable() {
         switch (filters.status) {
           case 'avarias':
             result = result.filter(row =>
-              row.start.avariasCabine === 'SIM' ||
-              row.start.bauPossuiAvarias === 'SIM' ||
-              row.end.avariasCabine === 'SIM' ||
-              row.end.bauPossuiAvarias === 'SIM'
+              row?.start?.avariasCabine === 'SIM' ||
+              row?.start?.bauPossuiAvarias === 'SIM' ||
+              row?.end?.avariasCabine === 'SIM' ||
+              row?.end?.bauPossuiAvarias === 'SIM'
             );
             break;
           case 'problemas':
             result = result.filter(row =>
-              row.start.nivelAgua === 'BAIXO' ||
-              row.start.nivelOleo === 'BAIXO' ||
-              row.end.nivelAgua === 'BAIXO' ||
-              row.end.nivelOleo === 'BAIXO'
+              row?.start?.nivelAgua === 'BAIXO' ||
+              row?.start?.nivelOleo === 'BAIXO' ||
+              row?.end?.nivelAgua === 'BAIXO' ||
+              row?.end?.nivelOleo === 'BAIXO'
             );
             break;
-          default:
-            break;
+          default: break;
         }
       }
 
@@ -422,10 +389,7 @@ export default function CollapsibleTable() {
   const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
 
   // Obter linhas da página atual
-  const paginatedRows = filteredRows.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const paginatedRows = filteredRows.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   // Manipuladores de eventos
   const handleChangePage = (_event: React.ChangeEvent<unknown>, newPage: number) => {
@@ -539,6 +503,7 @@ export default function CollapsibleTable() {
               <TableCell align="right">KM Inicial</TableCell>
               <TableCell align="right">KM Final</TableCell>
               <TableCell align="right">Diferença</TableCell>
+              <TableCell align="right">Opções</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

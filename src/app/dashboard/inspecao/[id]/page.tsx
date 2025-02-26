@@ -8,17 +8,11 @@ import {
   Typography,
   Paper,
   Divider,
-  Box,
-  Card,
-  CardMedia,
-  CardContent
+  Box
 } from "@mui/material";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import CustomAppBar from "@/components/_ui/CustomAppBar";
-import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
-import Image from 'next/image';
 import Photos from "@/components/_ui/Photos";
 
 interface InspectionView {

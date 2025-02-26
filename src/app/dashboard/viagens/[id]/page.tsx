@@ -1,34 +1,36 @@
 "use client";
-import useSWR from "swr";
-import React from "react";
-import { fetcher } from "@/lib/ultils";
-import Loading from "@/components/Loading";
-import {
-  Grid,
-  Typography,
-  Paper,
-  Divider,
-  Box,
-  Card,
-  CardMedia,
-  CardContent
-} from "@mui/material";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import CustomAppBar from "@/components/_ui/CustomAppBar";
-import { PhotoProvider, PhotoView } from 'react-photo-view';
+import React from 'react';
+import { Box, Card, CardContent, Typography, Grid, Chip, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import PersonIcon from '@mui/icons-material/Person';
+import { formatDate } from '@/utils';
+import { fetcher } from '@/lib/ultils';
+import useSWR from 'swr';
+import { useParams } from 'next/navigation';
+import Photos from '@/components/_ui/Photos';
 import 'react-photo-view/dist/react-photo-view.css';
-import Image from 'next/image';
-import Photos from "@/components/_ui/Photos";
 
-interface InspectionView {
+// Tipos baseados na API
+interface Photo {
+  id: string;
+  inspectionId: string;
+  description: string;
+  photo: string;
+  createdAt: string;
+  type: string;
+}
+
+interface InspectionData {
   id: string;
   userId: string;
   vehicleId: string;
-  status: string;
-  kilometer: string;
+  vehicleKey: string | null;
+  dataInspecao: string;
+  status: 'INICIO' | 'FINAL';
   crlvEmDia: string;
-  certificadoTacografoEmDia: string;
+  certificadoTacografoEmDia: string | null;
   nivelAgua: string;
   nivelOleo: string;
   eixo: string;
@@ -38,148 +40,571 @@ interface InspectionView {
   descricaoTracao: string;
   truck: string;
   descricaoTruck: string;
-  quartoEixo: string;
-  descricaoQuartoEixo: string;
+  quartoEixo: string | null;
+  descricaoQuartoEixo: string | null;
   avariasCabine: string;
-  descricaoAvariasCabine: string;
+  descricaoAvariasCabine: string | null;
   bauPossuiAvarias: string;
-  descricaoAvariasBau: string;
+  descricaoAvariasBau: string | null;
   funcionamentoParteEletrica: string;
-  descricaoParteEletrica: string;
-  extintor: string;
+  descricaoParteEletrica: string | null;
   createdAt: string;
-  vehicle: {
-    plate: string;
-    model: string;
-  };
-  photos: Array<{
-    id: string;
-    type: string;
-    photo: string;
-    description: string;
-  }>;
+  updatedAt: string | null;
+  kilometer: string;
+  isFinished: boolean;
+  extintor: string;
+  photos: Photo[];
 }
 
-const StatusChip: React.FC<{ value: string }> = ({ value }) => {
-  const getColor = () => {
-    switch (value) {
-      case "BOM":
-      case "NORMAL":
-      case "SIM":
-        return "success.main";
-      case "RUIM":
-      case "BAIXO":
-      case "NÃO":
-        return "error.main";
-      case "CRITICO":
-        return "error.dark";
-      default:
-        return "text.primary";
+interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: string;
+  eixo: string;
+  plate: string;
+  createdAt: string;
+  updatedAt: string | null;
+  fixo: boolean;
+  cidadeBase: string | null;
+  tacografo: boolean;
+}
+
+interface User {
+  name: string;
+}
+
+interface Inspection {
+  id: string;
+  userId: string;
+  startId: string;
+  endId: string;
+  vehicleId: string;
+  createdAt: string;
+  updatedAt: string;
+  user: User;
+  start: InspectionData;
+  end: InspectionData;
+  vehicle: Vehicle;
+}
+
+interface ApiResponse {
+  inspections: Inspection;
+}
+
+const StyledStatus = styled(Chip)(({ theme, color }) => ({
+  fontWeight: 'bold',
+  color: color === 'success' ? theme.palette.success.main :
+    color === 'warning' ? theme.palette.warning.main :
+      theme.palette.error.main,
+  backgroundColor: color === 'success' ? theme.palette.success.light :
+    color === 'warning' ? theme.palette.warning.light :
+      theme.palette.error.light,
+}));
+
+// Componente principal
+const VehicleInspectionDetail: React.FC = () => {
+  const { id } = useParams();
+  const { data, isLoading } = useSWR<ApiResponse>(`/api/dashboard/viagens/${id}`, fetcher);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data) return <div>Error loading data</div>;
+
+  const { inspections: inspection } = data;
+  const { vehicle, start, end, user } = inspection;
+
+  const format = (dateString: string) => {
+    const date = new Date(dateString);
+    return formatDate(date);
+  };
+
+  const getStatusColor = (value: string) => {
+    if (value === 'BOM' || value === 'NORMAL' || value === 'SIM') {
+      return 'success';
+    } else if (value === 'REGULAR') {
+      return 'warning';
+    } else {
+      return 'error';
     }
   };
 
   return (
-    <Typography color={getColor()} fontWeight="bold">
-      {value}
-    </Typography>
-  );
-};
+    <Box sx={{ maxWidth: 1200, margin: '0 auto', p: 2 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Relatório de Inspeção de Veículo
+      </Typography>
 
-const InspectionViewPage: React.FC = () => {
-  const { id } = useParams();
-  const { data: inspection, error } = useSWR<InspectionView>(`/api/inspecao/${id}`, fetcher);
-
-  if (!inspection) return <Loading />;
-  if (error) return <div>Erro ao carregar inspeção <Link href={'/'}>Voltar</Link></div>;
-
-  const Photo: React.FC<{ type: string; title: string }> = ({ type, title }) => {
-    const getPhotosByType = (type: string) => inspection.photos.filter(photo => photo.type === type);
-    const photos = getPhotosByType(type);
-    if (photos.length === 0) return null;
-    return <Photos photos={photos} title={title}/>
-  }
-
-  const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-    <Grid item xs={12} md={6}>
-      <Box display="flex" alignItems="center" gap={1}>
-        <Typography variant="subtitle1" fontWeight="bold">{label}:</Typography>
-        <StatusChip value={value} />
-      </Box>
-    </Grid>
-  );
-
-  const DescriptionRow: React.FC<{ label: string; value?: string }> = ({ label, value }) => {
-    if (!value) return null;
-    return (
-      <Grid item xs={12}>
-        <Box mt={1}>
-          <Typography variant="subtitle2" color="text.secondary">{label}:</Typography>
-          <Typography variant="body1">{value}</Typography>
-        </Box>
-      </Grid>
-    );
-  };
-
-  return (
-    <Paper sx={{ p: 3, margin: "auto" }}>
-      <Typography variant="h4" gutterBottom>DETALHES DA INSPEÇÃO</Typography>
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <DirectionsCarIcon sx={{ mr: 1 }} />
+                <Typography variant="h6">
+                  {vehicle.make} {vehicle.model} ({vehicle.year})
+                </Typography>
+              </Box>
+              <Typography variant="body1">
+                <strong>Placa:</strong> {vehicle.plate}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Eixos:</strong> {vehicle.eixo}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Tacógrafo:</strong> {vehicle.tacografo ? 'Sim' : 'Não'}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <PersonIcon sx={{ mr: 1 }} />
+                <Typography variant="h6">Inspetor: {user.name}</Typography>
+              </Box>
+              <Typography variant="body1">
+                <strong>Data de Criação:</strong> {format(inspection.createdAt)}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Última Atualização:</strong> {format(inspection.updatedAt)}
+              </Typography>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={3}>
-        <Grid item xs={12}><Divider>Informações Gerais</Divider></Grid>
+        {/* Seção de início da inspeção */}
+        {start && <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 2 }}>
+            <Box display="flex" alignItems="center" mb={2}>
+              <ScheduleIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">Início da Inspeção</Typography>
+            </Box>
+            <Typography variant="body2" color="textSecondary" mb={2}>
+              {format(start.dataInspecao)}
+            </Typography>
 
-        <InfoRow label="Veículo" value={`${inspection.vehicle.plate} - ${inspection.vehicle.model}`} />
-        <InfoRow label="Quilometragem" value={inspection.kilometer} />
-        <InfoRow label="Status" value={inspection.status} />
-        <InfoRow label="Data" value={new Date(inspection.createdAt).toLocaleDateString()} />
+            <Typography variant="body1" mb={1}>
+              <strong>Quilometragem:</strong> {Number(start.kilometer).toLocaleString()} km
+            </Typography>
 
-        <Grid item xs={12}><Divider>Documentação</Divider></Grid>
-        <InfoRow label="CRLV em dia" value={inspection.crlvEmDia} />
-        <InfoRow label="Certificado Tacógrafo em dia" value={inspection.certificadoTacografoEmDia} />
+            <Divider sx={{ my: 2 }} />
 
-        <Grid item xs={12}><Divider>Níveis</Divider></Grid>
-        <InfoRow label="Nível de Água" value={inspection.nivelAgua} />
-        <InfoRow label="Nível de Óleo" value={inspection.nivelOleo} />
+            <Typography variant="subtitle1" gutterBottom>
+              Documentação e Segurança
+            </Typography>
+            <Grid container spacing={1} mb={2}>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">CRLV em Dia:</Typography>
+                  <StyledStatus
+                    label={start.crlvEmDia}
+                    size="small"
+                    color={getStatusColor(start.crlvEmDia)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Extintor:</Typography>
+                  <StyledStatus
+                    label={start.extintor}
+                    size="small"
+                    color={getStatusColor(start.extintor)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
 
-        <Grid item xs={12}><Divider>Pneus</Divider></Grid>
-        <InfoRow label="Dianteira" value={inspection.dianteira} />
-        <DescriptionRow label="Descrição Dianteira" value={inspection.descricaoDianteira} />
+            <Divider sx={{ my: 2 }} />
 
-        <InfoRow label="Tração" value={inspection.tracao} />
-        <DescriptionRow label="Descrição Tração" value={inspection.descricaoTracao} />
+            <Typography variant="subtitle1" gutterBottom>
+              Níveis de Fluidos
+            </Typography>
+            <Grid container spacing={1} mb={2}>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Água:</Typography>
+                  <StyledStatus
+                    label={start.nivelAgua}
+                    size="small"
+                    color={getStatusColor(start.nivelAgua)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Óleo:</Typography>
+                  <StyledStatus
+                    label={start.nivelOleo}
+                    size="small"
+                    color={getStatusColor(start.nivelOleo)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
 
-        <InfoRow label="Truck" value={inspection.truck} />
-        <DescriptionRow label="Descrição Truck" value={inspection.descricaoTruck} />
+            <Divider sx={{ my: 2 }} />
 
-        <InfoRow label="Quarto Eixo" value={inspection.quartoEixo} />
-        <DescriptionRow label="Descrição Quarto Eixo" value={inspection.descricaoQuartoEixo} />
+            <Typography variant="subtitle1" gutterBottom>
+              Pneus e Eixos
+            </Typography>
+            <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Posição</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Observação</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Dianteira</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={start.dianteira}
+                        size="small"
+                        color={getStatusColor(start.dianteira)}
+                      />
+                    </TableCell>
+                    <TableCell>{start.descricaoDianteira || "-"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Tração</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={start.tracao}
+                        size="small"
+                        color={getStatusColor(start.tracao)}
+                      />
+                    </TableCell>
+                    <TableCell>{start.descricaoTracao || "-"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Truck</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={start.truck}
+                        size="small"
+                        color={getStatusColor(start.truck)}
+                      />
+                    </TableCell>
+                    <TableCell>{start.descricaoTruck || "-"}</TableCell>
+                  </TableRow>
+                  {start.quartoEixo && (
+                    <TableRow>
+                      <TableCell>Quarto Eixo</TableCell>
+                      <TableCell>
+                        <StyledStatus
+                          label={start.quartoEixo}
+                          size="small"
+                          color={getStatusColor(start.quartoEixo)}
+                        />
+                      </TableCell>
+                      <TableCell>{start.descricaoQuartoEixo || "-"}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-        <Grid item xs={12}><Divider>Avarias</Divider></Grid>
-        <InfoRow label="Avarias na Cabine" value={inspection.avariasCabine} />
-        <DescriptionRow label="Descrição Avarias Cabine" value={inspection.descricaoAvariasCabine} />
+            <Divider sx={{ my: 2 }} />
 
-        <InfoRow label="Avarias no Baú" value={inspection.bauPossuiAvarias} />
-        <DescriptionRow label="Descrição Avarias Baú" value={inspection.descricaoAvariasBau} />
+            <Typography variant="subtitle1" gutterBottom>
+              Avarias e Sistema Elétrico
+            </Typography>
+            <Grid container spacing={1}>
+              <Grid item xs={12} sm={6}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Avarias na Cabine:</Typography>
+                  <StyledStatus
+                    label={start.avariasCabine}
+                    size="small"
+                    color={getStatusColor(start.avariasCabine === "NÃO" ? "SIM" : "NÃO")}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {start.descricaoAvariasCabine && (
+                  <Typography variant="body2" color="textSecondary">
+                    {start.descricaoAvariasCabine}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Avarias no Baú:</Typography>
+                  <StyledStatus
+                    label={start.bauPossuiAvarias}
+                    size="small"
+                    color={getStatusColor(start.bauPossuiAvarias === "NÃO" ? "SIM" : "NÃO")}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {start.descricaoAvariasBau && (
+                  <Typography variant="body2" color="textSecondary">
+                    {start.descricaoAvariasBau}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Parte Elétrica:</Typography>
+                  <StyledStatus
+                    label={start.funcionamentoParteEletrica}
+                    size="small"
+                    color={getStatusColor(start.funcionamentoParteEletrica)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {start.descricaoParteEletrica && (
+                  <Typography variant="body2" color="textSecondary">
+                    {start.descricaoParteEletrica}
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
 
-        <Grid item xs={12}><Divider>Parte Elétrica</Divider></Grid>
-        <InfoRow label="Funcionamento Parte Elétrica" value={inspection.funcionamentoParteEletrica} />
-        <DescriptionRow label="Descrição Parte Elétrica" value={inspection.descricaoParteEletrica} />
+            {start.photos && start.photos.length > 0 && (
+              <Box mt={3}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Fotos
+                </Typography>
+                <Photos photos={start.photos.filter(d => d.type === "vehicle")} title={'Fotos do veiculo'} />
+              </Box>
+            )}
+          </Paper>
+        </Grid>}
 
-        <Grid item xs={12}><Divider>Extintor</Divider></Grid>
-        <InfoRow label="Extintor em dia" value={inspection.extintor} />
+        {/* Seção de fim da inspeção */}
+        {end && <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 2 }}>
+            <Box display="flex" alignItems="center" mb={2}>
+              <ScheduleIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">Fim da Inspeção</Typography>
+            </Box>
+            <Typography variant="body2" color="textSecondary" mb={2}>
+              {format(end.dataInspecao)}
+            </Typography>
 
-        <Grid item xs={12}><Divider>Fotos</Divider></Grid>
-        <Grid item xs={12} md={6}>
-          <Photo type="documento" title="Fotos do Documento" />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Photo type="tacografo" title="Fotos do Tacógrafo" />
-        </Grid>
-        <Grid item xs={12}>
-          <Photo type="vehicle" title="Fotos do veiculo" />
-        </Grid>
+            <Typography variant="body1" mb={1}>
+              <strong>Quilometragem:</strong> {Number(end.kilometer).toLocaleString()} km
+            </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" gutterBottom>
+              Documentação e Segurança
+            </Typography>
+            <Grid container spacing={1} mb={2}>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">CRLV em Dia:</Typography>
+                  <StyledStatus
+                    label={end.crlvEmDia}
+                    size="small"
+                    color={getStatusColor(end.crlvEmDia)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Extintor:</Typography>
+                  <StyledStatus
+                    label={end.extintor}
+                    size="small"
+                    color={getStatusColor(end.extintor)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" gutterBottom>
+              Níveis de Fluidos
+            </Typography>
+            <Grid container spacing={1} mb={2}>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Água:</Typography>
+                  <StyledStatus
+                    label={end.nivelAgua}
+                    size="small"
+                    color={getStatusColor(end.nivelAgua)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2">Óleo:</Typography>
+                  <StyledStatus
+                    label={end.nivelOleo}
+                    size="small"
+                    color={getStatusColor(end.nivelOleo)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" gutterBottom>
+              Pneus e Eixos
+            </Typography>
+            <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Posição</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Observação</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Dianteira</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={end.dianteira}
+                        size="small"
+                        color={getStatusColor(end.dianteira)}
+                      />
+                    </TableCell>
+                    <TableCell>{end.descricaoDianteira || "-"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Tração</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={end.tracao}
+                        size="small"
+                        color={getStatusColor(end.tracao)}
+                      />
+                    </TableCell>
+                    <TableCell>{end.descricaoTracao || "-"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Truck</TableCell>
+                    <TableCell>
+                      <StyledStatus
+                        label={end.truck}
+                        size="small"
+                        color={getStatusColor(end.truck)}
+                      />
+                    </TableCell>
+                    <TableCell>{end.descricaoTruck || "-"}</TableCell>
+                  </TableRow>
+                  {end.quartoEixo && (
+                    <TableRow>
+                      <TableCell>Quarto Eixo</TableCell>
+                      <TableCell>
+                        <StyledStatus
+                          label={end.quartoEixo}
+                          size="small"
+                          color={getStatusColor(end.quartoEixo)}
+                        />
+                      </TableCell>
+                      <TableCell>{end.descricaoQuartoEixo || "-"}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" gutterBottom>
+              Avarias e Sistema Elétrico
+            </Typography>
+            <Grid container spacing={1}>
+              <Grid item xs={12} sm={6}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Avarias na Cabine:</Typography>
+                  <StyledStatus
+                    label={end.avariasCabine}
+                    size="small"
+                    color={getStatusColor(end.avariasCabine === "NÃO" ? "SIM" : "NÃO")}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {end.descricaoAvariasCabine && (
+                  <Typography variant="body2" color="textSecondary">
+                    {end.descricaoAvariasCabine}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Avarias no Baú:</Typography>
+                  <StyledStatus
+                    label={end.bauPossuiAvarias}
+                    size="small"
+                    color={getStatusColor(end.bauPossuiAvarias === "NÃO" ? "SIM" : "NÃO")}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {end.descricaoAvariasBau && (
+                  <Typography variant="body2" color="textSecondary">
+                    {end.descricaoAvariasBau}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2">Parte Elétrica:</Typography>
+                  <StyledStatus
+                    label={end.funcionamentoParteEletrica}
+                    size="small"
+                    color={getStatusColor(end.funcionamentoParteEletrica)}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {end.descricaoParteEletrica && (
+                  <Typography variant="body2" color="textSecondary">
+                    {end.descricaoParteEletrica}
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
+
+            {end.photos && end.photos.length > 0 && (
+              <Box mt={3}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Fotos
+                </Typography>
+                <Photos photos={end.photos.filter(d => d.type === "vehicle")} title={'Fotos do veiculo'} />
+              </Box>
+            )}
+          </Paper>
+        </Grid>}
       </Grid>
-    </Paper>
+
+      {/*<Box mt={3} display="flex" justifyContent="center">
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<CheckCircleIcon />}
+          sx={{ mr: 2 }}
+        >
+          Aprovar Inspeção
+        </Button>
+        <Button 
+          variant="outlined" 
+          color="warning" 
+          startIcon={<WarningIcon />}
+        >
+          Solicitar Revisão
+        </Button>
+      </Box>*/}
+    </Box>
   );
 };
 
-export default InspectionViewPage;
+export default VehicleInspectionDetail;
