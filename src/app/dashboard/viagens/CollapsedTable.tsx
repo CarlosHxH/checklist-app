@@ -93,6 +93,11 @@ interface VehicleInspection {
     isFinished: boolean;
     extintor: string;
   };
+  vehicle: {
+    make: string;
+    plate: string;
+    model: string;
+  }
 }
 
 // Tipos para os filtros
@@ -140,7 +145,7 @@ function Row(props: { row: VehicleInspection }) {
           {row.user.name}
         </TableCell>
         <TableCell component="th" scope="row">
-            
+          {row.vehicle.plate} - {row.vehicle.model}
         </TableCell>
         <TableCell align="right">
           <Typography sx={{ display: 'block' }} variant='caption'>
@@ -502,7 +507,7 @@ export default function CollapsibleTable() {
             <TableRow>
               <TableCell />
               <TableCell>Responsável</TableCell>
-              <TableCell align="right">Veiculo</TableCell>
+              <TableCell>Veiculo</TableCell>
               <TableCell align="right">Data</TableCell>
               <TableCell align="right">KM Inicial</TableCell>
               <TableCell align="right">KM Final</TableCell>

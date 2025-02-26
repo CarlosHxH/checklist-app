@@ -32,18 +32,20 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
 
 export async function GET(request: Request) {
   try {
+    
     const inspections = await prisma.inspect.findMany({
       include: {
         user: { select: { name: true }},
         start: true,
         end: true,
+        vehicle: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json(inspections)
   } catch (error) {
-    return NextResponse.json(error)
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
