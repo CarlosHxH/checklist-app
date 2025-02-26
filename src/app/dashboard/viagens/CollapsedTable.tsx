@@ -139,6 +139,9 @@ function Row(props: { row: VehicleInspection }) {
         <TableCell component="th" scope="row">
           {row.user.name}
         </TableCell>
+        <TableCell component="th" scope="row">
+            
+        </TableCell>
         <TableCell align="right">
           <Typography sx={{ display: 'block' }} variant='caption'>
             {row?.start?.createdAt && 'Inicial: ' + formatDate(row.start.createdAt)}
