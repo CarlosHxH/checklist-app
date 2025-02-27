@@ -187,7 +187,8 @@ function Row(props: { row: VehicleInspection }) {
               <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: { xs: 'column', md: 'row' } }}>
                 <Box>
                   <Typography variant="subtitle1" gutterBottom>
-                    Inicio da Viagem ({formatDate(row.start.dataInspecao)})
+                    Inicio da Viagem: 
+                    {row.start?.dataInspecao ? formatDate(row.start.dataInspecao) : 'Data não disponível'}
                   </Typography>
                   <Table size="small" aria-label="inspection-start">
                     <TableHead>
@@ -248,7 +249,7 @@ function Row(props: { row: VehicleInspection }) {
 
                 {row?.end && <Box>
                   <Typography variant="subtitle1" gutterBottom>
-                    Final da Viagem ({formatDate(row.end.dataInspecao)})
+                    Final da Viagem: {row.end?.dataInspecao ? formatDate(row.end.dataInspecao) : 'Data não disponível'}
                   </Typography>
                   <Table size="small" aria-label="inspection-end">
                     <TableHead>
