@@ -27,7 +27,7 @@ interface InspectionData {
   userId: string;
   vehicleId: string;
   vehicleKey: string | null;
-  dataInspecao: string;
+  dataInspecao?: string;
   status: 'INICIO' | 'FINAL';
   crlvEmDia: string;
   certificadoTacografoEmDia: string | null;
@@ -179,7 +179,7 @@ const VehicleInspectionDetail: React.FC = () => {
               <Typography variant="h6">Início da Inspeção</Typography>
             </Box>
             <Typography variant="body2" color="textSecondary" mb={2}>
-              {format(start.dataInspecao)}
+              {start?.dataInspecao ? format(start.dataInspecao) : 'Data não disponível'}
             </Typography>
 
             <Typography variant="body1" mb={1}>
@@ -386,7 +386,7 @@ const VehicleInspectionDetail: React.FC = () => {
               <Typography variant="h6">Fim da Inspeção</Typography>
             </Box>
             <Typography variant="body2" color="textSecondary" mb={2}>
-              {format(end.dataInspecao)}
+              {end?.dataInspecao ? format(end.dataInspecao) : 'Data não disponível'}
             </Typography>
 
             <Typography variant="body1" mb={1}>
