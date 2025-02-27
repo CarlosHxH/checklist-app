@@ -12,7 +12,6 @@ export default function Viagens({id}: {id:string}) {
   if(isLoading) return <Loading/>
 
   const CustomFabs = () =>  (data.length === 0 || !!data[0]?.end)?<CustomFab href={'/viagem/inicio/create'} variant={"Plus"} />:<></>;
-
   return (
     <Suspense>
       <Container maxWidth="lg">

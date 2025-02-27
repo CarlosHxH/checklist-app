@@ -127,7 +127,7 @@ function Row(props: { row: VehicleInspection }) {
   };
 
   // Diferença de quilometragem
-  const kmDiff = row.end ? parseInt(row.end.kilometer) - parseInt(row.start.kilometer) : 0;
+  const kmDiff = row.end ? parseInt(row?.end?.kilometer) - parseInt(row?.start?.kilometer) : 0;
 
   return (
     <React.Fragment>
