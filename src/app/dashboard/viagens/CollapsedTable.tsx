@@ -68,7 +68,7 @@ interface VehicleInspection {
     vehicleKey: string | null;
     dataInspecao: string;
     status: string;
-    crlvEmDia: string;
+    crlvEmDia?: string;
     certificadoTacografoEmDia: string;
     nivelAgua: string;
     nivelOleo: string;
@@ -153,7 +153,7 @@ function Row(props: { row: VehicleInspection }) {
             {row?.start?.createdAt && 'Inicial: ' + formatDate(row.start.createdAt)}
           </Typography>
           <Typography color={row?.end ? 'textPrimary' : 'warning'} sx={{ display: 'block' }} variant='caption'>
-            {row?.end?.createdAt ? 'Final: ' + formatDate(row.end.createdAt) : 'Em andamento'}
+            {row?.end?.createdAt ? 'Final: ' + formatDate(row?.end?.createdAt) : 'Em andamento'}
           </Typography>
         </TableCell>
         <TableCell align="right">{row?.start?.kilometer || 0} km</TableCell>
@@ -200,47 +200,47 @@ function Row(props: { row: VehicleInspection }) {
                     <TableBody>
                       <TableRow>
                         <TableCell>CRLV</TableCell>
-                        <TableCell>{row.start.crlvEmDia}</TableCell>
+                        <TableCell>{row?.start?.crlvEmDia||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row.start.certificadoTacografoEmDia}</TableCell>
+                        <TableCell>{row?.start?.certificadoTacografoEmDia||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row.start.nivelAgua}</TableCell>
+                        <TableCell>{row?.start?.nivelAgua||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row.start.nivelOleo}</TableCell>
+                        <TableCell>{row?.start?.nivelOleo||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row.start.dianteira}</TableCell>
+                        <TableCell>{row?.start?.dianteira||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row.start.tracao}</TableCell>
+                        <TableCell>{row?.start?.tracao||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Truck</TableCell>
-                        <TableCell>{row.start.truck}</TableCell>
+                        <TableCell>{row?.start?.truck||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row.start.avariasCabine}</TableCell>
+                        <TableCell>{row?.start?.avariasCabine||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row.start.bauPossuiAvarias}</TableCell>
+                        <TableCell>{row?.start?.bauPossuiAvarias||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row.start.funcionamentoParteEletrica}</TableCell>
+                        <TableCell>{row?.start?.funcionamentoParteEletrica||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Extintor</TableCell>
-                        <TableCell>{row.start.extintor}</TableCell>
+                        <TableCell>{row?.start?.extintor||''}</TableCell>
                       </TableRow>
 
                     </TableBody>
@@ -249,7 +249,7 @@ function Row(props: { row: VehicleInspection }) {
 
                 {row?.end && <Box>
                   <Typography variant="subtitle1" gutterBottom>
-                    Final da Viagem: {row.end?.dataInspecao ? formatDate(row.end.dataInspecao) : 'Data não disponível'}
+                    Final da Viagem: {row.end?.dataInspecao ? formatDate(row?.end?.dataInspecao) : 'Data não disponível'}
                   </Typography>
                   <Table size="small" aria-label="inspection-end">
                     <TableHead>
@@ -261,47 +261,47 @@ function Row(props: { row: VehicleInspection }) {
                     <TableBody>
                       <TableRow>
                         <TableCell>CRLV</TableCell>
-                        <TableCell>{row.end.crlvEmDia}</TableCell>
+                        <TableCell>{row?.end?.crlvEmDia||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row.end.certificadoTacografoEmDia}</TableCell>
+                        <TableCell>{row?.end?.certificadoTacografoEmDia||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row.end.nivelAgua}</TableCell>
+                        <TableCell>{row?.end?.nivelAgua||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row.end.nivelOleo}</TableCell>
+                        <TableCell>{row?.end?.nivelOleo||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row.end.dianteira}</TableCell>
+                        <TableCell>{row?.end?.dianteira||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row.end.tracao}</TableCell>
+                        <TableCell>{row?.end?.tracao||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Truck</TableCell>
-                        <TableCell>{row.end.truck}</TableCell>
+                        <TableCell>{row?.end?.truck||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row.end.avariasCabine}</TableCell>
+                        <TableCell>{row?.end?.avariasCabine||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row.end.bauPossuiAvarias}</TableCell>
+                        <TableCell>{row?.end?.bauPossuiAvarias||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row.end.funcionamentoParteEletrica}</TableCell>
+                        <TableCell>{row?.end?.funcionamentoParteEletrica||''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Extintor</TableCell>
-                        <TableCell>{row.end.extintor}</TableCell>
+                        <TableCell>{row?.end?.extintor||''}</TableCell>
                       </TableRow>
 
                     </TableBody>
