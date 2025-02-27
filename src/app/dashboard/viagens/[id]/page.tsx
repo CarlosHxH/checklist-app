@@ -179,7 +179,7 @@ const VehicleInspectionDetail: React.FC = () => {
               <Typography variant="h6">Início da Inspeção</Typography>
             </Box>
             <Typography variant="body2" color="textSecondary" mb={2}>
-              {start?.dataInspecao ? format(start.dataInspecao) : 'Data não disponível'}
+              {/*start?.dataInspecao ? format(start.dataInspecao) : 'Data não disponível'*/}
             </Typography>
 
             <Typography variant="body1" mb={1}>
@@ -386,7 +386,7 @@ const VehicleInspectionDetail: React.FC = () => {
               <Typography variant="h6">Fim da Inspeção</Typography>
             </Box>
             <Typography variant="body2" color="textSecondary" mb={2}>
-              {end?.dataInspecao ? format(end.dataInspecao) : 'Data não disponível'}
+              {/*end?.dataInspecao ? format(end.dataInspecao) : 'Data não disponível'*/}
             </Typography>
 
             <Typography variant="body1" mb={1}>
