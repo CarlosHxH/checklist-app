@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { useRouter } from 'next/navigation';
+import { Grid } from '@mui/material';
 
 
 interface StyledTextProps {
@@ -91,7 +92,7 @@ type InspectionStatus = {
   count: number;
   percentage: number;
 };
-export default function ChartUserByCountry() {
+export default function ChartByVehicle() {
   const [data, setData] = React.useState<InspectionStatus[]>([]);
   const [loading, setLoading] = React.useState(true);
   const router = useRouter();
@@ -138,7 +139,7 @@ export default function ChartUserByCountry() {
                 highlightScope: { faded: 'global', highlighted: 'item' },
               },
             ]}
-            onItemClick={(e, d) => router.push('/dashboard/inspection/'+data[d.dataIndex].id)}
+            onItemClick={(e, d) => router.push('/dashboard/inspection/' + data[d.dataIndex].id)}
             height={260}
             width={260}
             slotProps={{
@@ -149,38 +150,38 @@ export default function ChartUserByCountry() {
           </PieChart>
         </Box>
 
-        {data.map((d, index) => (
-          <Stack key={index} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
-            <LocalShippingIcon />
-            <Stack sx={{ gap: 1, flexGrow: 1 }}>
-              <Stack
-                direction="row"
-                sx={{
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 2,
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: '500' }}>
-                  {d.label}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {d.value}%
-                </Typography>
+        <Grid container gap={1} justifyContent={'center'}>
+          {data.map((d, index) => (
+            <Grid key={index} item xs={5}>
+              <Stack direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
+                <LocalShippingIcon />
+                <Stack sx={{ gap: 1, flexGrow: 1 }}>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: '500' }}>{d.label}</Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>{d.value}</Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    aria-label="Number count"
+                    value={d.value}
+                    sx={{
+                      [`& .${linearProgressClasses.bar}`]: {
+                        backgroundColor: "blue",
+                      },
+                    }}
+                  />
+                </Stack>
               </Stack>
-              <LinearProgress
-                variant="determinate"
-                aria-label="Number of users by country"
-                value={d.value}
-                sx={{
-                  [`& .${linearProgressClasses.bar}`]: {
-                    backgroundColor: "blue",
-                  },
-                }}
-              />
-            </Stack>
-          </Stack>
-        ))}
+            </Grid>
+          ))}
+        </Grid>
       </CardContent>
     </Card>
   );

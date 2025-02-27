@@ -10,15 +10,18 @@ import StatCard, { StatCardProps } from "@/components/Dashboard/StatCard";
 import SessionsChart from "@/components/Dashboard/SessionsChart";
 import PageViewsBarChart from "@/components/Dashboard/PageViewsBarChart";
 import CustomTreeView from "@/components/Dashboard/CustomTreeView";
-import ChartUserByCountry from "@/components/Dashboard/ChartUserByCountry";
+import ChartByVehicle from "@/components/Dashboard/ChartByVehicle";
 import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
-import { Button } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 
 export default function DashboardContent() {
-  const { data, isLoading } = useSWR("/api/admin", fetcher);
+  const router = useRouter();
+  const { data, isLoading } = useSWR("/api/dashboard", fetcher);
+
+
   if (isLoading) return <Loading />;
   
   const exportToCSV = () => {
@@ -49,6 +52,15 @@ export default function DashboardContent() {
     document.body.removeChild(a);
   };
 
+  const redirect = (url: string) => {
+    let redirectUrl = '';
+    if(url==='Usuários'){ redirectUrl = 'dashboard/user';}
+    if(url==='Viagens'){ redirectUrl = 'dashboard/viagens';}
+    if(url==='Inspeções'){ redirectUrl = 'dashboard/inspecao';}
+    if(url==='Veiculos'){ redirectUrl = '/dashboard/vehicle';}
+    router.push( redirectUrl );
+  }
+
   return (
     <Box sx={{ display: "flex" }}>
       <Box
@@ -57,8 +69,7 @@ export default function DashboardContent() {
           flexGrow: 1,
           backgroundColor: theme.vars
             ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
-            : alpha(theme.palette.background.default, 1),
-          overflow: "auto",
+            : alpha(theme.palette.background.default, 1), overflow: "auto",
         })}
       >
         <Stack
@@ -67,25 +78,19 @@ export default function DashboardContent() {
         >
           <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
             {/* cards */}
-            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-              Visão geral
-            </Typography>
+            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>Visão geral</Typography>
 
-            <Grid
-              container
-              spacing={2}
-              columns={12}
-              sx={{ mb: (theme) => theme.spacing(2) }}
-            >
-              {true &&
+            <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
+              {data && // Cards statistics
                 data.map((card: StatCardProps, index: number) => (
-                  <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
+                  <Grid key={index} size={{ xs: 12, sm: 3, lg: 3 }} onClick={() =>redirect(card.title)} sx={{ cursor: "pointer" }}>
                     <StatCard {...card} />
                   </Grid>
                 ))}
+
               {true && (
                 <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
-                  <ChartUserByCountry/>
+                  <ChartByVehicle/>
                 </Grid>
               )}
 
@@ -102,6 +107,7 @@ export default function DashboardContent() {
                 </>
               )}
             </Grid>
+
             {false && (
               <>
                 <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
@@ -119,9 +125,9 @@ export default function DashboardContent() {
           </Box>
         </Stack>
         {/* Botão para exportar para CSV */}
-        <Button variant="contained" color="primary" onClick={exportToCSV}>
+        {/*<Button variant="contained" color="primary" onClick={exportToCSV}>
           Exportar para CSV
-        </Button>
+        </Button>*/}
       </Box>
     </Box>
   );
