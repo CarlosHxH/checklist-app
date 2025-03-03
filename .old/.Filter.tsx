@@ -81,7 +81,7 @@ export default function VehicleKeysPage() {
 
   const fetchVehicleKeys = async () => {
     try {
-      const response = await fetch('/api/admin/keys')
+      const response = await fetch('/api/dashboard/admin/keys')
       const fetchedData: DataType = await response.json()
       setData(fetchedData)
     } catch (error) {

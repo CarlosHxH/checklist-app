@@ -13,7 +13,7 @@ export default function InspectionManager() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const { data, error, mutate } = useSWR<DataType>('/api/admin/inspections', fetcher);
+  const { data, error, mutate } = useSWR<DataType>('/api/dashboard/admin/inspections', fetcher);
 
   if (!data || isSubmitting) return <Loading />;
 

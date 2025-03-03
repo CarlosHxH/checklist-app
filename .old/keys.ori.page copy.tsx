@@ -118,7 +118,7 @@ export default function VehicleKeysPage() {
   const fetchVehicleKeys = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/admin/keys')
+      const response = await fetch('/api/dashboard/admin/keys')
       if (!response.ok) {
         throw new Error('Erro ao carregar dados')
       }
@@ -187,7 +187,7 @@ export default function VehicleKeysPage() {
     setConfirmDialogOpen(false)
     
     try {
-      const response = await fetch('/api/admin/keys', {
+      const response = await fetch('/api/dashboard/admin/keys', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
