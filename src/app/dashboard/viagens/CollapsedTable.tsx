@@ -105,6 +105,7 @@ interface FilterOptions {
   status: string;
   responsavel: string;
   periodo: string;
+  placa: string;
 }
 
 
@@ -323,7 +324,7 @@ export default function CollapsibleTable() {
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<FilterOptions>({ status: '', responsavel: '', periodo: '' });
+  const [filters, setFilters] = useState<FilterOptions>({ status: '', responsavel: '', periodo: '', placa: '' });
 
   // Estado para linhas filtradas
   const [filteredRows, setFilteredRows] = useState<VehicleInspection[]>(allRows || []);
@@ -344,6 +345,11 @@ useEffect(() => {
         (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
         (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
       );
+    }
+
+    // Aplicar filtros
+    if (filters.placa) {
+      result = result.filter(row => row.vehicle.plate === filters.placa);
     }
 
     // Aplicar filtros
@@ -422,6 +428,7 @@ useEffect(() => {
 
   // Obter lista de responsáveis únicos para o filtro
   const responsaveis = Array.from(new Set(allRows && allRows.map(row => row.user.name)));
+  const placas = Array.from(new Set(allRows && allRows.map(row => row.vehicle.plate)));
 
   if (isLoading || !allRows) return <Loading />;
   return (
@@ -449,7 +456,7 @@ useEffect(() => {
 
           <Grid item xs={12} md={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl sx={{ minWidth: 120 }}>
+            <FormControl sx={{ minWidth: 140 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
                 <Select
                   labelId="responsavel-filter-label"
@@ -461,6 +468,22 @@ useEffect(() => {
                   <MenuItem value="">Todos</MenuItem>
                   {responsaveis.map(resp => (
                     <MenuItem key={resp} value={resp}>{resp}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel id="responsavel-filter-label">Placa</InputLabel>
+                <Select
+                  labelId="responsavel-filter-label"
+                  name="placa"
+                  value={filters.placa}
+                  label="Placa"
+                  onChange={handleFilterChange}
+                >
+                  <MenuItem value="">Todos</MenuItem>
+                  {placas.map(placa => (
+                    <MenuItem key={placa} value={placa}>{placa}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
