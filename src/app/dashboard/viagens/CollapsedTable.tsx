@@ -329,71 +329,74 @@ export default function CollapsibleTable() {
   const [filteredRows, setFilteredRows] = useState<VehicleInspection[]>(allRows || []);
 
   // Função para aplicar filtros e busca
-  useEffect(() => {
-    if (allRows) {
-      let result = [...allRows];
+useEffect(() => {
+  if (allRows) {
+    let result = [...allRows];
 
-      // Aplicar busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        result = result.filter(row =>
-          row.user.name.toLowerCase().includes(searchLower) ||
-          row?.start?.kilometer.includes(searchTerm) ||
-          row?.end?.kilometer.includes(searchTerm)
-        );
-      }
+    // Aplicar busca
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
 
-      // Aplicar filtros
-      if (filters.responsavel) {
-        result = result.filter(row => row.user.name === filters.responsavel);
-      }
-
-      if (filters.periodo) {
-        const today = new Date();
-        const filterDate = new Date();
-
-        switch (filters.periodo) {
-          case 'hoje':
-            result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
-            break;
-          case 'semana':
-            filterDate.setDate(today.getDate() - 7);
-            result = result.filter(row => new Date(row.createdAt) >= filterDate);
-            break;
-          case 'mes':
-            filterDate.setMonth(today.getMonth() - 1);
-            result = result.filter(row => new Date(row.createdAt) >= filterDate);
-            break;
-          default:
-            break;
-        }
-      }
-
-      if (filters.status) {
-        switch (filters.status) {
-          case 'avarias':
-            result = result.filter(row =>
-              row?.start?.avariasCabine === 'SIM' ||
-              row?.start?.bauPossuiAvarias === 'SIM' ||
-              row?.end?.avariasCabine === 'SIM' ||
-              row?.end?.bauPossuiAvarias === 'SIM'
-            );
-            break;
-          case 'problemas':
-            result = result.filter(row =>
-              row?.start?.nivelAgua === 'BAIXO' ||
-              row?.start?.nivelOleo === 'BAIXO' ||
-              row?.end?.nivelAgua === 'BAIXO' ||
-              row?.end?.nivelOleo === 'BAIXO'
-            );
-            break;
-          default: break;
-        }
-      }
-
-      setFilteredRows(result);
+      result = result.filter(row =>
+        (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
+        (String(row?.start?.kilometer || "")).toLowerCase().includes(searchLower) ||
+        (String(row?.end?.kilometer || "")).toLowerCase().includes(searchLower) ||
+        (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
+        (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
+      );
     }
-  }, [searchTerm, filters, allRows]);
+
+    // Aplicar filtros
+    if (filters.responsavel) {
+      result = result.filter(row => row.user.name === filters.responsavel);
+    }
+
+    if (filters.periodo) {
+      const today = new Date();
+      const filterDate = new Date();
+
+      switch (filters.periodo) {
+        case 'hoje':
+          result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
+          break;
+        case 'semana':
+          filterDate.setDate(today.getDate() - 7);
+          result = result.filter(row => new Date(row.createdAt) >= filterDate);
+          break;
+        case 'mes':
+          filterDate.setMonth(today.getMonth() - 1);
+          result = result.filter(row => new Date(row.createdAt) >= filterDate);
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (filters.status) {
+      switch (filters.status) {
+        case 'avarias':
+          result = result.filter(row =>
+            row?.start?.avariasCabine === 'SIM' ||
+            row?.start?.bauPossuiAvarias === 'SIM' ||
+            row?.end?.avariasCabine === 'SIM' ||
+            row?.end?.bauPossuiAvarias === 'SIM'
+          );
+          break;
+        case 'problemas':
+          result = result.filter(row =>
+            row?.start?.nivelAgua === 'BAIXO' ||
+            row?.start?.nivelOleo === 'BAIXO' ||
+            row?.end?.nivelAgua === 'BAIXO' ||
+            row?.end?.nivelOleo === 'BAIXO'
+          );
+          break;
+        default: break;
+      }
+    }
+
+    setFilteredRows(result);
+  }
+}, [searchTerm, filters, allRows]);
 
   // Calcular total de páginas
   const totalPages = Math.ceil(filteredRows.length / rowsPerPage);

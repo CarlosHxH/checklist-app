@@ -47,3 +47,35 @@ export function findObject(obj: AnyObject, searchString: string): string[] {
   search(obj);
   return foundKeys;
 }
+
+
+/**
+ * Filtra um array de itens com base em múltiplos critérios de filtro
+ * @param array O array a ser filtrado
+ * @param filters Um objeto com chaves representando propriedades e valores representando critérios de filtro
+ * @returns Um novo array contendo apenas os itens que correspondem a todos os filtros
+ */
+export function multiFilter<T extends Record<string, any>>(
+  array: T[],
+  filters: Record<string, string | null | undefined>
+): T[] {
+  return array.filter((item) => {
+    return Object.entries(filters).every(([key, value]) => {
+      // Se o valor do filtro for nulo ou indefinido, não aplica o filtro
+      if (!value) return true;
+      
+      const filterValues = value.split(',').map((v) => v.trim().toLowerCase());
+      const itemValue = String(item[key]).toLowerCase();
+      
+      // Verifica se algum dos valores do filtro corresponde ao valor do item
+      return filterValues.some((filterValue) => {
+        // Lida com comparações numéricas
+        if (!isNaN(Number(itemValue)) && !isNaN(Number(filterValue))) {
+          return Number(itemValue) === Number(filterValue);
+        }
+        // Lida com inclusões de string
+        return itemValue.includes(filterValue);
+      });
+    });
+  });
+}
