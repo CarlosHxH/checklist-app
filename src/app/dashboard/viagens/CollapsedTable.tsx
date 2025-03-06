@@ -6,16 +6,18 @@ import {
   Chip, TextField, MenuItem, FormControl, InputLabel, Toolbar,
   Select, Stack, Pagination, InputAdornment, Grid, SelectChangeEvent,
   Tooltip,
+  Button,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import useSWR from 'swr';
-import { fetcher } from '@/lib/ultils';
+import { fetcher, formatDate } from '@/lib/ultils';
 import Loading from '@/components/Loading';
 import { Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import StatusUpdateModal from './Modal';
 
 // Definição do tipo para os dados
 interface VehicleInspection {
@@ -115,17 +117,66 @@ function Row(props: { row: VehicleInspection }) {
   const { row } = props;
   const [open, setOpen] = useState(false);
 
-  // Formatar a data para exibição
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+
+  // Check if there are any issues to fix
+  const hasIssues = () => {
+    const startIssues = row?.start && (
+      row.start.nivelAgua === 'BAIXO' ||
+      row.start.nivelOleo === 'BAIXO' ||
+      row.start.avariasCabine === 'SIM' ||
+      row.start.bauPossuiAvarias === 'SIM' ||
+      row.start.funcionamentoParteEletrica === 'PROBLEMAS'
+    );
+
+    const endIssues = row?.end && (
+      row.end.nivelAgua === 'BAIXO' ||
+      row.end.nivelOleo === 'BAIXO' ||
+      row.end.avariasCabine === 'SIM' ||
+      row.end.bauPossuiAvarias === 'SIM' ||
+      row.end.funcionamentoParteEletrica === 'PROBLEMAS'
+    );
+
+    return startIssues || endIssues;
   };
+
+
+  // Handle saving updated status
+  interface SaveStatusData {
+    section: 'start' | 'end';
+    data: any; // You can replace `any` with a more specific type if you have one
+  }
+
+  const handleSaveStatus = async (data: SaveStatusData): Promise<void> => {
+    try {
+      setIsUpdating(true);
+
+      // Example API call to update the data
+      await fetch(`/api/dashboard/viagens/${row.id}/update-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          section: data.section, // 'start' or 'end'
+          data: data.data,
+        }),
+      });
+
+      // Refresh data after update
+      // You might want to trigger a refresh of your SWR data here
+
+      setIsUpdating(false);
+      return;
+    } catch (error) {
+      setIsUpdating(false);
+      console.error('Error updating status:', error);
+      throw error;
+    }
+  };
+
 
   // Diferença de quilometragem
   const kmDiff = (row?.end?.kilometer) ? parseInt(row?.end?.kilometer) - parseInt(row?.start?.kilometer) : 0;
@@ -166,12 +217,24 @@ function Row(props: { row: VehicleInspection }) {
         </TableCell>
 
         <TableCell align="right">
-        <Box>
+          <Box>
             <Tooltip title="Visualizar">
               <IconButton size="small" onClick={() => router.push(`/dashboard/viagens/${row.id}`)}>
                 <Visibility />
               </IconButton>
             </Tooltip>
+            
+            {hasIssues() && (
+              <Tooltip title="Corrigir Problemas/Avarias">
+                <IconButton 
+                  size="small" 
+                  onClick={() => setModalOpen(true)} 
+                  color="warning"
+                >
+                  <Visibility />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         </TableCell>
 
@@ -188,7 +251,7 @@ function Row(props: { row: VehicleInspection }) {
               <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: { xs: 'column', md: 'row' } }}>
                 <Box>
                   <Typography variant="subtitle1" gutterBottom>
-                    Inicio da Viagem: 
+                    Inicio da Viagem:
                     {row.start?.dataInspecao ? formatDate(row.start.dataInspecao) : 'Data não disponível'}
                   </Typography>
                   <Table size="small" aria-label="inspection-start">
@@ -201,47 +264,47 @@ function Row(props: { row: VehicleInspection }) {
                     <TableBody>
                       <TableRow>
                         <TableCell>CRLV</TableCell>
-                        <TableCell>{row?.start?.crlvEmDia||''}</TableCell>
+                        <TableCell>{row?.start?.crlvEmDia || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row?.start?.certificadoTacografoEmDia||''}</TableCell>
+                        <TableCell>{row?.start?.certificadoTacografoEmDia || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row?.start?.nivelAgua||''}</TableCell>
+                        <TableCell>{row?.start?.nivelAgua || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row?.start?.nivelOleo||''}</TableCell>
+                        <TableCell>{row?.start?.nivelOleo || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row?.start?.dianteira||''}</TableCell>
+                        <TableCell>{row?.start?.dianteira || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row?.start?.tracao||''}</TableCell>
+                        <TableCell>{row?.start?.tracao || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Truck</TableCell>
-                        <TableCell>{row?.start?.truck||''}</TableCell>
+                        <TableCell>{row?.start?.truck || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row?.start?.avariasCabine||''}</TableCell>
+                        <TableCell>{row?.start?.avariasCabine || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row?.start?.bauPossuiAvarias||''}</TableCell>
+                        <TableCell>{row?.start?.bauPossuiAvarias || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row?.start?.funcionamentoParteEletrica||''}</TableCell>
+                        <TableCell>{row?.start?.funcionamentoParteEletrica || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Extintor</TableCell>
-                        <TableCell>{row?.start?.extintor||''}</TableCell>
+                        <TableCell>{row?.start?.extintor || ''}</TableCell>
                       </TableRow>
 
                     </TableBody>
@@ -262,49 +325,48 @@ function Row(props: { row: VehicleInspection }) {
                     <TableBody>
                       <TableRow>
                         <TableCell>CRLV</TableCell>
-                        <TableCell>{row?.end?.crlvEmDia||''}</TableCell>
+                        <TableCell>{row?.end?.crlvEmDia || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row?.end?.certificadoTacografoEmDia||''}</TableCell>
+                        <TableCell>{row?.end?.certificadoTacografoEmDia || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row?.end?.nivelAgua||''}</TableCell>
+                        <TableCell>{row?.end?.nivelAgua || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row?.end?.nivelOleo||''}</TableCell>
+                        <TableCell>{row?.end?.nivelOleo || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row?.end?.dianteira||''}</TableCell>
+                        <TableCell>{row?.end?.dianteira || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row?.end?.tracao||''}</TableCell>
+                        <TableCell>{row?.end?.tracao || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Truck</TableCell>
-                        <TableCell>{row?.end?.truck||''}</TableCell>
+                        <TableCell>{row?.end?.truck || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row?.end?.avariasCabine||''}</TableCell>
+                        <TableCell>{row?.end?.avariasCabine || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row?.end?.bauPossuiAvarias||''}</TableCell>
+                        <TableCell>{row?.end?.bauPossuiAvarias || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row?.end?.funcionamentoParteEletrica||''}</TableCell>
+                        <TableCell>{row?.end?.funcionamentoParteEletrica || ''}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Extintor</TableCell>
-                        <TableCell>{row?.end?.extintor||''}</TableCell>
+                        <TableCell>{row?.end?.extintor || ''}</TableCell>
                       </TableRow>
-
                     </TableBody>
                   </Table>
                 </Box>}
@@ -313,6 +375,14 @@ function Row(props: { row: VehicleInspection }) {
           </Collapse>
         </TableCell>
       </TableRow>
+
+      <StatusUpdateModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        inspectionData={row}
+        onSave={handleSaveStatus}
+        loading={isUpdating}
+      />
     </React.Fragment>
   );
 }
@@ -330,79 +400,79 @@ export default function CollapsibleTable() {
   const [filteredRows, setFilteredRows] = useState<VehicleInspection[]>(allRows || []);
 
   // Função para aplicar filtros e busca
-useEffect(() => {
-  if (allRows) {
-    let result = [...allRows];
+  useEffect(() => {
+    if (allRows) {
+      let result = [...allRows];
 
-    // Aplicar busca
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      // Aplicar busca
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
 
-      result = result.filter(row =>
-        (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
-        (String(row?.start?.kilometer || "")).toLowerCase().includes(searchLower) ||
-        (String(row?.end?.kilometer || "")).toLowerCase().includes(searchLower) ||
-        (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
-        (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
-      );
-    }
-
-    // Aplicar filtros
-    if (filters.placa) {
-      result = result.filter(row => row.vehicle.plate === filters.placa);
-    }
-
-    // Aplicar filtros
-    if (filters.responsavel) {
-      result = result.filter(row => row.user.name === filters.responsavel);
-    }
-
-    if (filters.periodo) {
-      const today = new Date();
-      const filterDate = new Date();
-
-      switch (filters.periodo) {
-        case 'hoje':
-          result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
-          break;
-        case 'semana':
-          filterDate.setDate(today.getDate() - 7);
-          result = result.filter(row => new Date(row.createdAt) >= filterDate);
-          break;
-        case 'mes':
-          filterDate.setMonth(today.getMonth() - 1);
-          result = result.filter(row => new Date(row.createdAt) >= filterDate);
-          break;
-        default:
-          break;
+        result = result.filter(row =>
+          (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
+          (String(row?.start?.kilometer || "")).toLowerCase().includes(searchLower) ||
+          (String(row?.end?.kilometer || "")).toLowerCase().includes(searchLower) ||
+          (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
+          (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
+        );
       }
-    }
 
-    if (filters.status) {
-      switch (filters.status) {
-        case 'avarias':
-          result = result.filter(row =>
-            row?.start?.avariasCabine === 'SIM' ||
-            row?.start?.bauPossuiAvarias === 'SIM' ||
-            row?.end?.avariasCabine === 'SIM' ||
-            row?.end?.bauPossuiAvarias === 'SIM'
-          );
-          break;
-        case 'problemas':
-          result = result.filter(row =>
-            row?.start?.nivelAgua === 'BAIXO' ||
-            row?.start?.nivelOleo === 'BAIXO' ||
-            row?.end?.nivelAgua === 'BAIXO' ||
-            row?.end?.nivelOleo === 'BAIXO'
-          );
-          break;
-        default: break;
+      // Aplicar filtros
+      if (filters.placa) {
+        result = result.filter(row => row.vehicle.plate === filters.placa);
       }
-    }
 
-    setFilteredRows(result);
-  }
-}, [searchTerm, filters, allRows]);
+      // Aplicar filtros
+      if (filters.responsavel) {
+        result = result.filter(row => row.user.name === filters.responsavel);
+      }
+
+      if (filters.periodo) {
+        const today = new Date();
+        const filterDate = new Date();
+
+        switch (filters.periodo) {
+          case 'hoje':
+            result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
+            break;
+          case 'semana':
+            filterDate.setDate(today.getDate() - 7);
+            result = result.filter(row => new Date(row.createdAt) >= filterDate);
+            break;
+          case 'mes':
+            filterDate.setMonth(today.getMonth() - 1);
+            result = result.filter(row => new Date(row.createdAt) >= filterDate);
+            break;
+          default:
+            break;
+        }
+      }
+
+      if (filters.status) {
+        switch (filters.status) {
+          case 'avarias':
+            result = result.filter(row =>
+              row?.start?.avariasCabine === 'SIM' ||
+              row?.start?.bauPossuiAvarias === 'SIM' ||
+              row?.end?.avariasCabine === 'SIM' ||
+              row?.end?.bauPossuiAvarias === 'SIM'
+            );
+            break;
+          case 'problemas':
+            result = result.filter(row =>
+              row?.start?.nivelAgua === 'BAIXO' ||
+              row?.start?.nivelOleo === 'BAIXO' ||
+              row?.end?.nivelAgua === 'BAIXO' ||
+              row?.end?.nivelOleo === 'BAIXO'
+            );
+            break;
+          default: break;
+        }
+      }
+
+      setFilteredRows(result);
+    }
+  }, [searchTerm, filters, allRows]);
 
   // Calcular total de páginas
   const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
@@ -456,7 +526,7 @@ useEffect(() => {
 
           <Grid item xs={12} md={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl sx={{ minWidth: 140 }}>
+              <FormControl sx={{ minWidth: 140 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
                 <Select
                   labelId="responsavel-filter-label"
@@ -504,7 +574,7 @@ useEffect(() => {
                 </Select>
               </FormControl>
 
-              <FormControl sx={{ minWidth: 120 }}>
+              <FormControl sx={{ minWidth: 60 }}>
                 <InputLabel id="status-filter-label">Status</InputLabel>
                 <Select
                   labelId="status-filter-label"
@@ -523,6 +593,10 @@ useEffect(() => {
                   <MenuItem value="problemas">Com problemas</MenuItem>
                 </Select>
               </FormControl>
+
+              <Button fullWidth sx={{ minWidth: 90 }} variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
+                Exportar
+              </Button>
             </Stack>
           </Grid>
         </Grid>
@@ -569,6 +643,7 @@ useEffect(() => {
           showFirstButton
           showLastButton
         />
+
       </Box>
 
       {/* Indicador de resultados */}

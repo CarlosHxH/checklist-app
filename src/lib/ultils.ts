@@ -1,12 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const fakeArray = (value: number) =>Array.from({ length: value }, (_, i) => i + 1);
+export const fakeArray = (value: number) =>
+  Array.from({ length: value }, (_, i) => i + 1);
 
 export const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export const hoje = (()=> new Date().toLocaleString('pt-BR'))();
-
+export const hoje = (() => new Date().toLocaleString("pt-BR"))();
+/*
 export const formatDate = (dateString: string | Date) => {
   return new Date(dateString).toLocaleDateString("pt-BR");
+};*/
+
+// Formatar a data para exibição
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 };
 
 export const stringToDate = (isoString: string) => {
@@ -48,7 +61,6 @@ export function findObject(obj: AnyObject, searchString: string): string[] {
   return foundKeys;
 }
 
-
 /**
  * Filtra um array de itens com base em múltiplos critérios de filtro
  * @param array O array a ser filtrado
@@ -63,10 +75,10 @@ export function multiFilter<T extends Record<string, any>>(
     return Object.entries(filters).every(([key, value]) => {
       // Se o valor do filtro for nulo ou indefinido, não aplica o filtro
       if (!value) return true;
-      
-      const filterValues = value.split(',').map((v) => v.trim().toLowerCase());
+
+      const filterValues = value.split(",").map((v) => v.trim().toLowerCase());
       const itemValue = String(item[key]).toLowerCase();
-      
+
       // Verifica se algum dos valores do filtro corresponde ao valor do item
       return filterValues.some((filterValue) => {
         // Lida com comparações numéricas

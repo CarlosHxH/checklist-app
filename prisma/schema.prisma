@@ -28,6 +28,7 @@ model user {
   vehiclekey     VehicleKey[]
   
   Inspect Inspect[] @relation(map: "Access_userId_fkey")
+  corrections  InspectionCorrection[] @relation(map: "InspectionCorrection_userId_fkey")
 }
 
 model Account {
@@ -83,24 +84,6 @@ model access {
 }
 
 
-
-model Inspect {
-  id            String  @id @default(cuid())
-  userId        String
-  startId       String?
-  endId         String?
-  vehicleId     String?
-
-  // These relations need opposite relations in the inspection model
-  start         inspection?  @relation("StartInspection", fields: [startId], references: [id])
-  end           inspection?  @relation("EndInspection", fields: [endId], references: [id])
-
-  vehicle       vehicle? @relation("EndInspection", fields: [vehicleId], references: [id])
-  user          user     @relation(fields: [userId], references: [id], map: "Inspect_userId_fkey")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 model InspectionPhoto {
   id            String     @id @default(cuid())
   inspectionId  String
@@ -118,6 +101,22 @@ model InspectionPhoto {
   veiculoInspections   inspection[] @relation("fotoVeiculo")
 
   @@index([inspectionId])
+}
+model Inspect {
+  id            String  @id @default(cuid())
+  userId        String
+  startId       String?
+  endId         String?
+  vehicleId     String?
+
+  // These relations need opposite relations in the inspection model
+  start         inspection?  @relation("StartInspection", fields: [startId], references: [id])
+  end           inspection?  @relation("EndInspection", fields: [endId], references: [id])
+
+  vehicle       vehicle? @relation("EndInspection", fields: [vehicleId], references: [id])
+  user          user     @relation(fields: [userId], references: [id], map: "Inspect_userId_fkey")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model inspection {
@@ -157,6 +156,7 @@ model inspection {
   user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
+  corrections  InspectionCorrection[]
   // Photo relations
   photos                      InspectionPhoto[]
   fotoDocumento               InspectionPhoto[] @relation("fotoDocumento")
@@ -200,4 +200,22 @@ model VehicleKey {
   vehicle         vehicle      @relation(fields: [vehicleId], references: [id])
   parent          VehicleKey?  @relation("KeyHistory", fields: [parentId], references: [id])
   children        VehicleKey[] @relation("KeyHistory")
+}
+
+
+model InspectionCorrection {
+  id            String   @id @default(uuid())
+  inspectionId  String
+  section       String   // 'start' or 'end'
+  resolvidoPor  String
+  observacoes   String?
+  userId        String
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  inspection    inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  user          user       @relation(fields: [userId], references: [id])
+
+  @@index([inspectionId])
+  @@index([userId])
 }

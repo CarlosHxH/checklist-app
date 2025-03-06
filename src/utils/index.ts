@@ -99,7 +99,7 @@ export class CSVExporter {
   /**
    * Exports array of objects to CSV
    */
-  static exportToCSV<T extends object>(
+  static export<T extends object>(
     data: T[],
     options: CSVOptions = {}
   ): void {
