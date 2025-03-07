@@ -26,9 +26,9 @@ model user {
   inspection     inspection[]
   sessions       Session[]
   vehiclekey     VehicleKey[]
+  corrections  InspectionCorrection[]
   
   Inspect Inspect[] @relation(map: "Access_userId_fkey")
-  corrections  InspectionCorrection[] @relation(map: "InspectionCorrection_userId_fkey")
 }
 
 model Account {

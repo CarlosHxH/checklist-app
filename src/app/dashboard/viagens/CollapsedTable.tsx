@@ -18,6 +18,8 @@ import Loading from '@/components/Loading';
 import { Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import StatusUpdateModal from './Modal';
+import { useInspectionUpdate } from '@/hooks/useInspectionUpdate';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 // Definição do tipo para os dados
 interface VehicleInspection {
@@ -110,7 +112,6 @@ interface FilterOptions {
   placa: string;
 }
 
-
 // Componente de linha da tabela (Row)
 function Row(props: { row: VehicleInspection }) {
   const router = useRouter();
@@ -118,22 +119,34 @@ function Row(props: { row: VehicleInspection }) {
   const [open, setOpen] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Use our custom hook
+  const { updateStatus, loading } = useInspectionUpdate(row.id, {
+    onSuccess: () => {
+      alert('Status atualizado com sucesso!');
+      setModalOpen(false);
+    },
+    onError: (error: any) => {
+      alert(error.message || 'Erro ao atualizar status');
+      setModalOpen(false);
+    }
+  });
 
 
   // Check if there are any issues to fix
   const hasIssues = () => {
+
     const startIssues = row?.start && (
-      row.start.nivelAgua === 'BAIXO' ||
-      row.start.nivelOleo === 'BAIXO' ||
+      row.start.nivelAgua != 'OK' ||
+      row.start.nivelOleo != 'OK' ||
       row.start.avariasCabine === 'SIM' ||
       row.start.bauPossuiAvarias === 'SIM' ||
       row.start.funcionamentoParteEletrica === 'PROBLEMAS'
     );
 
     const endIssues = row?.end && (
-      row.end.nivelAgua === 'BAIXO' ||
-      row.end.nivelOleo === 'BAIXO' ||
+      row.end.nivelAgua != 'OK' ||
+      row.end.nivelOleo != 'OK' ||
       row.end.avariasCabine === 'SIM' ||
       row.end.bauPossuiAvarias === 'SIM' ||
       row.end.funcionamentoParteEletrica === 'PROBLEMAS'
@@ -141,42 +154,6 @@ function Row(props: { row: VehicleInspection }) {
 
     return startIssues || endIssues;
   };
-
-
-  // Handle saving updated status
-  interface SaveStatusData {
-    section: 'start' | 'end';
-    data: any; // You can replace `any` with a more specific type if you have one
-  }
-
-  const handleSaveStatus = async (data: SaveStatusData): Promise<void> => {
-    try {
-      setIsUpdating(true);
-
-      // Example API call to update the data
-      await fetch(`/api/dashboard/viagens/${row.id}/update-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          section: data.section, // 'start' or 'end'
-          data: data.data,
-        }),
-      });
-
-      // Refresh data after update
-      // You might want to trigger a refresh of your SWR data here
-
-      setIsUpdating(false);
-      return;
-    } catch (error) {
-      setIsUpdating(false);
-      console.error('Error updating status:', error);
-      throw error;
-    }
-  };
-
 
   // Diferença de quilometragem
   const kmDiff = (row?.end?.kilometer) ? parseInt(row?.end?.kilometer) - parseInt(row?.start?.kilometer) : 0;
@@ -231,7 +208,7 @@ function Row(props: { row: VehicleInspection }) {
                   onClick={() => setModalOpen(true)} 
                   color="warning"
                 >
-                  <Visibility />
+                  <ReportProblemIcon />
                 </IconButton>
               </Tooltip>
             )}
@@ -380,8 +357,8 @@ function Row(props: { row: VehicleInspection }) {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         inspectionData={row}
-        onSave={handleSaveStatus}
-        loading={isUpdating}
+        onSave={updateStatus}
+        loading={loading}
       />
     </React.Fragment>
   );
@@ -389,7 +366,7 @@ function Row(props: { row: VehicleInspection }) {
 
 // Componente principal da tabela
 export default function CollapsibleTable() {
-  const { data: allRows, isLoading } = useSWR<VehicleInspection[]>('/api/dashboard/viagens', fetcher);
+  const { data: allRows, isLoading } = useSWR<VehicleInspection[]>('/api/v1/dashboard/viagens', fetcher);
   // Estados para paginação, busca e filtros
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);

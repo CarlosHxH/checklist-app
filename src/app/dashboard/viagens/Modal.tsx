@@ -20,7 +20,7 @@ import {
   Select,
   TextField
 } from '@mui/material';
-import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';;
 
 interface InspectionData {
   start?: {
@@ -167,8 +167,8 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
     if (!data) return false;
 
     return (
-      data.nivelAgua === 'BAIXO' ||
-      data.nivelOleo === 'BAIXO' ||
+      data.nivelAgua != 'OK' ||
+      data.nivelOleo != 'OK' ||
       data.avariasCabine === 'SIM' ||
       data.bauPossuiAvarias === 'SIM' ||
       data.funcionamentoParteEletrica === 'PROBLEMAS'
@@ -195,13 +195,13 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
 
     return (
       <Grid container spacing={2} sx={{ mt: 1 }}>
-        {(data.nivelAgua === 'BAIXO' || data.nivelOleo === 'BAIXO') && (
+        {(data.nivelAgua != 'OK' || data.nivelOleo != 'OK') && (
           <>
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold">Níveis de Fluidos</Typography>
               <Divider sx={{ mb: 1 }} />
             </Grid>
-            {data.nivelAgua === 'BAIXO' && (
+            {data.nivelAgua != 'OK' && (
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Nível de Água</InputLabel>
@@ -211,12 +211,13 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                     label="Nível de Água"
                   >
                     <MenuItem value="BAIXO">BAIXO</MenuItem>
+                    <MenuItem value="CRITICO">CRITICO</MenuItem>
                     <MenuItem value="OK">OK (Corrigido)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
             )}
-            {data.nivelOleo === 'BAIXO' && (
+            {data.nivelOleo != 'OK' && (
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Nível de Óleo</InputLabel>
@@ -226,6 +227,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                     label="Nível de Óleo"
                   >
                     <MenuItem value="BAIXO">BAIXO</MenuItem>
+                    <MenuItem value="CRITICO">CRITICO</MenuItem>
                     <MenuItem value="OK">OK (Corrigido)</MenuItem>
                   </Select>
                 </FormControl>
@@ -251,7 +253,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                       label="Avarias na Cabine"
                     >
                       <MenuItem value="SIM">SIM</MenuItem>
-                      <MenuItem value="NÃO">NÃO (Corrigido)</MenuItem>
+                      <MenuItem value="NÃO">Corrigido</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -279,7 +281,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                       label="Avarias no Baú"
                     >
                       <MenuItem value="SIM">SIM</MenuItem>
-                      <MenuItem value="NÃO">NÃO (Corrigido)</MenuItem>
+                      <MenuItem value="NÃO">Corrigido</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -369,7 +371,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+      <DialogTitle component="div">
         <Typography variant="h6" component="div">
           Atualizar Status de Problemas e Avarias
         </Typography>
