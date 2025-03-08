@@ -1,9 +1,8 @@
-//// app/api/dashboard/viagens/[id]/update-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
+import { authWithRoleMiddleware, userApiSession } from "@/lib/auth-middleware";
 
 interface UpdateStatusRequest {
   section: 'start' | 'end';
@@ -22,6 +21,10 @@ interface UpdateStatusRequest {
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+  
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -40,7 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Primeiro, obtenha a inspeção para verificar que ele existe e para obter os IDs relacionados
-    const inspection = await prisma.inspect.findUnique({where: { id: inspectionId }});
+    const inspection = await prisma.inspect.findUnique({ where: { id: inspectionId } });
 
     if (!inspection) {
       return NextResponse.json({ error: 'Inspeção não encontrada' }, { status: 404 });
@@ -66,35 +69,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (body.data.bauPossuiAvarias !== undefined) updateData.bauPossuiAvarias = body.data.bauPossuiAvarias;
     if (body.data.funcionamentoParteEletrica !== undefined) updateData.funcionamentoParteEletrica = body.data.funcionamentoParteEletrica;
 
-    // Atualizar campos de descrição apenas se o problema ainda estiver presente
-    if (body.data.avariasCabine === 'SIM' && body.data.descricaoAvariasCabine !== undefined) {
-      updateData.descricaoAvariasCabine = body.data.descricaoAvariasCabine;
-    } else if (body.data.avariasCabine === 'NÃO') {
-      updateData.descricaoAvariasCabine = null; // Clear description if issue is resolved
-    }
+    updateData.descricaoAvariasCabine = body.data.descricaoAvariasCabine || null;
+    updateData.descricaoAvariasBau = body.data.descricaoAvariasBau || null;
+    updateData.descricaoParteEletrica = body.data.descricaoParteEletrica || null;
 
-    if (body.data.bauPossuiAvarias === 'SIM' && body.data.descricaoAvariasBau !== undefined) {
-      updateData.descricaoAvariasBau = body.data.descricaoAvariasBau;
-    } else if (body.data.bauPossuiAvarias === 'NÃO') {
-      updateData.descricaoAvariasBau = null; // Clear description if issue is resolved
-    }
-
-    if (body.data.funcionamentoParteEletrica === 'PROBLEMAS' && body.data.descricaoParteEletrica !== undefined) {
-      updateData.descricaoParteEletrica = body.data.descricaoParteEletrica;
-    } else if (body.data.funcionamentoParteEletrica === 'OK') {
-      updateData.descricaoParteEletrica = null; // Clear description if issue is resolved
-    }
-/*
-    await prisma.inspectionCorrection.create({
+    await prisma.correction.create({
       data: {
-        inspectionId,
-        section: body.section,
-        resolvidoPor: body.data.resolvidoPor,
-        observacoes: body.data.observacoes || null,
-        userId: session.user.id,
-        createdAt: new Date(),
-      },
-    });*/
+        inspectionId: recordId || "",
+        section: body?.section || "",
+        resolvidoPor: body?.data?.resolvidoPor || "",
+        observacoes: body?.data?.observacoes || null,
+        userId: session?.user?.id || "",
+      }
+    });
 
     // Update the inspection record
     const updateResult = await prisma.inspection.update({
@@ -107,9 +94,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       data: updateResult
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
-      { error: 'Erro ao atualizar o status da inspeção' },
+      { error: 'Erro ao atualizar o status da inspeção', code: error.code || 'unknown' },
       { status: 500 }
     );
   }

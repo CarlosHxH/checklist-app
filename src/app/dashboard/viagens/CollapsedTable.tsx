@@ -137,16 +137,16 @@ function Row(props: { row: VehicleInspection }) {
   const hasIssues = () => {
 
     const startIssues = row?.start && (
-      row.start.nivelAgua != 'OK' ||
-      row.start.nivelOleo != 'OK' ||
+      row.start.nivelAgua != 'NORMAL' ||
+      row.start.nivelOleo != 'NORMAL' ||
       row.start.avariasCabine === 'SIM' ||
       row.start.bauPossuiAvarias === 'SIM' ||
       row.start.funcionamentoParteEletrica === 'PROBLEMAS'
     );
 
     const endIssues = row?.end && (
-      row.end.nivelAgua != 'OK' ||
-      row.end.nivelOleo != 'OK' ||
+      row.end.nivelAgua != 'NORMAL' ||
+      row.end.nivelOleo != 'NORMAL' ||
       row.end.avariasCabine === 'SIM' ||
       row.end.bauPossuiAvarias === 'SIM' ||
       row.end.funcionamentoParteEletrica === 'PROBLEMAS'

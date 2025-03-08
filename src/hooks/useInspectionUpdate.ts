@@ -31,7 +31,7 @@ export const useInspectionUpdate = ( id: string, { onSuccess, onError }: { onSuc
       setLoading(true);
 
       const response = await axios.put(`/api/v1/dashboard/viagens/${id}/update-status`, data);
-      if (response.status !== 200) {
+      if (response.status !== 201) {
         throw new Error("Falha ao atualizar o status!");
       }
       // Invalidar o cache para acionar uma atualização

@@ -167,11 +167,11 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
     if (!data) return false;
 
     return (
-      data.nivelAgua != 'OK' ||
-      data.nivelOleo != 'OK' ||
+      data.nivelAgua != 'NORMAL' ||
+      data.nivelOleo != 'NORMAL' ||
       data.avariasCabine === 'SIM' ||
       data.bauPossuiAvarias === 'SIM' ||
-      data.funcionamentoParteEletrica === 'PROBLEMAS'
+      data.funcionamentoParteEletrica === 'RUIM'
     );
   };
 
@@ -195,13 +195,13 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
 
     return (
       <Grid container spacing={2} sx={{ mt: 1 }}>
-        {(data.nivelAgua != 'OK' || data.nivelOleo != 'OK') && (
+        {(data.nivelAgua != 'NORMAL' || data.nivelOleo != 'NORMAL') && (
           <>
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold">Níveis de Fluidos</Typography>
               <Divider sx={{ mb: 1 }} />
             </Grid>
-            {data.nivelAgua != 'OK' && (
+            {data.nivelAgua != 'NORMAL' && (
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Nível de Água</InputLabel>
@@ -212,12 +212,12 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   >
                     <MenuItem value="BAIXO">BAIXO</MenuItem>
                     <MenuItem value="CRITICO">CRITICO</MenuItem>
-                    <MenuItem value="OK">OK (Corrigido)</MenuItem>
+                    <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
             )}
-            {data.nivelOleo != 'OK' && (
+            {data.nivelOleo != 'NORMAL' && (
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Nível de Óleo</InputLabel>
@@ -228,7 +228,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   >
                     <MenuItem value="BAIXO">BAIXO</MenuItem>
                     <MenuItem value="CRITICO">CRITICO</MenuItem>
-                    <MenuItem value="OK">OK (Corrigido)</MenuItem>
+                    <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -252,7 +252,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                       onChange={(e) => handleChange(section, 'avariasCabine', e.target.value)}
                       label="Avarias na Cabine"
                     >
-                      <MenuItem value="SIM">SIM</MenuItem>
+                      <MenuItem value="SIM">Com Avarias</MenuItem>
                       <MenuItem value="NÃO">Corrigido</MenuItem>
                     </Select>
                   </FormControl>
@@ -280,7 +280,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                       onChange={(e) => handleChange(section, 'bauPossuiAvarias', e.target.value)}
                       label="Avarias no Baú"
                     >
-                      <MenuItem value="SIM">SIM</MenuItem>
+                      <MenuItem value="SIM">Com Avarias</MenuItem>
                       <MenuItem value="NÃO">Corrigido</MenuItem>
                     </Select>
                   </FormControl>
@@ -301,7 +301,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
           </>
         )}
 
-        {data.funcionamentoParteEletrica === 'PROBLEMAS' && (
+        {data.funcionamentoParteEletrica === 'RUIM' && (
           <>
             <Grid item xs={12} sx={{ mt: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold">Parte Elétrica</Typography>
@@ -315,8 +315,8 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   onChange={(e) => handleChange(section, 'funcionamentoParteEletrica', e.target.value)}
                   label="Funcionamento da Parte Elétrica"
                 >
-                  <MenuItem value="PROBLEMAS">PROBLEMAS</MenuItem>
-                  <MenuItem value="OK">OK (Corrigido)</MenuItem>
+                  <MenuItem value="RUIM">PROBLEMAS</MenuItem>
+                  <MenuItem value="BOM">OK (Corrigido)</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -326,7 +326,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 label="Descrição dos Problemas Elétricos"
                 value={formData[section].descricaoParteEletrica || ''}
                 onChange={(e) => handleChange(section, 'descricaoParteEletrica', e.target.value)}
-                disabled={formData[section].funcionamentoParteEletrica !== 'PROBLEMAS'}
+                disabled={formData[section].funcionamentoParteEletrica !== 'RUIM'}
                 multiline
                 rows={2}
               />

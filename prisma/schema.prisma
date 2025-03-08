@@ -26,7 +26,7 @@ model user {
   inspection     inspection[]
   sessions       Session[]
   vehiclekey     VehicleKey[]
-  corrections  InspectionCorrection[]
+  corrections    correction[]
   
   Inspect Inspect[] @relation(map: "Access_userId_fkey")
 }
@@ -156,7 +156,7 @@ model inspection {
   user                        user              @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicle                     vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  corrections  InspectionCorrection[]
+  corrections                 correction[]
   // Photo relations
   photos                      InspectionPhoto[]
   fotoDocumento               InspectionPhoto[] @relation("fotoDocumento")
@@ -203,16 +203,15 @@ model VehicleKey {
 }
 
 
-model InspectionCorrection {
+model correction {
   id            String   @id @default(uuid())
   inspectionId  String
-  section       String   // 'start' or 'end'
+  section       String
   resolvidoPor  String
   observacoes   String?
   userId        String
   createdAt     DateTime @default(now())
-  
-  // Relations
+
   inspection    inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
   user          user       @relation(fields: [userId], references: [id])
 
