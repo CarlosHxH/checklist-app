@@ -141,7 +141,12 @@ function Row(props: { row: VehicleInspection }) {
       row.start.nivelOleo != 'NORMAL' ||
       row.start.avariasCabine === 'SIM' ||
       row.start.bauPossuiAvarias === 'SIM' ||
-      row.start.funcionamentoParteEletrica === 'PROBLEMAS'
+      row.start.funcionamentoParteEletrica === 'RUIM' ||
+
+      row?.start?.dianteira === 'RUIM' ||
+      row?.start?.tracao === 'RUIM' ||
+      row?.start?.truck === 'RUIM' ||
+      row?.start?.quartoEixo === 'RUIM'
     );
 
     const endIssues = row?.end && (
@@ -149,7 +154,12 @@ function Row(props: { row: VehicleInspection }) {
       row.end.nivelOleo != 'NORMAL' ||
       row.end.avariasCabine === 'SIM' ||
       row.end.bauPossuiAvarias === 'SIM' ||
-      row.end.funcionamentoParteEletrica === 'PROBLEMAS'
+      row.end.funcionamentoParteEletrica === 'RUIM' ||
+
+      row?.end?.dianteira === 'RUIM' ||
+      row?.end?.tracao === 'RUIM' ||
+      row?.end?.truck === 'RUIM' ||
+      row?.end?.quartoEixo === 'RUIM'
     );
 
     return startIssues || endIssues;

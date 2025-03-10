@@ -7,7 +7,7 @@ interface ButtonLabelProps {
   label: string;
   name: string;
   options: string[];
-  control: Control<any>;
+  control?: Control<any>;
   rules?: Record<string, any>;
   disabled?: boolean;
 }

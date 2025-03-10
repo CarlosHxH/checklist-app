@@ -17,6 +17,15 @@ interface UpdateStatusRequest {
     descricaoParteEletrica?: string | null;
     resolvidoPor: string;
     observacoes?: string | null;
+
+    dianteira?: string | null;
+    descricaoDianteira?: string | null;
+    tracao?: string | null;
+    descricaoTracao: string | null;
+    truck?: string | null;
+    descricaoTruck?: string | null;
+    quartoEixo?: string | null;
+    descricaoQuartoEixo?: string | null;
   };
 }
 
@@ -72,6 +81,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     updateData.descricaoAvariasCabine = body.data.descricaoAvariasCabine || null;
     updateData.descricaoAvariasBau = body.data.descricaoAvariasBau || null;
     updateData.descricaoParteEletrica = body.data.descricaoParteEletrica || null;
+
+    if (body.data.dianteira !== undefined) updateData.dianteira = body.data.dianteira;
+    if (body.data.tracao !== undefined) updateData.tracao = body.data.tracao;
+    if (body.data.truck !== undefined) updateData.truck = body.data.truck;
+    if (body.data.quartoEixo !== undefined) updateData.quartoEixo = body.data.quartoEixo;
+
+    updateData.descricaoDianteira = body.data.descricaoDianteira || null;
+    updateData.descricaoTracao = body.data.descricaoTracao || null;
+    updateData.descricaoTruck = body.data.descricaoTruck || null;
+    updateData.descricaoQuartoEixo = body.data.descricaoQuartoEixo || null;
 
     await prisma.correction.create({
       data: {
