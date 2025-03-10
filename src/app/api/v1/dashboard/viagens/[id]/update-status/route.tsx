@@ -72,7 +72,7 @@ export async function PUT(
     }
 
     // Create update data
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: { [key: string]: any } = { updatedAt: new Date() };
 
     // Only include fields that were sent in the request
     if (body?.data?.nivelAgua !== undefined) updateData.nivelAgua = body?.data?.nivelAgua;
@@ -85,23 +85,30 @@ export async function PUT(
     updateData.descricaoAvariasBau = body?.data?.descricaoAvariasBau || null;
     updateData.descricaoParteEletrica = body?.data?.descricaoParteEletrica || null;
 
-    if (body?.data?.dianteira !== undefined) updateData.dianteira = body?.data?.dianteira;
-    if (body?.data?.tracao !== undefined) updateData.tracao = body?.data?.tracao;
-    if (body?.data?.truck !== undefined) updateData.truck = body?.data?.truck;
-    if (body?.data?.quartoEixo !== undefined) updateData.quartoEixo = body?.data?.quartoEixo;
-
-    updateData.descricaoDianteira = body?.data?.descricaoDianteira || null;
-    updateData.descricaoTracao = body?.data?.descricaoTracao || null;
-    updateData.descricaoTruck = body?.data?.descricaoTruck || null;
-    updateData.descricaoQuartoEixo = body?.data?.descricaoQuartoEixo || null;
+    if (body?.data?.dianteira !== undefined) {
+      updateData.dianteira = body?.data?.dianteira;
+      updateData.descricaoDianteira = body?.data?.descricaoDianteira || null;
+    }
+    if (body?.data?.tracao !== undefined) {
+      updateData.tracao = body?.data?.tracao;
+      updateData.descricaoTracao = body?.data?.descricaoTracao || null;
+    }
+    if (body?.data?.truck !== undefined) {
+      updateData.truck = body?.data?.truck;
+      updateData.descricaoTruck = body?.data?.descricaoTruck || null;
+    }
+    if (body?.data?.quartoEixo !== undefined) {
+      updateData.quartoEixo = body?.data?.quartoEixo;
+      updateData.descricaoQuartoEixo = body?.data?.descricaoQuartoEixo || null;
+    }
 
     await prisma.correction.create({
       data: {
-        inspectionId: recordId || "",
-        section: body?.section || "",
-        resolvidoPor: body?.data?.resolvidoPor || "",
-        observacoes: body?.data?.observacoes || null,
-        userId: session?.user?.id || "",
+        inspectionId: recordId,
+        section: body.section,
+        resolvidoPor: body.data.resolvidoPor,
+        observacoes: body.data.observacoes || '',
+        userId: session.user.id,
       }
     });
 
