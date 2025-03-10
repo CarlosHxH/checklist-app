@@ -44,15 +44,12 @@ export const authOptions: NextAuthOptions = {
           if (!credentials?.username || !credentials?.password) {
             return null;
           }
-
-          console.log({credentials});
-          
           // Buscar usuário
           const user = await prisma.user.findUnique({
             where: { username: credentials.username }
           });
 
-          console.log("Resultado da busca:",user ? "Usuário encontrado: "+user.email : "Usuário não encontrado. code: 0x01");
+          console.log("Resultado da busca:",user ? `${hoje} Usuário encontrado: ${user.email}` : `${hoje} Usuário: ${credentials?.username}, não encontrado`);
 
           if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo! code: 0x02";
 
@@ -64,7 +61,7 @@ export const authOptions: NextAuthOptions = {
           // Atualizar ou criar Account
           try {
             // Gerar access token
-            const expires_at = Math.floor(Date.now() / 1000) + .01 * 60 * 60;
+            const expires_at = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
             const access_token = generateToken({id: user.id, username:user.username});
             await prisma.account.upsert({
               where: {
@@ -87,7 +84,7 @@ export const authOptions: NextAuthOptions = {
                 expires_at,
               },
             });
-            console.log("Sucesso ao atualizar account:",user.username);
+            console.log(`${hoje} Sucesso ao atualizar account: `,user.username);
           } catch (error) {
             console.log("Erro ao atualizar account: ",user.username);
             // continue com a autenticação mesmo se falhar
@@ -102,7 +99,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role
           };
         } catch (error) {
-          console.error("Erro na autenticação:", error);
+          console.error(`${hoje} Erro na autenticação:`, error);
           return null;
         }
       }
@@ -143,10 +140,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/auth/signin'
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt"
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
