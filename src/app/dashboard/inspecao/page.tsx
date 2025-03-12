@@ -32,7 +32,7 @@ interface Inspection {
 
 const InspectionDashboard: React.FC = () => {
   const router = useRouter();
-  const { data: inspections, error } = useSWR<Inspection[]>('/api/inspections', fetcher);
+  const { data: inspections, error } = useSWR<Inspection[]>('/api/v1/dashboard/inspecao', fetcher);
 
   const StatusChip: React.FC<{ value: string }> = ({ value }) => {
     const getChipProps = () => {

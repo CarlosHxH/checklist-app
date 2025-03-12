@@ -19,7 +19,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function SparkLineCard({ title, subtitle, year, month }: SparkLineCardProps) {
     const { data, error, isLoading } = useSWR<DailyOccurrence[]>(
-        `/api/admin/occurrence`,
+        `/api/dashboard/occurrence`,
         fetcher
     );
     

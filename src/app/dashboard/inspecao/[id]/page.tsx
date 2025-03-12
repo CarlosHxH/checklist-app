@@ -81,7 +81,7 @@ const StatusChip: React.FC<{ value: string }> = ({ value }) => {
 
 const InspectionViewPage: React.FC = () => {
   const { id } = useParams();
-  const { data: inspection, error } = useSWR<InspectionView>(`/api/inspecao/${id}`, fetcher);
+  const { data: inspection, error } = useSWR<InspectionView>(`/api/v1/dashboard/inspecao/${id}`, fetcher);
 
   if (!inspection) return <Loading />;
   if (error) return <div>Erro ao carregar inspeção <Link href={'/'}>Voltar</Link></div>;

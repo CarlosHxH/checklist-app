@@ -105,7 +105,7 @@ const StyledStatus = styled(Chip)(({ theme, color }) => ({
 // Componente principal
 const VehicleInspectionDetail: React.FC = () => {
   const { id } = useParams();
-  const { data, isLoading } = useSWR<ApiResponse>(`/api/dashboard/viagens/${id}`, fetcher);
+  const { data, isLoading } = useSWR<ApiResponse>(`/api/v1/dashboard/viagens/${id}`, fetcher);
 
   if (isLoading) return <div>Loading...</div>;
   if (!data) return <div>Error loading data</div>;

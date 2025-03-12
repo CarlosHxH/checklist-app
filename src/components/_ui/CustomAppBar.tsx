@@ -56,7 +56,7 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
                 label={session?.user.name}
                 variant="outlined"
               />}
-              <NotificationModal />
+              {/*<NotificationModal />*/}
               <LogoutButton />
             </Box>
           </Toolbar>

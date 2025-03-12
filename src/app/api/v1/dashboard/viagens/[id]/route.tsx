@@ -25,9 +25,7 @@ async function getTransaction(id:string) {
           },
           vehicle: true
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
       });
       return { inspections };
     });
@@ -42,9 +40,7 @@ async function getTransaction(id:string) {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verificar autenticação e permissão
   const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) {
-    return authResponse;
-  }
+  if (authResponse.status !== 200) return authResponse;
   
   try {
     const id = (await params).id;

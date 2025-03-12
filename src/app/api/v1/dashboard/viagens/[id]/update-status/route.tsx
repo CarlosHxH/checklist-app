@@ -102,15 +102,17 @@ export async function PUT(
       updateData.descricaoQuartoEixo = body?.data?.descricaoQuartoEixo || null;
     }
 
-    await prisma.correction.create({
-      data: {
-        inspectionId: recordId,
-        section: body.section,
-        resolvidoPor: body.data.resolvidoPor,
-        observacoes: body.data.observacoes || '',
-        userId: session.user.id,
-      }
-    });
+    if (body?.data) {
+      await prisma.correction.create({
+        data: {
+          inspectionId: recordId,
+          section: body.section,
+          resolvidoPor: body.data.resolvidoPor,
+          observacoes:  JSON.stringify(body.data) || '',
+          userId: session.user.id,
+        }
+      });
+    }
 
     // Update the inspection record
     const updateResult = await prisma.inspection.update({
@@ -118,11 +120,7 @@ export async function PUT(
       data: updateData,
     });
 
-    return NextResponse.json({
-      message: 'Status atualizado com sucesso',
-      data: updateResult
-    }, { status: 201 });
-
+    return NextResponse.json({ message: 'Status atualizado com sucesso', data: updateResult }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
       { error: 'Erro ao atualizar o status da inspeção', code: error.code || 'unknown' },

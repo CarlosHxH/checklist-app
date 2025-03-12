@@ -42,7 +42,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
     try {
 
       const method = data.id ? axios.put : axios.post; // Determine o método baseado na presença de `id`
-      const response = await method('/api/vehicles', { ...data }); // Chame o método apropriado
+      const response = await method('/api/v1/vehicles', { ...data }); // Chame o método apropriado
       await onSubmit(response.data); // Lidar com a resposta
       onClose(); // Feche o formulário
 

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createInspectionWithTransaction } from './inspection.service';
+import { authWithRoleMiddleware } from '@/lib/auth-middleware';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+
   try {
     const inspections = await prisma.inspection.findMany({
       where: { status: 'INSPECAO'},
@@ -25,6 +30,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: NextRequest) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+
   try {
     const body = await request.json();
 
@@ -42,9 +51,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
     const result = await createInspectionWithTransaction(body);
-    
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error('Error creating inspection:', error);
@@ -59,6 +66,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+
   try {
     const {id, user, vehicle, ...data} = await request.json();
     const inspection = await prisma.inspection.update({where: { id }, data});
@@ -73,6 +84,10 @@ export async function PUT(request: NextRequest) {
 
 
 export async function DELETE(request: NextRequest) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+
   try {
     const { id } = await request.json();
     await prisma.inspection.delete({where: { id }});

@@ -18,7 +18,7 @@ import PhotoUploader from "@/components/_ui/PhotoUploader";
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
 
   const { register, watch, control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { 

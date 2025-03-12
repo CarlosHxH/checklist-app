@@ -100,7 +100,7 @@ export default function ChartByVehicle() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetch('/api/admin/inspections/chart').then(e => e.json()).then(setData)
+        await fetch('/api/dashboard/inspections/chart').then(e => e.json()).then(setData)
       } catch (error) {
         console.error('Error fetching inspection data:', error);
       } finally {

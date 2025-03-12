@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 
 export default function DashboardContent() {
   const router = useRouter();
-  const { data, isLoading } = useSWR("/api/dashboard", fetcher);
+  const { data, isLoading } = useSWR("/api/v1/dashboard", fetcher);
 
 
   if (isLoading) return <Loading />;
@@ -63,15 +63,7 @@ export default function DashboardContent() {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <Box
-        component="main"
-        sx={(theme: any) => ({
-          flexGrow: 1,
-          backgroundColor: theme.vars
-            ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
-            : alpha(theme.palette.background.default, 1), overflow: "auto",
-        })}
-      >
+      <Box component="main" sx={(theme: any) => ({ flexGrow: 1 })} >
         <Stack
           spacing={2}
           sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}

@@ -8,7 +8,8 @@ import Loading from '@/components/Loading';
 import VehicleInspectionCard from './CardInspecaoList';
 
 export default function Inspecao({ id }: { id: string }) {
-  const { data, isLoading } = useSWR(`/api/inspections/byUser/${id || ""}`, fetcher)
+
+  const { data, isLoading } = useSWR(`/api/v1/inspecao/user/${id || ""}`, fetcher)
 
   if (isLoading) return <Loading />
 

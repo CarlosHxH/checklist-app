@@ -208,7 +208,7 @@ model correction {
   inspectionId  String
   section       String
   resolvidoPor  String
-  observacoes   String?
+  observacoes   String @db.Text
   userId        String
   createdAt     DateTime @default(now())
 

@@ -70,9 +70,9 @@ export default function UserModal({
       let response;
       const isActive = data.isActive === "true" ? true : false;
       if (!data.id) {
-        response = await axios.post('/api/users', { ...data, isActive });
+        response = await axios.post('/api/dashboard/users', { ...data, isActive });
       } else {
-        response = await axios.put('/api/users', { ...data, isActive });
+        response = await axios.put('/api/dashboard/users', { ...data, isActive });
       }
       await onSubmit(response.data);
       reset();

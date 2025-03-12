@@ -17,7 +17,7 @@ import VerticalActions from '@/components/_ui/VerticalActions';
 const UserDataGrid: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: users, isLoading, mutate } = useSWR<UserFormData[]>('/api/users', fetcher);
+  const { data: users, isLoading, mutate } = useSWR<UserFormData[]>('/api/dashboard/users', fetcher);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState(null);
   const [paginationModel, setPaginationModel] = React.useState({ pageSize: 10, page: 0 });
@@ -25,7 +25,7 @@ const UserDataGrid: React.FC = () => {
   const handleDelete = (id: string) => {
     if (users) {
       if (confirm(`Temcerteza que deseja deletar o usuário: ${users.filter(user => user.id === id)[0]?.name}`)) {
-        axios.delete(`/api/users/${id}`)
+        axios.delete(`/api/dashboard/users/${id}`)
           .then(function (res) {
             mutate();
           })

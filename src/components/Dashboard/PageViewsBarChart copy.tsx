@@ -36,7 +36,7 @@ type InspectionData = {
 export default function PageViewsBarChart() {
   const theme = useTheme();
   const { data: apiData, isLoading } = useSWR<InspectionData[]>(
-    "/api/admin/inspections/chart",
+    "/api/dashboard/inspections/chart",
     fetcher
   );
 

@@ -16,10 +16,10 @@ import PhotoUploader from "@/components/_ui/PhotoUploader";
 import { getBase64 } from "@/utils";
 import CustomAppBar from "@/components/_ui/CustomAppBar";
 
-const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) => {
+const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ type, id }) => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/vehicles`, fetcher);
+  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
   const { register, watch, control, setValue, reset, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
 
   const selectedVehicleId = watch("vehicleId");
@@ -33,7 +33,7 @@ const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) 
     defaultValues.eixo = selectedVehicle?.eixo ?? "0";
     defaultValues.isFinished = true;
     reset({ ...defaultValues });
-  }, [ id, reset, session?.user?.id]);
+  }, [id, reset, session?.user?.id]);
 
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
@@ -48,20 +48,20 @@ const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) 
 
   if (!vehicles) return <Loading />;
   if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
-  
+
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
-      <CustomAppBar showBackButton/>
+      <CustomAppBar showBackButton />
       {isSubmitting && <Loading />}
       <Form
         method="post"
         encType={'application/json'}
-        action={'/api/inspections'}
+        action={'/api/v1/viagens'}
         onSuccess={async (data) => {
           const res = await data.response.json();
           router.push(`/`)
         }}
-        onError={async (error) => { alert("Erro ao enviar os dados!")}}
+        onError={async (error) => { alert("Erro ao enviar os dados!") }}
         control={control}
       >
         <Typography variant="h4" gutterBottom>Criar viagem</Typography>
@@ -83,7 +83,7 @@ const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) 
 
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
 
-          <Grid item xs={12} md={selectedVehicle?.tacografo?6:12}>
+          <Grid item xs={12} md={selectedVehicle?.tacografo ? 6 : 12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
 
@@ -143,12 +143,12 @@ const InspectionForm: React.FC<{type:"INICIO"|"FINAL",id:string}> = ({type,id}) 
           <Grid item xs={12} md={12}>
             <Divider>Foto da frente do veiculo</Divider>
             <PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
-                const photos = await Promise.all(photo.map(async (f,i) => {
-                  const b64 = await getBase64(f);
-                  return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}`}
-                }));
-                setValue('photos', photos);
-            }}/>
+              const photos = await Promise.all(photo.map(async (f, i) => {
+                const b64 = await getBase64(f);
+                return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}` }
+              }));
+              setValue('photos', photos);
+            }} />
           </Grid>
 
           <Grid item xs={12}>
