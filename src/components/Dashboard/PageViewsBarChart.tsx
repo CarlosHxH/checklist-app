@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 export default function PageViewsBarChart() {
   const [total,setTotal] = React.useState(0);
   
-  const { data, isLoading } = useSWR('/api/dashboard/inspections/barchart',fetcher);
+  const { data, isLoading } = useSWR('/api/v1/dashboard/barchart',fetcher);
   const theme = useTheme();
   const colorPalette = [
     theme.palette.primary.dark,

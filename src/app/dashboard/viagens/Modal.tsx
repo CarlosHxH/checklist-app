@@ -42,10 +42,13 @@ interface InspectionData {
     quartoEixo: string | null;
     descricaoQuartoEixo: string | null;
   };
-  vehicle?: {
-    plate: string;
-    model: string;
-  };
+  vehicle?: Vehicle;
+}
+
+interface Vehicle {
+  id: string;
+  plate: string;
+  model: string;
 }
 
 interface FormDataType {
@@ -81,7 +84,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
   const [tabValue, setTabValue] = useState(0);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
+
   const startForm = useForm<FormDataType>({
     defaultValues: {
       nivelAgua: inspectionData?.start?.nivelAgua || '',
@@ -127,7 +130,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
       descricaoQuartoEixo: inspectionData?.end?.descricaoQuartoEixo || '',
     }
   });
-  
+
   // Get the current form based on the active tab
   const currentForm = tabValue === 0 ? startForm : endForm;
   const { control, handleSubmit, watch, reset, formState: { errors } } = currentForm;
@@ -165,7 +168,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
         descricaoQuartoEixo: inspectionData.start.descricaoQuartoEixo || '',
       });
     }
-    
+
     if (inspectionData?.end) {
       endForm.reset({
         nivelAgua: inspectionData.end.nivelAgua || '',
@@ -266,6 +269,22 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
       );
     }
 
+    const EixoSection: React.FC<{
+      name: "dianteira" | "tracao" | "truck" | "quartoEixo";
+      label: string;
+      descricao: "descricaoDianteira" | "descricaoTracao" | "descricaoTruck" | "descricaoQuartoEixo"; }> =
+      ({ name, label, descricao }) => {
+      if (!(data && data[name] === 'RUIM')) return null;
+      return (
+        <Grid item xs={12} md={6}>
+          <Controller name={name} control={control} render={({ field }) => (
+            <ButtonLabel name={name} label={label} options={["BOM", "RUIM"]} control={control} />
+          )}/>
+          <Controller name={descricao} control={control} render={({ field }) => (<TextField {...field} label="Qual Defeito?" multiline fullWidth rows={2} />)} />
+        </Grid>
+      );
+    }
+
     return (
       <FormProvider {...currentForm}>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -279,37 +298,37 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 {data.nivelAgua != 'NORMAL' && (
                   <Grid item xs={12} sm={6}>
                     <Controller name="nivelAgua" control={control} render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Nível de Água</InputLabel>
-                          <Select {...field} label="Nível de Água">
-                            <MenuItem value="BAIXO">BAIXO</MenuItem>
-                            <MenuItem value="CRITICO">CRITICO</MenuItem>
-                            <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
+                      <FormControl fullWidth>
+                        <InputLabel>Nível de Água</InputLabel>
+                        <Select {...field} label="Nível de Água">
+                          <MenuItem value="BAIXO">BAIXO</MenuItem>
+                          <MenuItem value="CRITICO">CRITICO</MenuItem>
+                          <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
                     />
                   </Grid>
                 )}
                 {data.nivelOleo != 'NORMAL' && (
                   <Grid item xs={12} sm={6}>
                     <Controller name="nivelOleo" control={control} render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Nível de Óleo</InputLabel>
-                          <Select {...field} label="Nível de Óleo">
-                            <MenuItem value="BAIXO">BAIXO</MenuItem>
-                            <MenuItem value="CRITICO">CRITICO</MenuItem>
-                            <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
+                      <FormControl fullWidth>
+                        <InputLabel>Nível de Óleo</InputLabel>
+                        <Select {...field} label="Nível de Óleo">
+                          <MenuItem value="BAIXO">BAIXO</MenuItem>
+                          <MenuItem value="CRITICO">CRITICO</MenuItem>
+                          <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
                     />
                   </Grid>
                 )}
               </>
             )}
 
-            {(data.avariasCabine === 'SIM' || data.bauPossuiAvarias === 'SIM') && (
+            {[data.avariasCabine, data.bauPossuiAvarias].includes("SIM") && (
               <>
                 <Grid item xs={12} sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" fontWeight="bold">Avarias</Typography>
@@ -319,19 +338,19 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   <>
                     <Grid item xs={12} sm={6}>
                       <Controller name="avariasCabine" control={control} render={({ field }) => (
-                          <FormControl fullWidth>
-                            <InputLabel>Avarias na Cabine</InputLabel>
-                            <Select {...field} label="Avarias na Cabine">
-                              <MenuItem value="SIM">Com Avarias</MenuItem>
-                              <MenuItem value="NÃO">Corrigido</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )}
+                        <FormControl fullWidth>
+                          <InputLabel>Avarias na Cabine</InputLabel>
+                          <Select {...field} label="Avarias na Cabine">
+                            <MenuItem value="SIM">Com Avarias</MenuItem>
+                            <MenuItem value="NÃO">Corrigido</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Controller name="descricaoAvariasCabine" control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Descrição das Avarias na Cabine" disabled={avariasCabine !== 'SIM'} multiline rows={2}/>)}
+                        <TextField {...field} fullWidth label="Descrição das Avarias na Cabine" disabled={avariasCabine !== 'SIM'} multiline rows={2} />)}
                       />
                     </Grid>
                   </>
@@ -340,20 +359,20 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   <>
                     <Grid item xs={12} sm={6}>
                       <Controller name="bauPossuiAvarias" control={control} render={({ field }) => (
-                          <FormControl fullWidth>
-                            <InputLabel>Avarias no Baú</InputLabel>
-                            <Select {...field} label="Avarias no Baú">
-                              <MenuItem value="SIM">Com Avarias</MenuItem>
-                              <MenuItem value="NÃO">Corrigido</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )}
+                        <FormControl fullWidth>
+                          <InputLabel>Avarias no Baú</InputLabel>
+                          <Select {...field} label="Avarias no Baú">
+                            <MenuItem value="SIM">Com Avarias</MenuItem>
+                            <MenuItem value="NÃO">Corrigido</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Controller name="descricaoAvariasBau" control={control} render={({ field }) => (
-                          <TextField {...field} fullWidth label="Descrição das Avarias no Baú" disabled={bauPossuiAvarias !== 'SIM'} multiline rows={2}/>
-                        )}
+                        <TextField {...field} fullWidth label="Descrição das Avarias no Baú" disabled={bauPossuiAvarias !== 'SIM'} multiline rows={2} />
+                      )}
                       />
                     </Grid>
                   </>
@@ -369,20 +388,20 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Controller name="funcionamentoParteEletrica" control={control} render={({ field }) => (
-                      <FormControl fullWidth>
-                        <InputLabel>Funcionamento da Parte Elétrica</InputLabel>
-                        <Select {...field} label="Funcionamento da Parte Elétrica">
-                          <MenuItem value="RUIM">PROBLEMAS</MenuItem>
-                          <MenuItem value="BOM">OK (Corrigido)</MenuItem>
-                        </Select>
-                      </FormControl>
-                    )}
+                    <FormControl fullWidth>
+                      <InputLabel>Funcionamento da Parte Elétrica</InputLabel>
+                      <Select {...field} label="Funcionamento da Parte Elétrica">
+                        <MenuItem value="RUIM">PROBLEMAS</MenuItem>
+                        <MenuItem value="BOM">OK (Corrigido)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Controller name="descricaoParteEletrica" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Descrição dos Problemas Elétricos" disabled={funcionamentoParteEletrica !== 'RUIM'} multiline rows={2}/>
-                  )}/>
+                    <TextField {...field} fullWidth label="Descrição dos Problemas Elétricos" disabled={funcionamentoParteEletrica !== 'RUIM'} multiline rows={2} />
+                  )} />
                 </Grid>
               </>
             )}
@@ -390,44 +409,11 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
             {[data.dianteira, data.tracao, data.truck, data.quartoEixo].includes('RUIM') && (
               <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
             )}
-            
-            {data.dianteira === 'RUIM' && (
-              <Grid item xs={12} md={6}>
-                <Controller name="dianteira" control={control} render={({ field }) => (
-                  <ButtonLabel name="dianteira" label="Dianteira" options={["BOM", "RUIM"]} control={control}/>
-                )}/>
-                <Controller name="descricaoDianteira" control={control} render={({ field }) => (<TextField {...field}label="Qual Defeito?" disabled={dianteira !== 'RUIM'} multiline fullWidth rows={2} />)}/>
-              </Grid>
-            )}
-            
-            {data.tracao === 'RUIM' && (
-              <Grid item xs={12} md={6}>
-                <Controller name="tracao" control={control} render={({ field }) => (<ButtonLabel name="tracao" label="Tração" options={["BOM", "RUIM"]} control={control}/>)}/>
-                <Controller name="descricaoTracao" control={control} render={({ field }) => (
-                  <TextField {...field}label="Qual Defeito?" disabled={tracao !== 'RUIM'} multiline fullWidth rows={2} />
-                )}/>
-              </Grid>
-            )}
-            
-            {data.truck === 'RUIM' && (
-              <Grid item xs={12} md={6}>
-                <Controller name="truck" control={control} render={({ field }) => (<ButtonLabel name="truck" label="Truck" options={["BOM", "RUIM"]} control={control}/>)}/>
-                <Controller name="descricaoTruck" control={control} render={({ field }) => (
-                  <TextField {...field}label="Qual Defeito?" disabled={truck !== 'RUIM'} multiline fullWidth rows={2}/>
-                )}/>
-              </Grid>
-            )}
-            
-            {data.quartoEixo === 'RUIM' && (
-              <Grid item xs={12} md={6}>
-                <Controller name="quartoEixo" control={control} render={({ field }) => (
-                  <ButtonLabel name="quartoEixo" label="Quarto Eixo" options={["BOM", "RUIM"]} control={control}/>
-                )}/>
-                <Controller name="descricaoQuartoEixo" control={control} render={({ field }) => (
-                  <TextField {...field} label="Qual Defeito?"  disabled={quartoEixo !== 'RUIM'}  multiline  fullWidth  rows={2}/>
-                )}/>
-              </Grid>
-            )}
+
+            <EixoSection name='dianteira' descricao='descricaoDianteira' label='Dianteira' />
+            <EixoSection name='tracao' descricao='descricaoTracao' label='Tração' />
+            <EixoSection name='truck' descricao='descricaoTruck' label='Truck' />
+            <EixoSection name='quartoEixo' descricao='descricaoQuartoEixo' label='Quarto Eixo' />
 
             {hasIssues(section) && (
               <>
@@ -437,14 +423,14 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 </Grid>
                 <Grid item xs={12}>
                   <Controller name="resolvidoPor" control={control} rules={{ required: "Campo obrigatório" }} render={({ field, fieldState }) => (
-                      <TextField {...field} required fullWidth label="Resolvido por" placeholder="Nome do responsável pela correção" error={!!fieldState.error} helperText={fieldState.error?.message || ''}/>
-                    )}
+                    <TextField {...field} required fullWidth label="Resolvido por" placeholder="Nome do responsável pela correção" error={!!fieldState.error} helperText={fieldState.error?.message || ''} />
+                  )}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <Controller name="observacoes" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Observações" multiline rows={3} placeholder="Detalhes sobre as correções realizadas"/>
-                  )}/>
+                    <TextField {...field} fullWidth label="Observações" multiline rows={3} placeholder="Detalhes sobre as correções realizadas" />
+                  )} />
                 </Grid>
               </>
             )}

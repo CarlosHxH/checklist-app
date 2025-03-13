@@ -11,20 +11,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
 
-const MONTHS = [
-  "Jan",
-  "Fev",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Out",
-  "Nov",
-  "Dez",
-];
+const MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 type InspectionData = {
   id: string;
@@ -35,10 +22,7 @@ type InspectionData = {
 
 export default function PageViewsBarChart() {
   const theme = useTheme();
-  const { data: apiData, isLoading } = useSWR<InspectionData[]>(
-    "/api/dashboard/inspections/chart",
-    fetcher
-  );
+  const { data: apiData, isLoading } = useSWR<InspectionData[]>("/api/v1/dashboard/chart",fetcher);
 
   if (isLoading || !apiData?.length) return <Loading />;
   console.log(apiData);

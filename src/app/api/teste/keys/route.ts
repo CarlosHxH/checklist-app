@@ -1,4 +1,3 @@
-// app/api/dashboard/keys/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -17,17 +16,10 @@ export async function GET() {
           user: true,
           vehicle: true
         },
-        orderBy: {
-          createdAt: 'desc'
-        }
+        orderBy: { createdAt: 'desc' }
       })
     ])
-
-    return NextResponse.json({
-      users,
-      vehicles,
-      vehicleKeys
-    })
+    return NextResponse.json({ users, vehicles, vehicleKeys })
   } catch (error) {
     console.error('Error fetching data:', error)
     return NextResponse.json(

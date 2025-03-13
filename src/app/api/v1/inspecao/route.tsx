@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 
@@ -20,7 +19,6 @@ async function transaction(validatedData: InspectionFormData) {
         })),
       });
     }
-
     // 3. Retornar a inspeção criada com suas fotos
     return tx.inspection.findUnique({
       where: { id: inspection.id },
@@ -29,6 +27,7 @@ async function transaction(validatedData: InspectionFormData) {
   });
   return result;
 }
+
 
 export async function POST(request: NextRequest) {
   // Verificar autenticação e permissão
@@ -41,8 +40,8 @@ export async function POST(request: NextRequest) {
     const response = await transaction(data);
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
+    if (error instanceof Error)
+      return NextResponse.json({ error: 'Dados inválidos', details: error.message }, { status: 400 })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

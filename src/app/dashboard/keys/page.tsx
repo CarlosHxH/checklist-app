@@ -60,7 +60,7 @@ interface FormData {
 export default function VehicleKeysPage() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const { data, isLoading, mutate } = useSWR<DataType>('/api/dashboard/keys', fetcher, { refreshInterval: 3000 })
+  const { data, isLoading, mutate } = useSWR<DataType>('/api/v1/dashboard/keys', fetcher, { refreshInterval: 3000 })
 
   const [groupedVehicleKeys, setGroupedVehicleKeys] = useState<GroupedVehicleKeys>({})
   const [error, setError] = useState<string | null>(null)
@@ -128,7 +128,7 @@ export default function VehicleKeysPage() {
     if (!resendingKey) return
     setResendConfirmDialogOpen(false)
     try {
-      const response = await fetch(`/api/keys/resend`, {
+      const response = await fetch(`/api/v1/keys/resend`, {
         method: 'PUT',
         body: JSON.stringify({ id: resendingKey.id })
       })
@@ -146,7 +146,7 @@ export default function VehicleKeysPage() {
   const handleConfirmedSubmit = async () => {
     setConfirmDialogOpen(false)
     try {
-      const response = await fetch('/api/dashboard/keys', {
+      const response = await fetch('/api/v1/dashboard/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -215,7 +215,7 @@ export default function VehicleKeysPage() {
                 if (!confirm("Deseja cancelar a transferencia de chave?")) return;
                 if (!latestKey) return
                 try {
-                  const response = await fetch(`/api/keys/reject/${latestKey.id}`, {method: 'POST'})
+                  const response = await fetch(`/api/v1/keys/reject/${latestKey.id}`, {method: 'POST'})
                   if (!response.ok) throw new Error('Erro ao rejeitar transferência')
                 } catch (error) {
                   console.error('Error:', error)

@@ -16,7 +16,7 @@ import VerticalActions from '@/components/_ui/VerticalActions';
 const VechicleDataGrid: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: vehicles, isLoading, mutate } = useSWR<vehicleFormData[]>('/api/v1/vehicles', fetcher);
+  const { data: vehicles, isLoading, mutate } = useSWR<vehicleFormData[]>('/api/v1/dashboard/vehicles', fetcher);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selected, setSelected] = React.useState(null);
   const [paginationModel, setPaginationModel] = React.useState({ pageSize: 10, page: 0 });
@@ -24,7 +24,7 @@ const VechicleDataGrid: React.FC = () => {
   const handleDelete = (id: string) => {
     if (vehicles) {
       if (confirm(`Temcerteza que deseja deletar o veiculo: ${vehicles.find(Vechicle => Vechicle.id === id)?.plate}`)) {
-        axios.delete(`/api/v1/vehicles/${id}`)
+        axios.delete(`/api/v1/dashboard/vehicles/${id}`)
           .then(function (response) {
             console.log({ response });
             mutate();

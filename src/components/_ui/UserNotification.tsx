@@ -21,7 +21,7 @@ interface Transfer {
 
 const NotificationModal = () => {
   const { data: session } = useSession()
-  const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/keys/pending/${session?.user.id}`, fetcher, { refreshInterval: 5000 });
+  const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/v1/keys/pending/${session?.user.id}`, fetcher, { refreshInterval: 5000 });
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -29,7 +29,7 @@ const NotificationModal = () => {
 
   const handleConfirm = async (transferId: string) => {
     try {
-      await axios.post(`/api/keys/confirm/${transferId}`);
+      await axios.post(`/api/v1/keys/confirm/${transferId}`);
       setSuccess('Transfer confirmed successfully');
       mutate();
     } catch (err) {
@@ -40,7 +40,7 @@ const NotificationModal = () => {
 
   const handleReject = async (transferId: string) => {
     try {
-      await axios.post(`/api/keys/reject/${transferId}`);
+      await axios.post(`/api/v1/keys/reject/${transferId}`);
       setSuccess('Transfer rejected successfully');
       mutate();
     } catch (err) {

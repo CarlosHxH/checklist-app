@@ -1,4 +1,3 @@
-// app/api/keys/confirm/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";

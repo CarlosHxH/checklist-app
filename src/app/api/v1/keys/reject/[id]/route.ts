@@ -1,4 +1,4 @@
-// app/api/keys/reject/[id]/route.ts
+// app/api/v1/keys/reject/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 

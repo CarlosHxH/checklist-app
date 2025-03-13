@@ -1,14 +1,11 @@
-// app/api/keys/confirm/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET() {
   try {
-    const id = (await params).id;
-    const keys = await prisma.vehicleKey.findMany({
+    const pendingTransfers = await prisma.vehicleKey.findMany({
       where: {
-        userId: id,
+        status: 'PENDING'
       },
       include: {
         user: {
@@ -30,11 +27,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         createdAt: 'desc'
       }
     })
-    return NextResponse.json(keys)
+
+    return NextResponse.json(pendingTransfers)
   } catch (error) {
-    console.error('Error confirming transfer:', error)
+    console.error('Error fetching pending transfers:', error)
     return NextResponse.json(
-      { error: 'Error confirming transfer' },
+      { error: 'Error fetching pending transfers' },
       { status: 500 }
     )
   }
