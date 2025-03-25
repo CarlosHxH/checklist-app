@@ -5,7 +5,6 @@ import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { useSession } from "next-auth/react";
-import NotificationModal from "./UserNotification";
 import Image from "next/image";
 
 interface Props {

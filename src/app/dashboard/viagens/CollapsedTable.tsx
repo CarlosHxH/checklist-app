@@ -366,7 +366,13 @@ function Row(props: { row: VehicleInspection }) {
       <StatusUpdateModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        inspectionData={row}
+        inspectionData={{
+          ...row,
+          vehicle: {
+            ...row.vehicle,
+            id: row.vehicleId
+          }
+        }}
         onSave={updateStatus}
         loading={loading}
       />

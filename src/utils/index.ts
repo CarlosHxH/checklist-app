@@ -1,3 +1,9 @@
+export async function fileToBase64(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  return `data:${file.type};base64,${buffer.toString('base64')}`;
+}
+
 export async function getBase64(file: File) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

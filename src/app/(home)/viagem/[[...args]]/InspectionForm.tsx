@@ -6,21 +6,20 @@ import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { useForm, Form } from "react-hook-form";
+import { useForm, Form, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
 import PhotoUploader from "@/components/_ui/PhotoUploader";
-import { getBase64 } from "@/utils";
 import CustomAppBar from "@/components/_ui/CustomAppBar";
 
 const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ type, id }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
-  const { register, watch, control, setValue, reset, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
+  const { register, watch, control, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({});
 
   const selectedVehicleId = watch("vehicleId");
   const selectedVehicle = vehicles && vehicles.find((v) => v.id === id || v.id === selectedVehicleId);
@@ -41,9 +40,9 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
 
   React.useEffect(() => {
     // Redefinir campos de descrição com base nos valores principais do campo
-    if (avariasCabine === "NÃO") setValue("descricaoAvariasCabine", undefined);
-    if (bauPossuiAvarias === "NÃO") setValue("descricaoAvariasBau", undefined);
-    if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", undefined);
+    if (avariasCabine === "NÃO") setValue("descricaoAvariasCabine", '');
+    if (bauPossuiAvarias === "NÃO") setValue("descricaoAvariasBau", '');
+    if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", '');
   }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
 
   if (!vehicles) return <Loading />;
@@ -53,16 +52,37 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       <CustomAppBar showBackButton />
       {isSubmitting && <Loading />}
-      <Form
-        method="post"
-        encType={'application/json'}
-        action={'/api/v1/viagens'}
-        onSuccess={async (data) => {
-          const res = await data.response.json();
-          router.push(`/`)
-        }}
-        onError={async (error) => { alert("Erro ao enviar os dados!") }}
-        control={control}
+      <form
+        onSubmit={handleSubmit(async (data) => {
+          const formData = new FormData();
+          
+          // Append all form fields except photos
+          Object.entries(data).forEach(([key, value]) => {
+            if (key !== 'photos') {
+              formData.append(key, String(value));
+            }
+          });
+          
+          // Append photos
+          if (data.photos) {
+            data.photos.forEach((photo: any) => {
+              formData.append('photos', photo.photo);
+            });
+          }
+
+          try {
+            const response = await fetch('/api/v1/viagens', {
+              method: 'POST',
+              body: formData,
+            });
+            if (!response.ok) throw new Error('Failed to submit form');
+            const result = await response.json();
+            router.push('/');
+          } catch (error) {
+            console.error('Error submitting form:', error);
+            alert("Erro ao enviar os dados!");
+          }
+        })}
       >
         <Typography variant="h4" gutterBottom>Criar viagem</Typography>
 
@@ -142,13 +162,29 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
 
           <Grid item xs={12} md={12}>
             <Divider>Foto da frente do veiculo</Divider>
-            <PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
-              const photos = await Promise.all(photo.map(async (f, i) => {
-                const b64 = await getBase64(f);
-                return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}` }
-              }));
-              setValue('photos', photos);
-            }} />
+            <Controller
+              name="photos"
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
+              render={({ field }) => (
+                <PhotoUploader
+                  name="photos"
+                  label="Foto do veiculo"
+                  multiple
+                  isRemoved
+                  onChange={async (photos: File[]) => {
+                    const processedPhotos = await Promise.all(
+                      photos.map(async (f, i) => ({
+                        photo: new File([f], f.name, { type: f.type }),
+                        type: 'vehicle',
+                        description: `Veiculo foto-${++i}`
+                      }))
+                    );
+                    field.onChange(processedPhotos);
+                  }}
+                />
+              )}
+            />
           </Grid>
 
           <Grid item xs={12}>
@@ -160,8 +196,18 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
             <Button fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
           </Grid>
         </Grid>
-      </Form>
+      </form>
     </Paper>
   );
 };
 export default InspectionForm;
+
+/*
+<PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
+  const photos = await Promise.all(photo.map(async (f, i) => {
+    const b64 = await getBase64(f);
+    return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}` }
+  }));
+  setValue('photos', photos);
+}} />
+*/

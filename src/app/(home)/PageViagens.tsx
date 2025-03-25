@@ -3,24 +3,37 @@ import { Container } from '@mui/material';
 import CustomFab from '@/components/_ui/CustomFab';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import Loading from '@/components/Loading';
 import CardViagemList from './CardViagemList';
 
+
 export default function Viagens({ id }: { id: string }) {
-  const { data, isLoading } = useSWR(`/api/v1/viagens/user/${id || ""}`, fetcher)
-  if (isLoading) return <Loading />
+  const { data, error, isLoading } = useSWR(
+    id ? `/api/v1/viagens/user/${id}` : null,
+    fetcher,
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
+  )
 
-  const CustomFabs = () => (data.length === 0 || !!data[0]?.end) ? <CustomFab href={'/viagem/inicio/create'} variant={"Plus"} /> : <></>;
+  const showCustomFab = useMemo(() => {
+    if (!data) return false;
+    return data.length === 0 || Boolean(data[0]?.end);
+  }, [data]);
+
+  if (isLoading) return <Loading />;
+  if (error) return <Container>Erro ao carregar dados. Por favor, tente novamente.</Container>;
+
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <Container maxWidth="lg">
-        <CustomFabs />
-
-        {data ? <CardViagemList data={data} /> : (
-          <>Erro, não foi possivel atualizar!</>
+        {showCustomFab && <CustomFab href="/viagem/inicio/create" variant="Plus" />}
+        {data ? (
+          <CardViagemList data={data} />
+        ) : (
+          <Container>Nenhuma viagem encontrada.</Container>
         )}
       </Container>
     </Suspense>
   );
 }
+

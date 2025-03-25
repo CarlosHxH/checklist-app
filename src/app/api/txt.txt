@@ -1,0 +1,29 @@
+/*
+{
+  userId: 'cm7z6nbne0000hsnsziwjzghj',
+  vehicleId: 'cm7z6tja70002hsswawjme02y',
+  status: 'INICIO',
+  eixo: '1',
+  isFinished: 'true',
+  kilometer: '1000',
+  crlvEmDia: 'SIM',
+  nivelAgua: 'NORMAL',
+  nivelOleo: 'NORMAL',
+  avariasCabine: 'NÃO',
+  bauPossuiAvarias: 'NÃO',
+  funcionamentoParteEletrica: 'BOM',
+  extintor: 'SIM',
+  certificadoTacografoEmDia: 'SIM',
+  dianteira: 'BOM',
+  descricaoDianteira: '',
+  descricaoAvariasCabine: 'undefined',
+  descricaoAvariasBau: 'undefined',
+  descricaoParteEletrica: 'undefined',
+  photos: File {
+    size: 302355,
+    type: 'image/jpeg',
+    name: '1000_F_679732126_LaCAJb3iuGPb2Xt5Uv7olo8CxnOxqXC5.jpg',
+    lastModified: 1742927890228
+  }
+}
+*/

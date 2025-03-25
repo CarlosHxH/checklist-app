@@ -18,6 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         vehicle: true
       },
       orderBy: {createdAt: 'desc'},
+      take: 4,
     });
     return NextResponse.json(inspections)
   } catch (error) {

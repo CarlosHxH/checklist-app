@@ -5,6 +5,12 @@ import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
 import ButtonLabel from '@/components/_ui/ButtonLabel';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 
+interface Vehicle {
+  id?: string;
+  plate?: string;
+  model?: string;
+}
+
 interface InspectionData {
   start?: {
     nivelAgua: string;
@@ -45,11 +51,6 @@ interface InspectionData {
   vehicle?: Vehicle;
 }
 
-interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-}
 
 interface FormDataType {
   nivelAgua: string;

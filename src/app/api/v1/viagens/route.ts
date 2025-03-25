@@ -1,105 +1,55 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createInspectionWithTransaction } from './inspection.service';
-import { authWithRoleMiddleware } from '@/lib/auth-middleware';
+import { fileToBase64 } from '@/utils';
+/*
+async function fileToBase64(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  return `data:${file.type};base64,${buffer.toString('base64')}`;
+}*/
 
-export async function POST(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
+export async function POST(request: Request) {
   try {
-    const body = await request.json();
-
-    if (!body || typeof body !== 'object') {
-      return NextResponse.json(
-        { error: 'Invalid request body' },
-        { status: 400 }
-      );
+    const formData = await request.formData();
+    const data: any = {};
+    
+    // Process all form fields
+    for (const [key, value] of formData.entries()) {
+      if (key === 'photos') {
+        // Handle multiple photos
+        if (!data.photos) data.photos = [];
+        if (value instanceof File) {
+          const base64 = await fileToBase64(value);
+          data.photos.push({
+            photo: base64,
+            type: 'vehicle',
+            description: `Veiculo foto-${data.photos.length + 1}`
+          });
+        }
+      } else {
+        // Handle regular form fields
+        data[key] = value;
+      }
     }
 
-    // Validar campos obrigatórios
-    if (!body.userId || !body.vehicleId || !body.status) {
-      return NextResponse.json(
-        { error: 'Missing required fields: userId, vehicleId, or status' },
-        { status: 400 }
-      );
-    }
-    const result = await createInspectionWithTransaction(body);
-    return NextResponse.json(result, { status: 201 });
+
+    // Create the inspection record in the database
+    const inspection = await createInspectionWithTransaction(data);
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Inspection created successfully',
+      data: inspection
+    });
   } catch (error) {
-    console.error('Error creating inspection:', error);
+    console.error('Error processing form:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to create inspection', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+        success: false, 
+        message: 'Error creating inspection',
+        error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
   }
 }
-
-/*
-export async function GET(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-  
-  try {
-    const inspections = await prisma.inspection.findMany({
-      where: { status: 'INSPECAO'},
-      include: {
-        vehicle: true,
-        user: {
-          select:{
-            name: true
-          }
-        }
-      },
-      orderBy: { dataInspecao: "desc" }
-    });
-    return NextResponse.json(inspections, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(error, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-*/
-/*
-export async function PUT(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-  
-  try {
-    const {id, user, vehicle, ...data} = await request.json();
-    const inspection = await prisma.inspection.update({where: { id }, data});
-    return NextResponse.json(inspection);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update inspection', details: error instanceof Error ? error.message : 'Unknown error' },{ status: 403 });
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-
-
-export async function DELETE(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-  
-  try {
-    const { id } = await request.json();
-    await prisma.inspection.delete({where: { id }});
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete user' },
-      { status: 403 }
-    );
-  } finally {
-    await prisma.$disconnect();
-  }
-}*/
