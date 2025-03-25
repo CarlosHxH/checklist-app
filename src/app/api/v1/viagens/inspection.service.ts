@@ -76,6 +76,7 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           }
         }
       });
+      
       console.log("inspection created", inspection);
 
       let inspect;
@@ -119,7 +120,7 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
         }
       }
 
-      return { inspect };
+      return { inspection };
     });
   } catch (error) {
     console.error("A transação falhou:", error);

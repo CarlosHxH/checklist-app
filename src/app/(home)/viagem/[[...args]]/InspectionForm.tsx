@@ -6,14 +6,58 @@ import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { useForm, Form, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
-import { EixoSection, Vehicle } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
 import PhotoUploader from "@/components/_ui/PhotoUploader";
 import CustomAppBar from "@/components/_ui/CustomAppBar";
+
+export interface Option {
+  [key: string]: any;
+  setValue: (name: keyof InspectionFormData, value: any) => void;
+}
+
+export interface Vehicle extends Option {
+  id: string;
+  plate: string;
+  model: string;
+}
+
+export interface EixoSectionProps {
+  eixoNumber: number;
+  label: string;
+  fieldName: keyof InspectionFormData;
+  selectedVehicle?: Vehicle;
+  control: any;
+  register: any;
+  watch: any;
+  setValue: any;
+}
+
+export const EixoSections: React.FC<EixoSectionProps> = ({ eixoNumber, label, fieldName, selectedVehicle, control, register, watch, setValue }) => {
+  
+  if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
+
+  React.useEffect(() => {setValue("eixo", String(eixoNumber))}, [eixoNumber, setValue]);
+
+  const currentValue = watch(fieldName);
+  const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
+
+  React.useEffect(() => {
+      if (currentValue === "BOM") setValue(field, "");
+  }, [currentValue, field, setValue]);
+
+  return (
+      <Grid item xs={12} md={6}>
+          <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+          {currentValue === "RUIM" && (
+              <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />
+          )}
+      </Grid>
+  );
+};
 
 const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ type, id }) => {
   const router = useRouter();
@@ -48,6 +92,24 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
   if (!vehicles) return <Loading />;
   if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
 
+  const EixoSection: React.FC<{
+    name: "dianteira" | "tracao" | "truck" | "quartoEixo";
+    label: string;
+    descricao: "descricaoDianteira" | "descricaoTracao" | "descricaoTruck" | "descricaoQuartoEixo";
+  }> =
+    ({ name, label, descricao }) => {
+      const value = watch(name);
+      if (value === 'BOM') setValue(descricao, '');
+      return (
+        <Grid item xs={12} md={6}>
+          <Controller name={name} control={control} render={({ field }) => (
+            <ButtonLabel name={name} label={label} options={["BOM", "RUIM"]} control={control} />
+          )} />
+          {value === 'RUIM' && <Controller name={descricao} control={control} render={({ field }) => (<TextField {...field} label="Qual Defeito?" multiline fullWidth rows={2} />)} />}
+        </Grid>
+      );
+    }
+
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       <CustomAppBar showBackButton />
@@ -55,14 +117,14 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
       <form
         onSubmit={handleSubmit(async (data) => {
           const formData = new FormData();
-          
+
           // Append all form fields except photos
           Object.entries(data).forEach(([key, value]) => {
             if (key !== 'photos') {
               formData.append(key, String(value));
             }
           });
-          
+
           // Append photos
           if (data.photos) {
             data.photos.forEach((photo: any) => {
@@ -124,10 +186,10 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
           {selectedVehicle && (
             <>
               <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
-              <EixoSection eixoNumber={1} label="DIANTEIRA" fieldName="dianteira" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSection eixoNumber={2} label="TRAÇÃO" fieldName="tracao" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSection eixoNumber={3} label="TRUCK" fieldName="truck" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSection eixoNumber={4} label="QUARTO EIXO" fieldName="quartoEixo" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={1} label="DIANTEIRA" fieldName="descricaoDianteira" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={2} label="TRAÇÃO" fieldName="descricaoTracao" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={3} label="TRUCK" fieldName="descricaoTruck" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={4} label="QUARTO EIXO" fieldName="descricaoQuartoEixo" control={control} register={register} watch={watch} setValue={setValue} />
             </>
           )}
 

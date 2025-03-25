@@ -134,17 +134,18 @@ model inspection {
   dianteira                   String?
   descricaoDianteira          String?
   tracao                      String?
-  descricaoTracao             String?
+  descricaoTracao             String?           @db.LongText
   truck                       String?
-  descricaoTruck              String?
+  descricaoTruck              String?           @db.LongText
   quartoEixo                  String?
-  descricaoQuartoEixo         String?
+  descricaoQuartoEixo         String?           @db.LongText
   avariasCabine               String?
-  descricaoAvariasCabine      String?
+  descricaoAvariasCabine      String?           @db.LongText
   bauPossuiAvarias            String?
-  descricaoAvariasBau         String?
+  descricaoAvariasBau         String?           @db.LongText
   funcionamentoParteEletrica  String?
-  descricaoParteEletrica      String?
+  descricaoParteEletrica      String?           @db.LongText
+
   createdAt                   DateTime          @default(now())
   updatedAt                   DateTime?
   kilometer                   String?
@@ -208,7 +209,7 @@ model correction {
   inspectionId  String
   section       String
   resolvidoPor  String
-  observacoes   String @db.Text
+  observacoes   String @db.LongText
   userId        String
   createdAt     DateTime @default(now())
 

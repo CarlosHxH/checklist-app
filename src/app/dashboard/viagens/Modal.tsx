@@ -140,10 +140,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
   const avariasCabine = watch('avariasCabine');
   const bauPossuiAvarias = watch('bauPossuiAvarias');
   const funcionamentoParteEletrica = watch('funcionamentoParteEletrica');
-  const dianteira = watch('dianteira');
-  const tracao = watch('tracao');
-  const truck = watch('truck');
-  const quartoEixo = watch('quartoEixo');
+
 
   useEffect(() => {
     // Reset forms when inspectionData changes
