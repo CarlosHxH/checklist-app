@@ -1,9 +1,23 @@
-export async function fileToBase64(file: File): Promise<string> {
+export async function fileToBase64(file: Blob): Promise<string> {
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    
+    // Fallback for mime type
+    const mimeType = 'type' in file ? (file as File).type : 'application/octet-stream';
+    
+    return `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } catch (error) {
+    console.error('Error converting file to base64:', error);
+    throw error;
+  }
+}
+/*export async function fileToBase64(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   return `data:${file.type};base64,${buffer.toString('base64')}`;
 }
-
+*/
 export async function getBase64(file: File) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
