@@ -7,6 +7,8 @@ const nextConfig = {
     if (config.cache && !dev) {
       config.cache = Object.freeze({
         type: 'memory',
+        max: 1000,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
       })
     }
     return config

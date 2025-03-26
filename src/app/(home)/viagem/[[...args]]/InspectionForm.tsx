@@ -5,7 +5,7 @@ import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
-import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
+import { TextField, Button, Grid, Typography, Paper, Divider, Box } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
@@ -36,26 +36,23 @@ export interface EixoSectionProps {
   setValue: any;
 }
 
+
 export const EixoSections: React.FC<EixoSectionProps> = ({ eixoNumber, label, fieldName, selectedVehicle, control, register, watch, setValue }) => {
-  
-  if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
-
-  React.useEffect(() => {setValue("eixo", String(eixoNumber))}, [eixoNumber, setValue]);
-
+  if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null
   const currentValue = watch(fieldName);
   const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
 
   React.useEffect(() => {
-      if (currentValue === "BOM") setValue(field, "");
+    if (currentValue === "BOM") setValue(field, "");
   }, [currentValue, field, setValue]);
 
   return (
-      <Grid item xs={12} md={6}>
-          <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          {currentValue === "RUIM" && (
-              <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />
-          )}
-      </Grid>
+    <Grid item xs={12} md={6}>
+      <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+      {currentValue === "RUIM" && (
+        <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />
+      )}
+    </Grid>
   );
 };
 
@@ -74,7 +71,6 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
     defaultValues.vehicleId = id;
     defaultValues.status = type;
     defaultValues.eixo = selectedVehicle?.eixo ?? "0";
-    defaultValues.isFinished = true;
     reset({ ...defaultValues });
   }, [id, reset, session?.user?.id]);
 
@@ -90,25 +86,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
   }, [avariasCabine, bauPossuiAvarias, funcionamentoParteEletrica, setValue]);
 
   if (!vehicles) return <Loading />;
-  if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
-
-  const EixoSection: React.FC<{
-    name: "dianteira" | "tracao" | "truck" | "quartoEixo";
-    label: string;
-    descricao: "descricaoDianteira" | "descricaoTracao" | "descricaoTruck" | "descricaoQuartoEixo";
-  }> =
-    ({ name, label, descricao }) => {
-      const value = watch(name);
-      if (value === 'BOM') setValue(descricao, '');
-      return (
-        <Grid item xs={12} md={6}>
-          <Controller name={name} control={control} render={({ field }) => (
-            <ButtonLabel name={name} label={label} options={["BOM", "RUIM"]} control={control} />
-          )} />
-          {value === 'RUIM' && <Controller name={descricao} control={control} render={({ field }) => (<TextField {...field} label="Qual Defeito?" multiline fullWidth rows={2} />)} />}
-        </Grid>
-      );
-    }
+  if (error) return (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Erro ao carregar os veículos <Link href={'/'}>Voltar</Link></Box>);
 
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
@@ -186,10 +164,10 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
           {selectedVehicle && (
             <>
               <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
-              <EixoSections eixoNumber={1} label="DIANTEIRA" fieldName="descricaoDianteira" control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSections eixoNumber={2} label="TRAÇÃO" fieldName="descricaoTracao" control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSections eixoNumber={3} label="TRUCK" fieldName="descricaoTruck" control={control} register={register} watch={watch} setValue={setValue} />
-              <EixoSections eixoNumber={4} label="QUARTO EIXO" fieldName="descricaoQuartoEixo" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={1} selectedVehicle={selectedVehicle} label="DIANTEIRA" fieldName="dianteira" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={2} selectedVehicle={selectedVehicle} label="TRAÇÃO" fieldName="tracao" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={3} selectedVehicle={selectedVehicle} label="TRUCK" fieldName="truck" control={control} register={register} watch={watch} setValue={setValue} />
+              <EixoSections eixoNumber={4} selectedVehicle={selectedVehicle} label="QUARTO EIXO" fieldName="quartoEixo" control={control} register={register} watch={watch} setValue={setValue} />
             </>
           )}
 

@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 
-
 export interface InspectionInput {
   id: string | '';
   userId: string;
@@ -76,8 +75,6 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           }
         }
       });
-      
-      console.log("inspection created", inspection);
 
       let inspect;
       if (data.status === "INICIO") {
@@ -116,7 +113,6 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
             where: { id: openInspection.id },
             data: { endId: inspection.id }
           });
-          console.log("inspect updated");
         }
       }
 

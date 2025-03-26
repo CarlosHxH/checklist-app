@@ -132,7 +132,7 @@ model inspection {
   nivelOleo                   String?
   eixo                        String?
   dianteira                   String?
-  descricaoDianteira          String?
+  descricaoDianteira          String?           @db.LongText
   tracao                      String?
   descricaoTracao             String?           @db.LongText
   truck                       String?

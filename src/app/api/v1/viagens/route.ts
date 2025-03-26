@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createInspectionWithTransaction } from './inspection.service';
 import { fileToBase64 } from '@/utils';
-/*
-async function fileToBase64(file: File): Promise<string> {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  return `data:${file.type};base64,${buffer.toString('base64')}`;
-}*/
 
 export async function POST(request: Request) {
   try {
@@ -32,14 +26,12 @@ export async function POST(request: Request) {
       }
     }
 
-
     // Create the inspection record in the database
-    const inspection = await createInspectionWithTransaction(data);
+    await createInspectionWithTransaction(data);
 
     return NextResponse.json({ 
       success: true, 
       message: 'Inspection created successfully',
-      data: inspection
     });
   } catch (error) {
     console.error('Error processing form:', error);
