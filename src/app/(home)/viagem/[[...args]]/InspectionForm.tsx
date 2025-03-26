@@ -212,6 +212,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
                 <PhotoUploader
                   name="photos"
                   label="Foto do veiculo"
+                  isRemoved={true}
                   onChange={async (photos: File[]) => {
                     const processedPhotos = await Promise.all(
                       photos.map(async (f, i) => ({

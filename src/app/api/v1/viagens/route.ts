@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       if (key === 'photos') {
         // Handle multiple photos
         if (!data.photos) data.photos = [];
+        
         if (value instanceof File) {
           const base64 = await fileToBase64(value);
           data.photos.push({

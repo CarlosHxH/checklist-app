@@ -1,6 +1,15 @@
+/** @type {import('next').NextConfig} */
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['buffer'],
+  },
+  // Ensure proper handling of file uploads
+  webpack: (config, { isServer }) => {
+    config.resolve.fallback = { fs: false };
+    return config;
+  },
   /* config options here */
   async headers() {
     return [
