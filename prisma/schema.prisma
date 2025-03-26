@@ -147,7 +147,7 @@ model inspection {
   descricaoParteEletrica      String?           @db.LongText
 
   createdAt                   DateTime          @default(now())
-  updatedAt                   DateTime?
+  updatedAt                   DateTime?         @default(now())
   kilometer                   String?
   isFinished                  Boolean?          @default(false)
   
@@ -209,7 +209,7 @@ model correction {
   inspectionId  String
   section       String
   resolvidoPor  String
-  observacoes   String @db.LongText
+  observacoes   String? @db.LongText
   userId        String
   createdAt     DateTime @default(now())
 
