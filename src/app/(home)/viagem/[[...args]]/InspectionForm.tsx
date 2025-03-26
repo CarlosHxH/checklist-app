@@ -118,7 +118,6 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
               body: formData,
             });
             if (!response.ok) throw new Error('Failed to submit form');
-            await response.json();
             router.push('/');
           } catch (error) {
             console.error('Error submitting form:', error);
