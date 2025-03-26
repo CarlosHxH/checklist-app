@@ -57,6 +57,7 @@ export const EixoSections: React.FC<EixoSectionProps> = ({ eixoNumber, label, fi
 };
 
 const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ type, id }) => {
+  const [submitting, setSubmitting] = React.useState(false);
   const router = useRouter();
   const { data: session } = useSession();
   const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
@@ -94,6 +95,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
       {isSubmitting && <Loading />}
       <form
         onSubmit={handleSubmit(async (data) => {
+          setSubmitting(true);
           const formData = new FormData();
 
           // Append all form fields except photos
@@ -121,6 +123,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
           } catch (error) {
             console.error('Error submitting form:', error);
             alert("Erro ao enviar os dados!");
+            setSubmitting(false);
           }
         })}
       >
@@ -205,13 +208,10 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
             <Controller
               name="photos"
               control={control}
-              rules={{ required: "Este campo é obrigatório" }}
               render={({ field }) => (
                 <PhotoUploader
                   name="photos"
                   label="Foto do veiculo"
-                  multiple
-                  isRemoved
                   onChange={async (photos: File[]) => {
                     const processedPhotos = await Promise.all(
                       photos.map(async (f, i) => ({
@@ -233,7 +233,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
-            <Button fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
+            <Button disabled={submitting || Object.keys(errors).length > 0} fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
           </Grid>
         </Grid>
       </form>
@@ -241,13 +241,3 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
   );
 };
 export default InspectionForm;
-
-/*
-<PhotoUploader name={'veiculo'} label={'Foto do veiculo'} onChange={async (photo: File[]) => {
-  const photos = await Promise.all(photo.map(async (f, i) => {
-    const b64 = await getBase64(f);
-    return { photo: b64 as string, type: 'vehicle', description: `Veiculo foto-${++i}` }
-  }));
-  setValue('photos', photos);
-}} />
-*/

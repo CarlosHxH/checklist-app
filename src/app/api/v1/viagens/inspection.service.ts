@@ -28,7 +28,7 @@ export interface InspectionInput {
   kilometer: string;
   isFinished: boolean;
   extintor: string;
-  photos: [{
+  photos?: [{
     [x: string]: string,
   }]
 }
@@ -67,11 +67,11 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           descricaoQuartoEixo: data.descricaoQuartoEixo,
           isFinished: true,
           photos: {
-            create: data.photos.map((photo: any) => ({
+            create: data.photos?.map((photo: any) => ({
               photo: photo.photo,
               type: photo.type,
               description: photo.description
-            }))
+            })) || []
           }
         }
       });
