@@ -11,6 +11,7 @@ setupFilePolyfill();
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
+    
     const data: any = {};
     
     // Process all form fields
@@ -20,12 +21,12 @@ export async function POST(request: Request) {
         if (!data.photos) data.photos = [];
         console.log("value instanceof Blob", value instanceof Blob);
         console.log("value instanceof File", value instanceof File);
-        console.log("value", value);
+        console.log("value: ", value.slice(0, 50));
         
         // Check if value is a File or Blob
         if (value instanceof Blob) {
           const base64 = await fileToBase64(value);
-          console.log("base64", base64);
+          console.log("base64", base64.slice(0, 50));
           data.photos.push({
             photo: base64,
             type: 'vehicle',
