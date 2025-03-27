@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         // Check if value is a File or Blob
         if (value instanceof Blob) {
           const base64 = await fileToBase64(value);
+          console.log("base64", base64);
           data.photos.push({
             photo: base64,
             type: 'vehicle',
