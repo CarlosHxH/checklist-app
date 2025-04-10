@@ -9,7 +9,6 @@ import CustomAppBar from '@/components/_ui/CustomAppBar';
 import { useSession } from 'next-auth/react';
 import Viagens from './PageViagens';
 import Inspecao from './PageInspecao';
-import { useSocket } from '@/hooks/useSocket';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,8 +36,6 @@ export default function Page() {
   const { data: session } = useSession();
   const [value, setValue] = React.useState(0);
 
-  const data = useSocket();
-
   const idUser = session?.user?.id ?? '';
 
   const handleChange = React.useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -60,12 +57,6 @@ export default function Page() {
           ))}
         </Tabs>
       </AppBar>
-
-      {/*JSON.stringify(data)*/}
-      <button onClick={()=>data.sendMessage('Nova notificação',[ ])}>Send</button>
-      <ul>
-        {data.messages.map((e:string,i:number)=><li key={i}>{e} {i}</li>)}
-      </ul>
 
       {session && (
         <>

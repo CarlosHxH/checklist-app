@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import NotificationModal from "./UserNotification";
 
 interface Props {
   title?: string;
   showBackButton?: boolean;
   onBackClick?: () => void;
 }
-
 
 const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
   const theme = useTheme();
@@ -21,41 +21,40 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
   const { data: session } = useSession();
 
   const handleNext = () => {
-    if (session?.user.role === "ADMIN") {
-      router.push("/dashboard");
-    }
+    if (session?.user.role === "ADMIN") { router.push("/dashboard") };
   };
 
-  const handleBack = () => {
-    if (onBackClick) {
-      onBackClick();
-    } else {
-      router.back();
-    }
-  };
+  const ShowBackButton = () => {
+    if (!showBackButton) return null;
+    const handleBack = () => {
+      if (onBackClick) onBackClick();
+      else router.back();
+    };
+    return (
+      <IconButton color="inherit" aria-label="back" onClick={handleBack} edge="start" sx={{ mr: 1 }}>
+        <ArrowBackIcon />
+      </IconButton>
+    )
+  }
 
   return (
     <>
       <App component="nav">
-        <Container maxWidth="xl">
+        <Container maxWidth={"xl"}>
           <Toolbar>
-            {showBackButton && (
-              <IconButton color="inherit" aria-label="back" onClick={handleBack} edge="start" sx={{ mr: 2 }}>
-                <ArrowBackIcon />
-              </IconButton>
-            )}
+            <ShowBackButton/>
             <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>
               {title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
             </Typography>
 
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 1 }}>
-              {!isMobile&&<Chip
-                sx={{ color: '#fff', p:0 }}
+              {!isMobile && <Chip
+                sx={{ color: '#fff', p: 0 }}
                 avatar={<Avatar alt={session?.user.name || ""} src={session?.user.image || ""} />}
                 label={session?.user.name}
                 variant="outlined"
               />}
-              {/*<NotificationModal />*/}
+              {(session) && <NotificationModal id={session?.user.id} />}
               <LogoutButton />
             </Box>
           </Toolbar>

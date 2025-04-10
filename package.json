@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
+    "devs": "tsx server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -49,7 +50,6 @@
     "sqlite": "^5.1.1",
     "sweetalert2": "^11.15.3",
     "swr": "^2.3.0",
-    "ts-node": "^10.9.2",
     "ws": "^8.18.1",
     "zod": "^3.24.1"
   },
@@ -65,7 +65,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
     "prisma": "^6.1.0",
-    "tsx": "^4.19.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.2"
   }
 }

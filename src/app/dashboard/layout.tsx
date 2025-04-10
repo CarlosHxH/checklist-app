@@ -67,7 +67,7 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
   
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
-      <DashboardLayout>
+      <DashboardLayout defaultSidebarCollapsed>
         <PageContainer>{children}</PageContainer>
       </DashboardLayout>
     </AppProvider>

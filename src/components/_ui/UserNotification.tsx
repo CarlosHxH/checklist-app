@@ -4,7 +4,6 @@ import { IconButton, Badge, Dialog, DialogContent, Card, CardContent, Typography
 import { Notifications, Check, Close } from '@mui/icons-material';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
-import { useSession } from 'next-auth/react';
 
 interface Transfer {
   plate: string;
@@ -19,33 +18,39 @@ interface Transfer {
   createdAt: string;
 }
 
-const NotificationModal = () => {
-  const { data: session } = useSession()
-  const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/v1/keys/pending/${session?.user.id}`, fetcher, { refreshInterval: 5000 });
+const NotificationModal = ({id}:{id:string}) => {
+  const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/v1/keys/pending/${id}`, fetcher, { refreshInterval: 1000 });
+  const [loading, setLoading ] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
 
   const handleConfirm = async (transferId: string) => {
+    setLoading(true);
     try {
       await axios.post(`/api/v1/keys/confirm/${transferId}`);
       setSuccess('Transfer confirmed successfully');
-      mutate();
     } catch (err) {
       setError('Failed to confirm transfer');
       alert(error)
+    } finally {
+      mutate();
+      setLoading(false);
     }
   };
 
   const handleReject = async (transferId: string) => {
+    setLoading(true);
     try {
       await axios.post(`/api/v1/keys/reject/${transferId}`);
       setSuccess('Transfer rejected successfully');
-      mutate();
     } catch (err) {
       setError('Failed to reject transfer');
       alert(error)
+    } finally {
+      mutate();
+      setTimeout(()=>setLoading(false),1000)
     }
   };
 
@@ -54,7 +59,7 @@ const NotificationModal = () => {
   return (
     <>
       <IconButton color="inherit" onClick={() => setOpen(true)} style={{ position: 'relative' }}>
-        <Badge badgeContent={pendingTransfers?.filter(v=>v.status==='PENDING')?.length ?? 0} color="error" max={99}>
+        <Badge showZero badgeContent={pendingTransfers?.filter(v=>v.status==='PENDING')?.length ?? 0} color="error" max={99}>
           <Notifications />
         </Badge>
       </IconButton>
@@ -96,10 +101,10 @@ const NotificationModal = () => {
                     </Typography>
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                      <Button variant="contained" color="success" startIcon={<Check />} onClick={() => handleConfirm(transfer.id)}>
+                      <Button disabled={loading} variant="contained" color="success" startIcon={<Check />} onClick={() => handleConfirm(transfer.id)}>
                         Confirmar
                       </Button>
-                      <Button variant="contained" color="error" startIcon={<Close />} onClick={() => handleReject(transfer.id)}>
+                      <Button disabled={loading} variant="contained" color="error" startIcon={<Close />} onClick={() => handleReject(transfer.id)}>
                         Rejeitar
                       </Button>
                     </Box>
