@@ -11,9 +11,11 @@ import CardViagemList from './CardViagemList';
 export default function Viagens({ id }: { id: string }) {
   const { data, error, isLoading } = useSWR(
     id ? `/api/v1/viagens/user/${id}` : null,
-    fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: false }
-  )
+    fetcher, {
+    refreshInterval: 10000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true
+  })
 
   const showCustomFab = useMemo(() => {
     if (!data) return false;

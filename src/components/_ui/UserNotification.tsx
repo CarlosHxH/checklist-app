@@ -1,131 +1,275 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { IconButton, Badge, Dialog, DialogContent, Card, CardContent, Typography, Button, Box, Snackbar, Alert, CircularProgress, Grid } from '@mui/material';
-import { Notifications, Check, Close } from '@mui/icons-material';
+import { 
+  IconButton, 
+  Badge, 
+  Dialog, 
+  DialogContent, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Button, 
+  Box, 
+  Snackbar, 
+  Alert, 
+  CircularProgress,
+  Tooltip
+} from '@mui/material';
+import { Notifications, Check, Close, NotificationsActive } from '@mui/icons-material';
+import { useSocket } from '@/provider/SocketProvider';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
+import { debounce } from 'lodash';
+
+type TransferStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
 interface Transfer {
-  plate: string;
-  model: string;
   id: string;
-  status: 'PENDING' | 'CONFIRMED';
+  status: TransferStatus;
   vehicle: {
     id: string;
     model: string;
     plate: string;
   };
   createdAt: string;
+  requester?: {
+    name: string;
+    avatar?: string;
+  };
 }
 
-const NotificationModal = ({id}:{id:string}) => {
-  const { data: pendingTransfers, isLoading, mutate } = useSWR<Transfer[]>(`/api/v1/keys/pending/${id}`, fetcher, { refreshInterval: 1000 });
-  const [loading, setLoading ] = useState(false);
+interface NotificationModalProps {
+  userId: string;
+  enableSound?: boolean;
+}
+
+const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSound = false }) => {
   const [open, setOpen] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [newNotifications, setNewNotifications] = useState(0);
+  const socket = useSocket();
   
+  
+  const { 
+    data: pendingTransfers, 
+    isLoading, 
+    mutate 
+  } = useSWR<Transfer[]>(`/api/v1/keys/pending/${userId}`, fetcher, { 
+    refreshInterval: 10000, // 10 segundos
+    revalidateOnFocus: true 
+  });
 
-  const handleConfirm = async (transferId: string) => {
-    setLoading(true);
-    try {
-      await axios.post(`/api/v1/keys/confirm/${transferId}`);
-      setSuccess('Transfer confirmed successfully');
-    } catch (err) {
-      setError('Failed to confirm transfer');
-      alert(error)
-    } finally {
-      mutate();
-      setLoading(false);
+  // Tocar som de notificação
+  const playNotificationSound = useCallback(() => {
+    if (enableSound) {
+      const audio = new Audio('/sounds/notification.wav');
+      audio.play().catch(e => console.error('Error playing sound:', e));
     }
-  };
+  }, [enableSound]);
 
-  const handleReject = async (transferId: string) => {
-    setLoading(true);
+  // Handler para ações (confirmar/rejeitar)
+  const handleTransferAction = useCallback(debounce(async (action: 'confirm' | 'reject', transferId: string) => {
+    setLoadingAction(transferId);
     try {
-      await axios.post(`/api/v1/keys/reject/${transferId}`);
-      setSuccess('Transfer rejected successfully');
-    } catch (err) {
-      setError('Failed to reject transfer');
-      alert(error)
-    } finally {
+      await axios.post(`/api/v1/keys/${action}/${transferId}`);
+      setSuccess(`Transferência ${action === 'confirm' ? 'confirmada' : 'rejeitada'} com sucesso`);
       mutate();
-      setTimeout(()=>setLoading(false),1000)
+      
+      // Emitir evento via socket
+      if (socket) {
+        socket.emit('transferUpdate', { transferId, action });
+      }
+    } catch (err) {
+      setError(`Erro ao ${action === 'confirm' ? 'confirmar' : 'rejeitar'} transferência`);
+      console.error(err);
+    } finally {
+      setLoadingAction(null);
     }
-  };
+  }, 500), [mutate, socket]);
 
-  const handleClose = () => setOpen(false);
+  // Efeito para socket e notificações
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = () => {
+      mutate();
+      setNewNotifications(prev => prev + 1);
+      playNotificationSound();
+    };
+
+    // Configurar listeners
+    socket.emit('joinNotifications', userId);
+    socket.on('newTransfer', handleNewNotification);
+    socket.on('transferUpdated', handleNewNotification);
+
+    return () => {
+      socket.off('newTransfer', handleNewNotification);
+      socket.off('transferUpdated', handleNewNotification);
+      socket.emit('leaveNotifications', userId);
+    };
+  }, [socket, userId, mutate, playNotificationSound]);
+
+  // Resetar contador quando modal é aberto
+  useEffect(() => {
+    if (open) {
+      setNewNotifications(0);
+    }
+  }, [open]);
+
+  const pendingCount = pendingTransfers?.filter(t => t.status === 'PENDING').length || 0;
+  const hasNewNotifications = newNotifications > 0;
 
   return (
     <>
-      <IconButton color="inherit" onClick={() => setOpen(true)} style={{ position: 'relative' }}>
-        <Badge showZero badgeContent={pendingTransfers?.filter(v=>v.status==='PENDING')?.length ?? 0} color="error" max={99}>
-          <Notifications />
-        </Badge>
-      </IconButton>
+      <Tooltip title="Notificações">
+        <IconButton 
+          color="inherit" 
+          onClick={() => setOpen(true)}
+          sx={{ position: 'relative' }}
+        >
+          <Badge 
+            badgeContent={pendingCount + newNotifications} 
+            color={hasNewNotifications ? 'secondary' : 'error'}
+            max={99}
+          >
+            {hasNewNotifications ? (
+              <NotificationsActive sx={{ color: 'secondary.main' }} />
+            ) : (
+              <Notifications />
+            )}
+          </Badge>
+        </IconButton>
+      </Tooltip>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <Box sx={{ p: 3 }}>
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: 24
+          }
+        }}
+      >
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
           <Typography variant="h6" component="div" gutterBottom>
             Notificações
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Transferências - chave pendentes que exigem sua atenção
+            Transferências de chave pendentes
           </Typography>
         </Box>
 
-        <DialogContent>
+        <DialogContent sx={{ p: 0 }}>
           {isLoading ? (
-            <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>
-          ) : pendingTransfers?.length === 0 ? (
-            <Box textAlign="center" p={3}>
+            <Box display="flex" justifyContent="center" p={4}>
+              <CircularProgress />
+            </Box>
+          ) : pendingTransfers?.filter(t => t.status === 'PENDING').length === 0 ? (
+            <Box textAlign="center" p={4}>
               <Typography color="text.secondary">
-                Sem notificações pendentes
+                Nenhuma notificação pendente
               </Typography>
             </Box>
           ) : (
-            <Box sx={{ mt: 2 }}>
-              {pendingTransfers?.map((transfer) => {
-                if (transfer.status != 'PENDING') return;
-                return(
-                <Card key={transfer.id} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" component="div" gutterBottom>
-                      {transfer.vehicle.model} {}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Placa: {transfer.vehicle.plate}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Data: {new Date(transfer.createdAt).toLocaleDateString()}
-                    </Typography>
+            <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              {pendingTransfers
+                ?.filter(transfer => transfer.status === 'PENDING')
+                ?.map((transfer) => (
+                  <Card 
+                    key={transfer.id} 
+                    sx={{ 
+                      mb: 2, 
+                      mx: 2, 
+                      mt: 2,
+                      boxShadow: 3,
+                      borderLeft: 4,
+                      borderColor: 'primary.main'
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" justifyContent="space-between">
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {transfer.vehicle.model}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(transfer.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
+                      
+                      <Typography variant="body2" color="text.secondary" mt={1}>
+                        Placa: <strong>{transfer.vehicle.plate}</strong>
+                      </Typography>
+                      
+                      {transfer.requester && (
+                        <Typography variant="body2" color="text.secondary">
+                          Solicitado por: <strong>{transfer.requester.name}</strong>
+                        </Typography>
+                      )}
 
-                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                      <Button disabled={loading} variant="contained" color="success" startIcon={<Check />} onClick={() => handleConfirm(transfer.id)}>
-                        Confirmar
-                      </Button>
-                      <Button disabled={loading} variant="contained" color="error" startIcon={<Close />} onClick={() => handleReject(transfer.id)}>
-                        Rejeitar
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              )})}
+                      <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="success"
+                          startIcon={<Check />}
+                          onClick={() => handleTransferAction('confirm', transfer.id)}
+                          disabled={loadingAction === transfer.id}
+                        >
+                          {loadingAction === transfer.id ? (
+                            <CircularProgress size={24} color="inherit" />
+                          ) : (
+                            'Confirmar'
+                          )}
+                        </Button>
+                        
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          color="error"
+                          startIcon={<Close />}
+                          onClick={() => handleTransferAction('reject', transfer.id)}
+                          disabled={loadingAction === transfer.id}
+                        >
+                          {loadingAction === transfer.id ? (
+                            <CircularProgress size={24} color="inherit" />
+                          ) : (
+                            'Rejeitar'
+                          )}
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))
+              }
             </Box>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Success Snackbar */}
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={() => setSuccess(null)} severity="success">
+      {/* Feedback Snackbars */}
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
           {success}
         </Alert>
       </Snackbar>
-
-      {/* Error Snackbar */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={() => setError(null)} severity="error">
+      
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
           {error}
         </Alert>
       </Snackbar>
@@ -133,4 +277,4 @@ const NotificationModal = ({id}:{id:string}) => {
   );
 };
 
-export default NotificationModal;
+export default React.memo(NotificationModal);

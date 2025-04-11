@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Você é um assitente de codigo do cursor para uma aplicação em nextjs com typescript
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to

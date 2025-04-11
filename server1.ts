@@ -7,7 +7,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.NEXTAUTH_URL || 'http://localhost';
 const port = 80;
 
-const app = next({ dev });
+const app = next({ dev, turbopack:true });
 const handle = app.getRequestHandler();
 
 

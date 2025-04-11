@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Alert, Backdrop, Box, Button, CircularProgress, Container,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
@@ -15,6 +15,7 @@ import useSWR from 'swr'
 import { fetcher } from '@/lib/ultils'
 import Loading from '@/components/Loading'
 import { useSession } from 'next-auth/react'
+import { useSocket } from '@/provider/SocketProvider'
 
 // Types
 interface User {
@@ -61,13 +62,16 @@ interface FormData {
 }
 
 export default function VehicleKeysPage() {
+  const socket = useSocket();
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { data: session } = useSession()
-  
+
   // Data fetching
-  const { data, isLoading, mutate } = useSWR<DataType>('/api/v1/dashboard/keys', fetcher, { 
-    refreshInterval: 1000 
+  const { data, isLoading, mutate } = useSWR<DataType>('/api/v1/dashboard/keys', fetcher, {
+    refreshInterval: 10000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true
   })
 
   // State
@@ -79,17 +83,40 @@ export default function VehicleKeysPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
   const [formData, setFormData] = useState<FormData>({ userId: '', vehicleId: '' })
-  
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Socket setup
+  useEffect(() => {
+    if (!socket || !session?.user?.id) return;
+
+    const handleTransferUpdate = () => {
+      console.log("Received transfer update, refreshing data...");
+      mutate();
+    };
+
+    // Register user with socket
+    socket.emit('registerUser', session.user.id);
+
+    // Listen for transfer updates
+    socket.on('newTransferNotification', handleTransferUpdate);
+    socket.on('transferStatusChanged', handleTransferUpdate);
+
+    return () => {
+      socket.off('newTransferNotification', handleTransferUpdate);
+      socket.off('transferStatusChanged', handleTransferUpdate);
+    };
+  }, [socket, session?.user?.id, mutate]);
+
   // Process data when it changes
   useEffect(() => {
     if (data && data.vehicleKeys.length > 0) {
       groupVehicleKeys()
     }
   }, [data])
-
   // Helper functions
-  const groupVehicleKeys = () => {
-    const grouped = data?.vehicleKeys?.reduce<GroupedVehicleKeys>((acc, key) => {
+  const groupVehicleKeys = useCallback(() => {
+    if (!data?.vehicleKeys) return;
+    const grouped = data.vehicleKeys.reduce<GroupedVehicleKeys>((acc, key) => {
       if (!acc[key.vehicleId]) {
         acc[key.vehicleId] = {
           vehicle: {
@@ -100,30 +127,28 @@ export default function VehicleKeysPage() {
           latestKey: key
         }
       }
-      
+
       acc[key.vehicleId].keys.push(key)
-      
+
       if (new Date(key.createdAt) > new Date(acc[key.vehicleId].latestKey.createdAt)) {
         acc[key.vehicleId].latestKey = key
       }
-      
+
       return acc
     }, {})
-    
-    if (grouped) {
-      setGroupedVehicleKeys(grouped)
-    }
-  }
+
+    setGroupedVehicleKeys(grouped)
+  }, [data])
 
   const validateForm = (): string | null => {
     if (!formData.vehicleId) return 'Selecione um veículo'
     if (!formData.userId) return 'Selecione um usuário'
-    
+
     const currentKey = groupedVehicleKeys[formData.vehicleId]?.latestKey
     if (currentKey && currentKey.userId === formData.userId) {
       return 'A chave já está com este usuário'
     }
-    
+
     return null
   }
 
@@ -147,7 +172,8 @@ export default function VehicleKeysPage() {
 
   const handleConfirmedSubmit = async () => {
     setConfirmDialogOpen(false)
-    
+    setIsProcessing(true)
+
     try {
       const response = await fetch('/api/v1/dashboard/keys', {
         method: 'POST',
@@ -157,16 +183,29 @@ export default function VehicleKeysPage() {
           parentId: groupedVehicleKeys[formData.vehicleId]?.latestKey?.id || null
         }),
       })
-      
+
       if (!response.ok) throw new Error('Erro ao transferir chave')
-      
+
+      const newKey = await response.json();
+
+      if (socket) {
+        socket.emit('transferCreated', {
+          transferId: newKey.id,
+          vehicleId: newKey.vehicleId,
+          recipientId: newKey.userId,
+          senderId: session?.user?.id,
+          status: 'PENDING'
+        });
+      }
+
       setSuccessMessage('Chave transferida com sucesso!')
       handleCloseModal()
+      mutate()
     } catch (error) {
       console.error('Error creating vehicle key:', error)
       setError('Erro ao transferir a chave. Tente novamente.')
     } finally {
-      mutate()
+      setIsProcessing(false)
     }
   }
 
@@ -177,22 +216,64 @@ export default function VehicleKeysPage() {
   }
 
   const handleCancelNotification = async (latestKey: VehicleKey) => {
-    if (!confirm("Deseja cancelar a transferencia de chave?")) return
+    if (!confirm("Deseja cancelar a transferência de chave?")) return
     if (!latestKey) return
-    
+
+    setIsProcessing(true)
     try {
       const response = await fetch(`/api/v1/keys/reject/${latestKey.id}`, { method: 'POST' })
       if (!response.ok) throw new Error('Erro ao rejeitar transferência')
+
+      if (socket) {
+        socket.emit('transferUpdated', {
+          transferId: latestKey.id,
+          newStatus: 'REJECTED',
+          recipientId: latestKey.userId,
+          senderId: session?.user?.id
+        });
+      }
+
+      mutate()
     } catch (error) {
       setError('Erro ao rejeitar transferência')
     } finally {
-      mutate()
+      setIsProcessing(false)
     }
   }
 
   const handleOpenHistoryModal = (vehicleKey: VehicleKey) => {
     setSelectedVehicleKeys(vehicleKey)
     setHistoryModalOpen(true)
+  }
+
+  const handleReceiveKey = async (vehicleId: string) => {
+    if (!confirm("Deseja confirmar o recebimento desta chave?")) return
+
+    const latestKey = groupedVehicleKeys[vehicleId]?.latestKey;
+    if (!latestKey) return;
+
+    setIsProcessing(true)
+    try {
+      const response = await fetch(`/api/v1/keys/confirm/${latestKey.id}`, { method: 'POST' })
+      if (!response.ok) throw new Error('Erro ao confirmar transferência')
+      if (socket) {
+        socket.emit('transferUpdated', {
+          transferId: latestKey.id,
+          newStatus: 'CONFIRMED',
+          recipientId: latestKey.userId,
+          senderId: latestKey.parentId ?
+            groupedVehicleKeys[vehicleId]?.keys.find(k => k.id === latestKey.parentId)?.userId :
+            session?.user?.id
+        });
+      }
+
+      mutate()
+      setSuccessMessage('Transferência confirmada com sucesso!')
+    } catch (error) {
+      setError('Erro ao confirmar transferência')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   if (isLoading) return <Loading />
@@ -227,6 +308,7 @@ export default function VehicleKeysPage() {
               const status = group.latestKey.status
               const title = status === 'CONFIRMED' ? 'CONFIRMADO' : status === 'REJECTED' ? 'REJEITADA' : 'Aguardando motorista'
               const color = status === 'CONFIRMED' ? 'green' : status === 'REJECTED' ? 'red' : 'orange'
+              const isCurrentUser = group.latestKey.user.id === session?.user?.id
 
               return (
                 <TableRow key={i}>
@@ -237,27 +319,34 @@ export default function VehicleKeysPage() {
                   {!isMobile && <TableCell>{new Date(group.latestKey.createdAt).toLocaleString('pt-BR')}</TableCell>}
                   <TableCell>
                     <Box display="flex" alignItems="center">
-                      <IconButton onClick={() => handleOpenHistoryModal(group.latestKey)} title="Histórico">
+                      <IconButton
+                        onClick={() => handleOpenHistoryModal(group.latestKey)}
+                        title="Histórico"
+                        disabled={isProcessing}
+                      >
                         <History fontSize="small" />
                         <Typography variant="body2" sx={{ ml: 1 }}>{group.keys.length}</Typography>
                       </IconButton>
                       {status === 'PENDING' && (
-                        <IconButton 
-                          onClick={() => handleCancelNotification(group.latestKey)} 
-                          title="Cancelar notificação" 
+                        <IconButton
+                          onClick={() => handleCancelNotification(group.latestKey)}
+                          title="Cancelar notificação"
                           sx={{ ml: 1 }}
+                          disabled={isProcessing}
                         >
                           <CloseIcon fontSize="small" color="error" />
                         </IconButton>
                       )}
 
-                      {
-                        (status != "CONFIRMED" && group.latestKey.user.name === session?.user.name) && (
-                          <IconButton title='Receber chave'>
-                            <BookmarkIcon color='primary'/>
-                          </IconButton>
-                        )
-                      }
+                      {(status === "PENDING" && isCurrentUser) && (
+                        <IconButton
+                          title='Receber chave'
+                          onClick={() => handleReceiveKey(group.vehicle.id)}
+                          disabled={isProcessing}
+                        >
+                          <BookmarkIcon color='primary' />
+                        </IconButton>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -274,16 +363,17 @@ export default function VehicleKeysPage() {
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
             <InputLabel>Veículo</InputLabel>
-            <Select 
-              value={formData.vehicleId} 
-              label="Veículo" 
-              onChange={(e) => { 
+            <Select
+              value={formData.vehicleId}
+              label="Veículo"
+              onChange={(e) => {
                 setError(null)
-                setFormData({ ...formData, vehicleId: e.target.value }) 
+                setFormData({ ...formData, vehicleId: e.target.value })
               }}
+              disabled={isProcessing}
             >
               {data?.vehicles?.map((v) => {
-                if(getCurrentKeyStatusPending(v.id)) return null
+                if (getCurrentKeyStatusPending(v.id)) return null
                 return (
                   <MenuItem key={v.id} value={v.id}>
                     {`${v.plate} - ${v.model}`}
@@ -295,18 +385,19 @@ export default function VehicleKeysPage() {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Novo Responsável</InputLabel>
-            <Select 
-              value={formData.userId} 
-              label="Novo Responsável" 
-              onChange={(e) => { 
+            <Select
+              value={formData.userId}
+              label="Novo Responsável"
+              onChange={(e) => {
                 setError(null)
-                setFormData({ ...formData, userId: e.target.value }) 
+                setFormData({ ...formData, userId: e.target.value })
               }}
+              disabled={isProcessing}
             >
               {data?.users?.map((u) => (
-                <MenuItem 
-                  key={u.id} 
-                  value={u.id} 
+                <MenuItem
+                  key={u.id}
+                  value={u.id}
                   disabled={groupedVehicleKeys[formData.vehicleId]?.latestKey?.userId === u.id}
                 >
                   {u.name}
@@ -317,15 +408,19 @@ export default function VehicleKeysPage() {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModal}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={!formData.userId || !formData.vehicleId}>
-            Transferir
+          <Button onClick={handleCloseModal} disabled={isProcessing}>Cancelar</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={!formData.userId || !formData.vehicleId || isProcessing}
+          >
+            {isProcessing ? <CircularProgress size={24} /> : 'Transferir'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+      <Dialog open={confirmDialogOpen} onClose={() => !isProcessing && setConfirmDialogOpen(false)}>
         <DialogTitle>Confirmar Transferência</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -337,9 +432,9 @@ export default function VehicleKeysPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleConfirmedSubmit} variant="contained" autoFocus>
-            Confirmar
+          <Button onClick={() => setConfirmDialogOpen(false)} disabled={isProcessing}>Cancelar</Button>
+          <Button onClick={handleConfirmedSubmit} variant="contained" disabled={isProcessing}>
+            {isProcessing ? <CircularProgress size={24} /> : 'Confirmar'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -354,14 +449,14 @@ export default function VehicleKeysPage() {
       )}
 
       {/* Success Message */}
-      <Snackbar open={!!successMessage} autoHideDuration={6000} onClose={() => setSuccessMessage(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+      <Snackbar open={!!successMessage} autoHideDuration={6000} onClose={() => setSuccessMessage(null)}>
         <Alert onClose={() => setSuccessMessage(null)} severity="success" sx={{ width: '100%' }}>
           {successMessage}
         </Alert>
       </Snackbar>
 
       {/* Loading Backdrop */}
-      <Backdrop sx={{ color: '#fff', zIndex: theme.zIndex.drawer + 1 }} open={isLoading}>
+      <Backdrop sx={{ color: '#fff', zIndex: theme.zIndex.drawer + 1 }} open={isProcessing}>
         <CircularProgress color="inherit" />
       </Backdrop>
     </Container>

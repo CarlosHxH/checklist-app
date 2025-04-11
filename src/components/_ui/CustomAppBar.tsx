@@ -44,7 +44,7 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
           <Toolbar>
             <ShowBackButton/>
             <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>
-              {title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
+              { title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
             </Typography>
 
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 1 }}>
@@ -54,7 +54,7 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
                 label={session?.user.name}
                 variant="outlined"
               />}
-              {(session) && <NotificationModal id={session?.user.id} />}
+              {(session) && <NotificationModal userId={session?.user.id} enableSound/>}
               <LogoutButton />
             </Box>
           </Toolbar>

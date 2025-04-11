@@ -1,45 +1,36 @@
-import { createServer } from 'http';
-import { parse } from 'url';
-import next from 'next';
-import { WebSocket } from 'ws';
+import { createServer } from 'http'
+import { parse } from 'url'
+import next from 'next'
+import { Server } from "socket.io";
+import socketHandler from './server/sockets';
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.NEXTAUTH_URL || 'http://localhost';
-const port = 80;
-
-const app = next({ dev });
-const handle = app.getRequestHandler();
+const port = parseInt(process.env.PORT || '80', 10)
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dev })
+const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-	const server = createServer((req, res) => {
-		const parsedUrl = parse(req.url || '', true);
-		handle(req, res, parsedUrl);
-	});
-	
-	// Configurando o servidor WebSocket
-	const wss = new WebSocket.Server({ server });
+  const httpServer = createServer((req, res) => {
+    const parsedUrl = parse(req.url!, true)
+    handle(req, res, parsedUrl)
+  })
 
-	wss.on('connection', (ws) => {
-		console.log('Cliente conectado');
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
 
-		ws.on('message', (message) => {
-			console.log('Mensagem recebida:', message.toString());
+  io.on('connection', (socket) => {
+    socketHandler(socket, io);
+  });
 
-			// Enviar a mensagem para todos os clientes conectados
-			wss.clients.forEach((client) => {
-				if (client !== ws && client.readyState === WebSocket.OPEN) {
-					client.send(message.toString());
-				}
-			});
-		});
 
-		ws.on('close', () => {
-			console.log('Cliente desconectado');
-		});
-	});
-
-	server.listen(port, (err?: Error) => {
-		if (err) throw err;
-		console.log(`> Ready on ${hostname}:${port}`);
-	});
-});
+  httpServer.listen(port, () => {
+    console.log(
+      `> Server listening at http://localhost:${port} as ${dev ? 'development' : process.env.NODE_ENV
+      }`
+    );
+  });
+})

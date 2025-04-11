@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";
+import { getServerSession } from "next-auth";
 
 // GET all keys
 export async function GET(request: NextRequest) {
@@ -38,15 +39,22 @@ export async function GET(request: NextRequest) {
   }
 }
 
+
 // POST new key transfer
 export async function POST(request: NextRequest) {
   // Verificar autenticação e permissão
   const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
+  const session = await getServerSession();
+  console.log({ session })
   try {
     const body = await request.json();
     const { userId, vehicleId, parentId } = body;
+
+    if (session) {
+      const user = await prisma.user.findUnique({})
+    }
 
     // Validate input
     if (!userId || !vehicleId) {
@@ -59,22 +67,12 @@ export async function POST(request: NextRequest) {
     // Start transaction
     const newTransfer = await prisma.$transaction(async (tx) => {
       // Check if user exists
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        throw new Error("User not found");
-      }
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (!user) { throw new Error("User not found") }
 
       // Check if vehicle exists
-      const vehicle = await tx.vehicle.findUnique({
-        where: { id: vehicleId },
-      });
-
-      if (!vehicle) {
-        throw new Error("Vehicle not found");
-      }
+      const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId } });
+      if (!vehicle) { throw new Error("Vehicle not found") }
 
       // Create new transfer
       const transfer = await tx.vehicleKey.create({
@@ -89,7 +87,6 @@ export async function POST(request: NextRequest) {
           vehicle: true,
         },
       });
-
       return transfer;
     });
 

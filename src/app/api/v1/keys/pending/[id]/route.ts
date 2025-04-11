@@ -9,13 +9,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         userId: id,
       },
       include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          }
-        },
         vehicle: {
           select: {
             id: true,
