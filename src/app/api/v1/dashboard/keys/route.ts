@@ -46,15 +46,9 @@ export async function POST(request: NextRequest) {
   const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
-  const session = await getServerSession();
-  console.log({ session })
   try {
     const body = await request.json();
-    const { userId, vehicleId, parentId } = body;
-
-    if (session) {
-      const user = await prisma.user.findUnique({})
-    }
+    const { userId, vehicleId, parentId, id } = body;
 
     // Validate input
     if (!userId || !vehicleId) {
@@ -80,7 +74,7 @@ export async function POST(request: NextRequest) {
           userId,
           vehicleId,
           parentId,
-          status: "PENDING",
+          status: id?"CONFIRMED":"PENDING",
         },
         include: {
           user: true,

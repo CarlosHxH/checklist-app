@@ -38,7 +38,7 @@ interface VehicleKey {
   updatedAt: string
   parentId: string | null
   user: User
-  status: "CONFIRMED" | "REJECTED" | "PENDING"
+  status: "CONFIRMED" | "PENDING"
   vehicle: Vehicle
 }
 
@@ -57,6 +57,7 @@ interface GroupedVehicleKeys {
 }
 
 interface FormData {
+  id?: string;
   userId: string
   vehicleId: string
 }
@@ -175,6 +176,12 @@ export default function VehicleKeysPage() {
     setIsProcessing(true)
 
     try {
+      if(
+        formData.userId === session?.user.id
+      ){
+        formData.id = session?.user.id;
+      }
+      
       const response = await fetch('/api/v1/dashboard/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,8 +313,8 @@ export default function VehicleKeysPage() {
           <TableBody>
             {Object.values(groupedVehicleKeys).map((group, i) => {
               const status = group.latestKey.status
-              const title = status === 'CONFIRMED' ? 'CONFIRMADO' : status === 'REJECTED' ? 'REJEITADA' : 'Aguardando motorista'
-              const color = status === 'CONFIRMED' ? 'green' : status === 'REJECTED' ? 'red' : 'orange'
+              const title = status === 'CONFIRMED' ? 'CONFIRMADO' : 'Aguardando motorista'
+              const color = status === 'CONFIRMED' ? 'green' : 'orange'
               const isCurrentUser = group.latestKey.user.id === session?.user?.id
 
               return (

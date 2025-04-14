@@ -9,18 +9,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         vehicle: {
           select: {
+            id: true,
             plate: true,
             model: true,
           },
-        },
-        photos: {
-          select: {
-            id: true,
-            type: true,
-            photo: true,
-            description: true,
-          },
-        },
+        }
       },
     });
 

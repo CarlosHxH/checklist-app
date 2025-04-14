@@ -41,7 +41,6 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
 
   const renderInspectionDetails = (detail: InspectionDetail | null, type: 'start' | 'end') => {
     if (!detail) return null;
-
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle1" color="text.secondary">
@@ -105,7 +104,7 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
             {inspection.start?.isFinished ? (
               <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
             ) : (
-              <Link href={`/viagem/${inspection.start?.id}/edit`}>
+              <Link href={`/viagem/inicio/${inspection.id}`}>
                 <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
               </Link>
             )}
@@ -115,7 +114,7 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
               : inspection.end ? (
                 <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/viagem/final/${inspection.vehicleId}`}>
+                <Link href={`/viagem/final/${inspection.id}`}>
                   <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}
