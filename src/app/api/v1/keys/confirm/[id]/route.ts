@@ -5,20 +5,12 @@ import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 async function transfer(id: string) {
   return prisma.$transaction(async (tx) => {
     // 1. Decrement amount from the sender.
-    const currentTransfer = await tx.vehicleKey.findUnique({
-      where: { id },
-      include: { vehicle: true },
-    });
-
+    const currentTransfer = await tx.vehicleKey.findUnique({where: { id }});
     if (!currentTransfer) throw new Error("Transferência não encontrada");
-    if (currentTransfer.status !== "PENDING")
-      throw new Error("Transferência não está pendente");
+    if (currentTransfer.status === "CONFIRMED") throw new Error("Transferência está confirmada");
 
-    const user = await prisma.user.findFirst({
-      where: { id: currentTransfer.userId },
-    });
-
-    if (user?.role === "DRIVER") {
+    const user = await prisma.user.findFirst({where: { id: currentTransfer.userId }});
+    if (user?.role === "DRIVER") {/*
       const inspection = await prisma.inspection.create({
         data: {
           userId: currentTransfer.userId,
@@ -26,12 +18,12 @@ async function transfer(id: string) {
           status: "INICIO",
         },
       });
-      if (!inspection) throw new Error("Erro na transferencia");
+      if (!inspection) throw new Error("Erro na transferencia");*/
       const group = await prisma.inspect.create({
         data: {
           userId: currentTransfer.userId,
           vehicleId: currentTransfer.vehicleId,
-          startId: inspection.id,
+          //startId: inspection.id,
         },
       });
     }
@@ -57,7 +49,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN","USER","DRIVER",]);
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER"]);
   if (authResponse.status !== 200) return authResponse;
 
   try {

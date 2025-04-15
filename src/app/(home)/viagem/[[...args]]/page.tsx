@@ -6,11 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { use } from "react";
 
-export default function Page({
-  params,
-}: {
-  params: Promise<{ args: string[] }>
-}) {
+export default function Page({ params }: { params: Promise<{ args: string[] }>}) {
   const router = useRouter();
   const resolvedParams = use(params);
   const [type, id] = resolvedParams.args;

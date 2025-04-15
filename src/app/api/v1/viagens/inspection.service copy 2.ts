@@ -76,28 +76,30 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
       });
 
       let inspect;
-      
+
+      // 2. Check if there's an existing Inspect record for this vehicle and user
+      // This step is different depending on whether this is a start or end inspection
       if (data.status === "INICIO") {
         // For START inspections:
-        // Find the most recent open inspection for this vehicle and user or create a new one
-        const openInspection = await tx.inspect.findUnique({
+        // First check if there's an open inspection (has start but no end)
+        const existingOpenInspect = await tx.inspect.findUnique({
           where: {
             id,
-            userId: data.userId,
-            vehicleId: data.vehicleId,
+            //userId: data.userId,
+            //vehicleId: data.vehicleId,
             //startId: { not: null },
-            endId: null
+            //endId: null
           }
         });
 
-        if (openInspection) {
-          // Update existing inspection with new startId
+        if (existingOpenInspect) {
+          // If there's an open inspection, update its startId
           inspect = await tx.inspect.update({
-            where: { id: openInspection.id },
+            where: { id: existingOpenInspect.id },
             data: { startId: inspection.id }
           });
         } else {
-          // Create new Inspect
+          // Create a new Inspect record with the start inspection
           inspect = await tx.inspect.create({
             data: {
               userId: data.userId,
@@ -106,9 +108,9 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
             }
           });
         }
-      } else {
+      } else if (data.status === "FINAL") {
         // For END inspections:
-        // Try to find an open inspection to update
+        // Look for an open inspection (has start but no end)
         const openInspection = await tx.inspect.findFirst({
           where: {
             userId: data.userId,
@@ -120,13 +122,13 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
         });
 
         if (openInspection) {
-          // Update with endId
+          // Update the existing Inspect record with the end inspection
           inspect = await tx.inspect.update({
             where: { id: openInspection.id },
             data: { endId: inspection.id }
           });
         } else {
-          // Create new with just endId
+          // If no open inspection found, create a new Inspect with only the end inspection
           inspect = await tx.inspect.create({
             data: {
               userId: data.userId,

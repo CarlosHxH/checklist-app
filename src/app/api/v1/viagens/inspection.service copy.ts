@@ -38,7 +38,8 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
 
   try {
     return await prisma.$transaction(async (tx) => {
-      // 1. Create the inspection record
+      // 1. Criar o registro de inspeção
+      // Create the inspection record in the database
       const inspection = await tx.inspection.create({
         data: {
           userId: data.userId,
@@ -76,71 +77,49 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
       });
 
       let inspect;
-      
       if (data.status === "INICIO") {
-        // For START inspections:
-        // Find the most recent open inspection for this vehicle and user or create a new one
-        const openInspection = await tx.inspect.findUnique({
-          where: {
-            id,
+        // Criar novo registro de inspeção
+        inspect = await tx.inspect.create({
+          data: {
             userId: data.userId,
             vehicleId: data.vehicleId,
-            //startId: { not: null },
-            endId: null
+            startId: inspection.id
           }
         });
-
-        if (openInspection) {
-          // Update existing inspection with new startId
-          inspect = await tx.inspect.update({
-            where: { id: openInspection.id },
-            data: { startId: inspection.id }
-          });
-        } else {
-          // Create new Inspect
-          inspect = await tx.inspect.create({
-            data: {
-              userId: data.userId,
-              vehicleId: data.vehicleId,
-              startId: inspection.id
-            }
-          });
-        }
       } else {
-        // For END inspections:
-        // Try to find an open inspection to update
+        // Procurar por uma inspeção aberta para este veículo
         const openInspection = await tx.inspect.findFirst({
           where: {
-            userId: data.userId,
-            vehicleId: data.vehicleId,
-            startId: { not: null },
-            endId: null
+            AND: [
+              { userId: data.userId },
+              { startId: { not: null } },
+              { endId: null }
+            ]
           },
           orderBy: { createdAt: 'desc' }
         });
-
-        if (openInspection) {
-          // Update with endId
+        // Se não houver uma inspeção aberta, criar um novo registro de inspeção
+        if (!openInspection) {
+          inspect = await tx.inspect.create({
+            data: {
+              userId: data.userId,
+              endId: inspection.id,
+              vehicleId: data.vehicleId,
+            }
+          });
+          console.log("inspect created");
+        } else {
           inspect = await tx.inspect.update({
             where: { id: openInspection.id },
             data: { endId: inspection.id }
           });
-        } else {
-          // Create new with just endId
-          inspect = await tx.inspect.create({
-            data: {
-              userId: data.userId,
-              vehicleId: data.vehicleId,
-              endId: inspection.id
-            }
-          });
         }
       }
 
-      return { inspection, inspect };
+      return { inspection };
     });
   } catch (error) {
-    console.error("Transaction failed:", error);
+    console.error("A transação falhou:", error);
     throw error;
   }
 }

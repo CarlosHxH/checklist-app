@@ -19,14 +19,10 @@ export async function POST(request: Request) {
       if (key === 'photos') {
         // Handle multiple photos
         if (!data.photos) data.photos = [];
-        console.log("value instanceof Blob", value instanceof Blob);
-        console.log("value instanceof File", value instanceof File);
-        console.log("value: ", value.slice(0, 50));
         
         // Check if value is a File or Blob
         if (value instanceof Blob) {
           const base64 = await fileToBase64(value);
-          console.log("base64", base64.slice(0, 50));
           data.photos.push({
             photo: base64,
             type: 'vehicle',
@@ -48,10 +44,7 @@ export async function POST(request: Request) {
     }
 
     // Validate user exists
-    const user = await prisma.user.findUnique({
-      where: { id: data.userId }
-    });
-
+    const user = await prisma.user.findUnique({where: { id: data.userId }});
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -60,10 +53,7 @@ export async function POST(request: Request) {
     }
 
     // Validate vehicle exists
-    const vehicle = await prisma.vehicle.findUnique({
-      where: { id: data.vehicleId }
-    });
-
+    const vehicle = await prisma.vehicle.findUnique({where: { id: data.vehicleId }});
     if (!vehicle) {
       return NextResponse.json(
         { error: 'Vehicle not found' },
@@ -75,7 +65,12 @@ export async function POST(request: Request) {
     data.isFinished = true;
 
     const result = await createInspectionWithTransaction(data);
+
+    
     return NextResponse.json(result, { status: 201 });
+
+
+
   } catch (error) {
     console.error('Error processing form:', error);
     

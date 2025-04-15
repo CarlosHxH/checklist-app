@@ -1,17 +1,39 @@
 {
-    "WillLuke.nextjs.addTypesOnSave": true,
-    "WillLuke.nextjs.hasPrompted": true,
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "database": "${workspaceFolder:auth-app}/prisma/dev.db",
-            "name": "LocalDB"
-        }
-    ],
-    "sqltools.useNodeRuntime": true,
-    "editor.wordSeparators": "`~!@%^&*()-=+[{]}\\|;:'\",.<>/?",
-    "cSpell.words": [
-        "Inspecao"
-    ]
+  "WillLuke.nextjs.addTypesOnSave": true,
+  "WillLuke.nextjs.hasPrompted": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "cSpell.words": [
+    "Inspecao"
+  ],
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
+  "editor.wordSeparators": "`~!@%^\u0026*()-=+[{]}\\|;:'\",.\u003c\u003e/?",
+  "sqltools.connections": [
+    {
+      "database": "${workspaceFolder:auth-app}/prisma/dev.db",
+      "driver": "SQLite",
+      "name": "LocalDB",
+      "previewLimit": 50
+    }
+  ],
+  "sqltools.useNodeRuntime": true
 }

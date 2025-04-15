@@ -1,27 +1,30 @@
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma"
+import { fileToBase64 } from "@/utils";
 import { NextRequest, NextResponse } from "next/server";
+import { createInspectionWithTransaction } from "../inspection.service";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER", "USER", "ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
   try {
     const id = (await params).id;
-    const inspections = await prisma.inspection.findMany({
-      where: { id, AND: { status:{ not: "INSPECAO" }}},
+    const inspections = await prisma.inspect.findUnique({
+      where: { id },
       include: {
-        user: {
+        vehicle: {
           select: {
-            name: true,
+            id: true,
+            model: true,
+            plate: true,
+            eixo: true,
           },
         },
-        vehicle: true
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+        start: true,
+        end: true,
+      }
     });
     return NextResponse.json(inspections)
   } catch (error) {
@@ -29,6 +32,57 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // Verificar autenticação e permissão
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER", "USER", "ADMIN"]);
+  if (authResponse.status !== 200) return authResponse;
+
+  try {
+    const id = (await params).id;
+    const formData = await request.formData();
+
+    const data: any = {};
+    // Process all form fields
+    for (const [key, value] of formData.entries()) {
+      if (key === 'photos') {
+        // Handle multiple photos
+        if (!data.photos) data.photos = [];
+
+        // Check if value is a File or Blob
+        if (value instanceof Blob) {
+          const base64 = await fileToBase64(value);
+          data.photos.push({
+            photo: base64,
+            type: 'vehicle',
+            description: `Veiculo foto-${data.photos.length + 1}`
+          });
+        }
+      } else {
+        // Handle regular form fields
+        data[key] = value;
+      }
+    }
+
+    // Convert isFinished to boolean
+    data.isFinished = true;
+
+    const result = await createInspectionWithTransaction({id,...data});
+
+    console.log({ result })
+    //const result = await createInspectionWithTransaction(body);
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    console.error('Error creating inspection:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to create inspection',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
 
 /*
 async function createInspectionWithTransaction({ data, id }: { data: any, id: string }) {

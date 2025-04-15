@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx server.ts",
-		"build": "next build && tsc --project tsconfig.server.json",
-		"start": "NODE_ENV=production node dist/server.js",
+    "build": "next build && tsc --project tsconfig.server.json",
+    "start": "NODE_ENV=production node dist/server.js",
     "devs": "next dev --turbopack",
     "builds": "next build",
     "starts": "next start",
