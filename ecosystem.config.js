@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'next-app', // Nome da sua aplicação
+      name: 'next-app-homologacao', // Nome da sua aplicação
       script: 'node_modules/next/dist/bin/next', // Caminho para o script do Next.js
       args: 'start', // Argumento para iniciar a aplicação
       instances: 'max', // Número de instâncias (use 'max' para usar todos os núcleos disponíveis)
@@ -17,12 +17,12 @@ module.exports = {
   ],
   deploy : {
     production : {
-      user : 'SSH_USERNAME',
-      host : 'SSH_HOSTMACHINE',
-      ref  : 'origin/master',
-      repo : 'GIT_REPOSITORY',
-      path : 'DESTINATION_PATH',
-      'pre-deploy-local': '',
+      user : 'checklist',
+      host : '192.168.137.72',
+      ref  : 'origin/main',
+      repo : 'https://github.com/CarlosHxH/checklist-app',
+      path : '/var/www/homologacao',
+      'pre-deploy-local': 'yarn build',
       'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production',
       'pre-setup': ''
     }
