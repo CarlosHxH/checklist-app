@@ -28,7 +28,6 @@ const socketHandler = (socket: Socket, io: Server): void => {
       lastActive: new Date()
     };
     console.log(`User ${userId} registered with socket ${socket.id}`);
-    
     // Entra na sala específica do usuário
     socket.join(`user_${userId}`);
   });

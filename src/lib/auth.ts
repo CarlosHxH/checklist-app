@@ -41,22 +41,22 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.username || !credentials?.password) {
-            return null;
-          }
+          if (!credentials?.username || !credentials?.password) throw "Campos não preenchidos!";
+          const { username, password } = credentials;
           // Buscar usuário
-          const user = await prisma.user.findUnique({
-            where: { username: credentials.username }
-          });
+          const user = await prisma.user.findUnique({where: { username }});
 
-          console.log("Resultado da busca:",user ? `${hoje} Usuário encontrado: ${user.email}` : `${hoje} Usuário: ${credentials?.username}, não encontrado`);
-
-          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo! code: 0x02";
-
+          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas!";
           // Verificar senha
-          const isPasswordValid = await compare(credentials.password, user.password);
-          
-          if (!isPasswordValid) throw "Credenciais inválidas ou usuário não ativo! code: 0x04";
+          if (!(await compare(password, user.password))) throw "Credenciais inválidas!";
+
+          await prisma.log.create({
+            data:{
+              level: "INFO",
+              message: JSON.stringify({type: "AuthLogin"}),
+              context: `${hoje} - SIGNIN: ${user?.username}`,
+              userId: user.id,
+          }});
 
           // Atualizar ou criar Account
           try {
@@ -88,6 +88,13 @@ export const authOptions: NextAuthOptions = {
           } catch (error) {
             console.log("Erro ao atualizar account: ",user.username);
             // continue com a autenticação mesmo se falhar
+            await prisma.log.create({
+              data:{
+                level: "WARN",
+                message: JSON.stringify({error}),
+                context: `${hoje} Erro ao atualizar account: ${user?.username}`,
+                userId: user.id,
+            }});
           }
           
           // Retornar objeto do usuário (importante!)
@@ -99,6 +106,12 @@ export const authOptions: NextAuthOptions = {
             role: user.role
           };
         } catch (error) {
+          await prisma.log.create({
+            data:{
+              level: "ERROR",
+              message: JSON.stringify({error}),
+              context: `${hoje} Erro na autenticação: ${credentials?.username}`,
+          }});
           console.error(`${hoje} Erro na autenticação:`, error);
           return null;
         }

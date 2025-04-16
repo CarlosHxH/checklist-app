@@ -9,21 +9,12 @@ async function transfer(id: string) {
     if (!currentTransfer) throw new Error("Transferência não encontrada");
     if (currentTransfer.status === "CONFIRMED") throw new Error("Transferência está confirmada");
 
-    const user = await prisma.user.findFirst({where: { id: currentTransfer.userId }});
-    if (user?.role === "DRIVER") {/*
-      const inspection = await prisma.inspection.create({
+    const user = await prisma.user.findUnique({where: { id: currentTransfer.userId }});
+    if (user?.role === "DRIVER") {
+      await prisma.inspect.create({
         data: {
           userId: currentTransfer.userId,
           vehicleId: currentTransfer.vehicleId,
-          status: "INICIO",
-        },
-      });
-      if (!inspection) throw new Error("Erro na transferencia");*/
-      const group = await prisma.inspect.create({
-        data: {
-          userId: currentTransfer.userId,
-          vehicleId: currentTransfer.vehicleId,
-          //startId: inspection.id,
         },
       });
     }
@@ -44,12 +35,13 @@ async function transfer(id: string) {
   });
 }
 
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER"]);
+  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
   try {

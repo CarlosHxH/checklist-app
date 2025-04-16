@@ -29,8 +29,23 @@ model user {
   corrections    correction[]
   
   Inspect Inspect[] @relation(map: "Access_userId_fkey")
+  logs  Log[]
 }
 
+model Log {
+  id        Int      @id @default(autoincrement())
+  level     logType  @default(INFO)   // Nível do log (ex: INFO, WARN, ERROR)
+  message   String                    // Mensagem do log
+  timestamp DateTime @default(now())  // Data e hora do log
+  context   String?                   // Contexto adicional (opcional)
+  userId    String?                      // ID do usuário associado (opcional)
+  user      user?    @relation(fields: [userId], references: [id])
+}
+enum logType {
+    INFO
+    WARN
+    ERROR
+}
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")

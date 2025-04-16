@@ -5,11 +5,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "next build && tsc --project tsconfig.server.json",
-    "start": "NODE_ENV=production node dist/server.js",
+    "start": "next start",
+    "build": "next build",
     "devs": "next dev --turbopack",
     "builds": "next build",
-    "starts": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts"
   },

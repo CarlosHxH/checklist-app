@@ -68,8 +68,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     data.isFinished = true;
 
     const result = await createInspectionWithTransaction({id,...data});
-
-    console.log({ result })
     //const result = await createInspectionWithTransaction(body);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
