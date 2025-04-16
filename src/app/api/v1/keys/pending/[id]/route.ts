@@ -4,7 +4,7 @@ import { authWithRoleMiddleware } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER", "ADMIN"]);
+  const authResponse = await authWithRoleMiddleware(request, ["USER","DRIVER", "ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
   try {
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const keys = await prisma.vehicleKey.findMany({
       where: {
         userId: id,
+        status: "PENDING"
       },
       include: {
         vehicle: {

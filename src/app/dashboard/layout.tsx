@@ -15,58 +15,54 @@ import KeyIcon from '@mui/icons-material/Key';
 import MapIcon from '@mui/icons-material/Map';
 import RoomIcon from '@mui/icons-material/Room';
 
-// Move navigation configuration outside component to prevent recreation
-const createNavigation = (): Navigation => [
-  { kind: 'header', title: "Menu" }, {
-    segment: 'dashboard',
-    title: 'Dashboard',
-    icon: <DashboardIcon />,
-  }, { kind: 'header', title: 'Chaves' }, {
-    segment: 'dashboard/keys',
-    title: 'Chaves',
-    icon: <KeyIcon />,
-  }, { kind: 'header', title: 'Inspeções' },{
-    segment: 'dashboard/inspecao',
-    title: 'Inspeções',
-    icon: <RoomIcon />,
-    pattern: 'dashboard/inspecao/:id',
-  },{
-    segment: 'dashboard/viagens',
-    title: 'Viagens',
-    icon: <MapIcon />,
-    pattern: 'dashboard/viagens/:id',
-  }, { kind: 'header', title: 'Outros' }, {
-    segment: 'dashboard/user',
-    title: 'Usuários',
-    icon: <GroupIcon />,
-  }, {
-    segment: 'dashboard/vehicle',
-    title: 'Veiculos',
-    icon: <LocalShippingIcon />,
-  }
-];
-
 const BRANDING = {
-  logo: <Avatar src={"/favicon/icon.png"} alt={''} />,
+  logo: <Avatar src={"/favicon/icon.png"} alt={'logo'} />,
   title: '5sTransportes',
 } as const;
 
 export default function DashboardPagesLayout({ children }: { children: React.ReactNode; }) {
-  const { data: session, status } = useSession();
-  // Use o estado para lidar com a navegação do lado do cliente
-  const [mounted, setMounted] = React.useState(false);
-  const authentication = React.useMemo(() => { return { signIn, signOut } }, []);
-  // Handle hydration mismatch Esperando pelo Monte
-  React.useEffect(() => { setMounted(true) }, []);
-  // Memoize navigation to prevent unnecessary rerenders
-  const navigation = React.useMemo(() => createNavigation(), []);
-  // Retornar o estado nulo ou de carregamento durante a SSR
-  if (!mounted || status === "loading") return null;
+  const { data: session } = useSession();
+  const authentication = { signIn, signOut }
+
   if (!session || !["ADMIN", "USER"].some(role => session?.user.role?.includes(role))) redirect('/');
-  console.log();
   
+  const NAVIGATION: Navigation = [
+    { kind: 'header', title: "Menu" },
+    {
+      segment: 'dashboard',
+      title: 'Dashboard',
+      pattern:'',
+      icon: <DashboardIcon />,
+    }, { kind: 'header', title: 'Chaves' },
+    {
+      segment: 'dashboard/keys',
+      title: 'Chaves',
+      icon: <KeyIcon />,
+    }, { kind: 'header', title: 'Inspeções' },
+    {
+      segment: 'dashboard/inspecao',
+      title: 'Inspeções',
+      icon: <RoomIcon />,
+      pattern: 'dashboard/inspecao/:id',
+    }, {
+      segment: 'dashboard/viagens',
+      title: 'Viagens',
+      icon: <MapIcon />,
+      pattern: 'dashboard/viagens/:id',
+    }, { kind: 'header', title: 'Outros' },
+    {
+      segment: 'dashboard/user',
+      title: 'Usuários',
+      icon: <GroupIcon />,
+    }, {
+      segment: 'dashboard/vehicle',
+      title: 'Veiculos',
+      icon: <LocalShippingIcon />,
+    }
+  ];
+
   return (
-    <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
+    <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={NAVIGATION}>
       <DashboardLayout defaultSidebarCollapsed>
         <PageContainer>{children}</PageContainer>
       </DashboardLayout>

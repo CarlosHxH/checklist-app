@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { 
-  IconButton, 
-  Badge, 
-  Dialog, 
-  DialogContent, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
-  Box, 
-  Snackbar, 
-  Alert, 
+import {
+  IconButton,
+  Badge,
+  Dialog,
+  DialogContent,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Snackbar,
+  Alert,
   CircularProgress,
   Tooltip
 } from '@mui/material';
@@ -50,15 +50,15 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
   const [success, setSuccess] = useState<string | null>(null);
   const [newNotifications, setNewNotifications] = useState(0);
   const socket = useSocket();
-  
-  
-  const { 
-    data: pendingTransfers, 
-    isLoading, 
-    mutate 
-  } = useSWR<Transfer[]>(`/api/v1/keys/pending/${userId}`, fetcher, { 
-    refreshInterval: 10000, // 10 segundos
-    revalidateOnFocus: true 
+
+
+  const {
+    data: pendingTransfers,
+    isLoading,
+    mutate
+  } = useSWR<Transfer[]>(`/api/v1/keys/pending/${userId}`, fetcher, {
+    refreshInterval: 7000, // 10 segundos
+    revalidateOnFocus: true
   });
 
   // Tocar som de notificação
@@ -73,10 +73,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
   const handleTransferAction = useCallback(debounce(async (action: 'confirm' | 'reject', transferId: string) => {
     setLoadingAction(transferId);
     try {
-      await axios.post(`/api/v1/keys/${action}/${transferId}`);
+      if(action==="confirm"){
+        await axios.put(`/api/v1/keys/confirm/${transferId}`);
+      } else if(action==="reject"){
+        await axios.delete(`/api/v1/keys/reject/${transferId}`);
+      }
       setSuccess(`Transferência ${action === 'confirm' ? 'confirmada' : 'rejeitada'} com sucesso`);
       mutate();
-      
       // Emitir evento via socket
       if (socket) {
         socket.emit('transferUpdate', { transferId, action });
@@ -118,19 +121,19 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
     }
   }, [open]);
 
-  const pendingCount = pendingTransfers?.filter(t => t.status === 'PENDING').length || 0;
+  const pendingCount = Array.isArray(pendingTransfers) ? pendingTransfers.filter(t => t.status === 'PENDING').length : 0;
   const hasNewNotifications = newNotifications > 0;
 
   return (
     <>
       <Tooltip title="Notificações">
-        <IconButton 
-          color="inherit" 
+        <IconButton
+          color="inherit"
           onClick={() => setOpen(true)}
           sx={{ position: 'relative' }}
         >
-          <Badge 
-            badgeContent={pendingCount + newNotifications} 
+          <Badge
+            badgeContent={pendingCount + newNotifications}
             color={hasNewNotifications ? 'secondary' : 'error'}
             max={99}
           >
@@ -143,10 +146,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
         </IconButton>
       </Tooltip>
 
-      <Dialog 
-        open={open} 
-        onClose={() => setOpen(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
@@ -169,7 +172,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
             <Box display="flex" justifyContent="center" p={4}>
               <CircularProgress />
             </Box>
-          ) : pendingTransfers?.filter(t => t.status === 'PENDING').length === 0 ? (
+          ) : Array.isArray(pendingTransfers) && pendingTransfers.filter(t => t.status === 'PENDING').length === 0 ? (
             <Box textAlign="center" p={4}>
               <Typography color="text.secondary">
                 Nenhuma notificação pendente
@@ -177,14 +180,14 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
             </Box>
           ) : (
             <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              {pendingTransfers
-                ?.filter(transfer => transfer.status === 'PENDING')
+              {Array.isArray(pendingTransfers) && pendingTransfers
+                .filter(transfer => transfer.status === 'PENDING')
                 ?.map((transfer) => (
-                  <Card 
-                    key={transfer.id} 
-                    sx={{ 
-                      mb: 2, 
-                      mx: 2, 
+                  <Card
+                    key={transfer.id}
+                    sx={{
+                      mb: 2,
+                      mx: 2,
                       mt: 2,
                       boxShadow: 3,
                       borderLeft: 4,
@@ -200,11 +203,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
                           {new Date(transfer.createdAt).toLocaleString()}
                         </Typography>
                       </Box>
-                      
+
                       <Typography variant="body2" color="text.secondary" mt={1}>
                         Placa: <strong>{transfer.vehicle.plate}</strong>
                       </Typography>
-                      
+
                       {transfer.requester && (
                         <Typography variant="body2" color="text.secondary">
                           Solicitado por: <strong>{transfer.requester.name}</strong>
@@ -226,7 +229,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
                             'Confirmar'
                           )}
                         </Button>
-                        
+
                         <Button
                           fullWidth
                           variant="outlined"
@@ -262,7 +265,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
           {success}
         </Alert>
       </Snackbar>
-      
+
       <Snackbar
         open={!!error}
         autoHideDuration={6000}

@@ -117,7 +117,11 @@ const HistoryModal = ({
                   </Box>
                   
                   <Typography variant="body1" sx={{ mt: 1 }}>
-                    Responsável: {key.user.name}
+                    Responsável: <b>{key.user.name}</b>
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                  {key.status==="CONFIRMED"?"CONFIRMOU A CHAVE":"CONFIRMAÇÃO PENDENTE" }
                   </Typography>
                   
                   <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>

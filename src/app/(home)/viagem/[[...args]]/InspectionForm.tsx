@@ -3,7 +3,7 @@ import useSWR from "swr";
 import React, { useState, useEffect } from "react";
 import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider, Box, Alert } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
@@ -94,6 +94,8 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
     fetcher
   );
 
+  if(!session){ signIn()}
+
   const isExistingTrip = !["INICIO", "FINAL", "CREATE"].includes(id.toUpperCase());
 
   const { 
@@ -112,8 +114,9 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
     }
   });
 
+
   const selectedVehicleId = watch("vehicleId");
-  const selectedVehicle = vehicles?.find((v) => v.id === (isExistingTrip ? id : selectedVehicleId));
+  const selectedVehicle = vehicles && vehicles?.find((v) => v.id === (isExistingTrip ? id : selectedVehicleId));
 
   // Load trip data if editing existing trip
   useEffect(() => {

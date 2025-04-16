@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import {
-  Alert, Backdrop, Box, Button, CircularProgress, Container,
+  Alert, Backdrop, Box, Button, Chip, CircularProgress, Container,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Snackbar,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -16,6 +16,7 @@ import { fetcher } from '@/lib/ultils'
 import Loading from '@/components/Loading'
 import { useSession } from 'next-auth/react'
 import { useSocket } from '@/provider/SocketProvider'
+import { formatDate } from '@/utils'
 
 // Types
 interface User {
@@ -302,8 +303,8 @@ export default function VehicleKeysPage() {
         <Table>
           <TableHead>
             <TableRow>
-              {!isMobile && <TableCell>Veículo</TableCell>}
               <TableCell>Responsável Atual</TableCell>
+              {!isMobile && <TableCell>Veículo</TableCell>}
               <TableCell>Placa</TableCell>
               {!isMobile && <TableCell>Status</TableCell>}
               {!isMobile && <TableCell>Última Transferência</TableCell>}
@@ -313,17 +314,17 @@ export default function VehicleKeysPage() {
           <TableBody>
             {Object.values(groupedVehicleKeys).map((group, i) => {
               const status = group.latestKey.status
-              const title = status === 'CONFIRMED' ? 'CONFIRMADO' : 'Aguardando motorista'
+              const title = status === 'CONFIRMED' ? 'CONFIRMADO' : 'CONFIRMAÇÃO PENDENTE'
               const color = status === 'CONFIRMED' ? 'green' : 'orange'
               const isCurrentUser = group.latestKey.user.id === session?.user?.id
 
               return (
                 <TableRow key={i}>
+                  <TableCell sx={{fontWeight:'bold', fontSize:16}}>{group.latestKey.user.name}</TableCell>
                   {!isMobile && <TableCell>{group.vehicle.model}</TableCell>}
-                  <TableCell>{group.latestKey.user.name}</TableCell>
                   <TableCell>{group.vehicle.plate}</TableCell>
-                  {!isMobile && <TableCell sx={{ color }}>{title}</TableCell>}
-                  {!isMobile && <TableCell>{new Date(group.latestKey.createdAt).toLocaleString('pt-BR')}</TableCell>}
+                  {!isMobile && <TableCell sx={{ color }}><Chip label={title} color={status==="CONFIRMED"?"success":"error"}/></TableCell>}
+                  {!isMobile && <TableCell>{formatDate(new Date(group.latestKey.createdAt),"dd/MM/yyyy HH:mm:ss")}</TableCell>}
                   <TableCell>
                     <Box display="flex" alignItems="center">
                       <IconButton
@@ -354,6 +355,7 @@ export default function VehicleKeysPage() {
                           <BookmarkIcon color='primary' />
                         </IconButton>
                       )}
+                      
                     </Box>
                   </TableCell>
                 </TableRow>

@@ -2,57 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 
-async function transfer(id: string) {
-  return prisma.$transaction(async (tx) => {
-    // 1. Decrement amount from the sender.
-    const currentTransfer = await tx.vehicleKey.findUnique({where: { id }});
-    if (!currentTransfer) throw new Error("Transferência não encontrada");
-    if (currentTransfer.status === "CONFIRMED") throw new Error("Transferência está confirmada");
-
-    const user = await prisma.user.findUnique({where: { id: currentTransfer.userId }});
-    if (user?.role === "DRIVER") {
-      await prisma.inspect.create({
-        data: {
-          userId: currentTransfer.userId,
-          vehicleId: currentTransfer.vehicleId,
-        },
-      });
-    }
-
-    // Update current transfer
-    const updated = await tx.vehicleKey.update({
-      where: { id },
-      data: {
-        status: "CONFIRMED",
-        updatedAt: new Date(),
-      },
-      include: {
-        user: true,
-        vehicle: true,
-      },
-    });
-    return updated;
-  });
-}
-
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT( request: NextRequest, { params }: { params: Promise<{ id: string }>}) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","ADMIN"]);
+  const authResponse = await authWithRoleMiddleware(request, ["USER","DRIVER","ADMIN"]);
   if (authResponse.status !== 200) return authResponse;
 
   try {
     const id = (await params).id;
-    const updatedTransfer = transfer(id);
-    return NextResponse.json(updatedTransfer);
+    // Update current transfer
+    const updated = await prisma.vehicleKey.update({
+      where: { id, NOT:{ status: "CONFIRMED"} },
+      data: {
+        status: "CONFIRMED",
+        updatedAt: new Date(),
+      }
+    });
+
+    return NextResponse.json(updated,{ status: 201 });
   } catch (error) {
     console.error("Error confirming transfer:", error);
-    return NextResponse.json(
-      { error: "Error confirming transfer" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error confirming transfer" },{ status: 500 });
   }
 }
