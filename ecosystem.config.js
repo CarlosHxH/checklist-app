@@ -18,7 +18,7 @@ module.exports = {
   deploy : {
     production : {
       user : 'checklist',
-      host : '192.168.137.72',
+      host : '192.168.136.72',
       ref  : 'origin/main',
       repo : 'https://github.com/CarlosHxH/checklist-app',
       path : '/var/www/homologacao',
