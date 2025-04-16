@@ -38,4 +38,3 @@ export default function Viagens({ id }: { id: string }) {
     </Suspense>
   );
 }
-
