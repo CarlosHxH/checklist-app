@@ -194,12 +194,14 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
       }
 
       // Success - redirect to home
-      //router.push('/');
+      router.push('/');
     } catch (err: any) {
       console.error('Error submitting form:', err);
       setError(err.message || "Erro ao enviar os dados!");
     } finally {
-      setSubmitting(false);
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 1000);
     }
   };
 

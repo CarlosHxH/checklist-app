@@ -85,7 +85,6 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
             id,
             userId: data.userId,
             vehicleId: data.vehicleId,
-            //startId: { not: null },
             endId: null
           }
         });
@@ -106,7 +105,7 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
             }
           });
         }
-      } else {
+      } else if (data.status === "FINAL") {
         // For END inspections:
         // Try to find an open inspection to update
         const openInspection = await tx.inspect.findFirst({
