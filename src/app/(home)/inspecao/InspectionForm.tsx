@@ -6,13 +6,12 @@ import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection, Vehicle } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
-import { getBase64 } from "@/utils";
 import PhotoUploader from "@/components/_ui/PhotoUploader";
 
 const InspectionForm: React.FC = () => {
@@ -42,67 +41,75 @@ const InspectionForm: React.FC = () => {
 
   const onSubmit = async (data: InspectionFormData) => {
     try {
-      // Prepare photos array for the transaction
-      const photos = [];
-
+      console.log({data});
+      
+      // Create FormData object
+      const formData = new FormData();
+      
+      // Add all fields to FormData
+      Object.entries(data).forEach(([key, value]) => {
+        // Skip photos and specific photo fields as we'll handle them separately
+        if (key !== 'photos' && key !== 'fotoDocumento' && key !== 'fotoTacografo' && key !== 'fotoExtintor') {
+          if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
+        }
+      });
+      
       // Add documento photo if exists
       if (data.fotoDocumento) {
-        photos.push({
-          photo: data.fotoDocumento,
+        formData.append('photos', data.fotoDocumento);
+        formData.append('photoTypes', JSON.stringify({
+          fileName: data.fotoDocumento.name,
           type: 'documento',
           description: 'Documento do veículo'
-        });
+        }));
       }
 
       // Add tacografo photo if exists
       if (data.fotoTacografo) {
-        photos.push({
-          photo: data.fotoTacografo,
+        formData.append('photos', data.fotoTacografo);
+        formData.append('photoTypes', JSON.stringify({
+          fileName: data.fotoTacografo.name,
           type: 'tacografo',
           description: 'Tacógrafo'
-        });
+        }));
       }
 
       // Add extintor photo if exists
       if (data.fotoExtintor) {
-        photos.push({
-          photo: data.fotoExtintor,
+        formData.append('photos', data.fotoExtintor);
+        formData.append('photoTypes', JSON.stringify({
+          fileName: data.fotoExtintor.name,
           type: 'extintor',
           description: 'Extintor'
-        });
+        }));
       }
 
-      // Add avarias photos if they exist
+      // Add vehicle photos if they exist
       if (data.photos && Array.isArray(data.photos)) {
-        data.photos.forEach((photo, index) => {
-          if (photo.photo) {
-            photos.push({
-              photo: photo.photo,
+        data.photos.forEach((photoObj, index) => {
+          if (photoObj.photo) {
+            formData.append('photos', photoObj.photo);
+            formData.append('photoTypes', JSON.stringify({
+              fileName: photoObj.photo,
               type: 'vehicle',
               description: `Veiculo ${index + 1}`
-            });
+            }));
           }
         });
       }
 
-      // Validate minimum 4 photos for avarias
-      const vehiclePhotos = photos.filter(p => p.type === 'vehicle');
-      if (vehiclePhotos.length < 4) {
-        alert('É necessário enviar no mínimo 4 fotos do veiculo!');
-        return;
-      }
-      const { fotoDocumento, fotoExtintor, fotoTacografo, ...fields } = data
-      if(fotoDocumento || fotoExtintor || fotoTacografo){}
-      
+      // Send FormData to the server
       const response = await fetch('/api/v1/inspecao', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...fields, photos }),
+        body: formData, // No need to set Content-Type header as browser will set it with boundary
       });
 
       if (!response.ok) {
         throw new Error('Falha ao criar inspeção');
       }
+      
       //const result = await response.json();
       router.push('/');
     } catch (error) {
@@ -142,32 +149,40 @@ const InspectionForm: React.FC = () => {
 
           <Grid item xs={12}  md={selectedVehicle?.tacografo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            <PhotoUploader name={'veiculo'} label={'FOTO DO DOCUMENTO'} onChange={async (photos: File[]) => {
-              const [file] = photos;
-              if (!file) return;
-              try {
-                const base64 = await getBase64(file);
-                setValue('fotoDocumento', base64 as string);
-              } catch (error) {
-                console.error('Erro ao converter imagem:', error);
-                alert('Erro ao processar a imagem, tente novamente.')
-              }
-            }} />
+            <Controller
+              name="photos"
+              control={control}
+              render={({ field }) => (
+                <PhotoUploader
+                  name="fotoDocumento"
+                  label="FOTO DO DOCUMENTO"
+                  onChange={async (photos: File[]) => {
+                    if (photos && photos.length > 0) {
+                      setValue("fotoDocumento", photos[0]);
+                    }
+                  }}
+                />
+              )}
+            />
           </Grid>
 
           {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            <PhotoUploader name={'veiculo'} label={'FOTO DO TACOGRAFO'} onChange={async (photos: File[]) => {
-              const [file] = photos;
-              if (!file) return;
-              try {
-                const base64 = await getBase64(file);
-                setValue('fotoTacografo', base64 as string);
-              } catch (error) {
-                console.error('Erro ao converter imagem:', error);
-                alert('Erro ao processar a imagem, tente novamente.')
-              }
-            }} />
+            <Controller
+              name="photos"
+              control={control}
+              render={({ field }) => (
+                <PhotoUploader
+                  name="fotoTacografo"
+                  label="FOTO DO DOCUMENTO"
+                  onChange={async (photos: File[]) => {
+                    if (photos && photos.length > 0) {
+                      setValue("fotoTacografo", photos[0]);
+                    }
+                  }}
+                />
+              )}
+            />
           </Grid>}
 
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
@@ -217,31 +232,49 @@ const InspectionForm: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Divider>EXTINTOR</Divider>
             <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            <PhotoUploader name={'veiculo'} label={'Foto do EXTINTOR'} onChange={async (photos: File[]) => {
-              const [file] = photos;
-              if (!file) return;
-              try {
-                const base64 = await getBase64(file);
-                setValue('fotoExtintor', base64 as string);
-              } catch (error) {
-                console.error('Erro ao converter imagem:', error);
-                alert('Erro ao processar a imagem, tente novamente.')
-              }
-            }} />
+            <Controller
+              name="photos"
+              control={control}
+              render={({ field }) => (
+                <PhotoUploader
+                  name="fotoExtintor"
+                  label="FOTO DO DOCUMENTO"
+                  onChange={async (photos: File[]) => {
+                    if (photos && photos.length > 0) {
+                      setValue("fotoExtintor", photos[0]);
+                    }
+                  }}
+                />
+              )}
+            />
           </Grid>
 
           <Grid item xs={12} md={12}>
             <Divider>FOTO DO VEICULO</Divider>
             <Typography color="error">Minimo 4 fotos</Typography>
-            <PhotoUploader name={'veiculo'} multiple label={'Foto do veiculo'} isRemoved onChange={async (photos: File[]) => {
-                const photosBase64 = await Promise.all(photos.map(async (file) => {
-                  const base64 = await getBase64(file);
-                  return { photo: base64 as string };
-                }));
-                setValue('photos', photosBase64);
-            }}/>
+            <Controller
+              name="photos"
+              control={control}
+              render={({ field }) => (
+                <PhotoUploader
+                  name="photos"
+                  label="Foto do veículo"
+                  multiple
+                  isRemoved={true}
+                  onChange={async (photos: File[]) => {
+                    const processedPhotos = await Promise.all(
+                      photos.map(async (f, i) => ({
+                        photo: new File([f], f.name, { type: f.type }),
+                        type: 'vehicle',
+                        description: `Veículo foto-${i + 1}`
+                      }))
+                    );
+                    field.onChange(processedPhotos);
+                  }}
+                />
+              )}
+            />
           </Grid>
-
 
           <Grid item xs={12} md={12}>
             {Object.keys(errors).length > 0 && (

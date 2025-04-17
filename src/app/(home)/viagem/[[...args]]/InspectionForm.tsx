@@ -3,7 +3,7 @@ import useSWR from "swr";
 import React, { useState, useEffect } from "react";
 import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
 import { TextField, Button, Grid, Typography, Paper, Divider, Box, Alert } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
@@ -177,7 +177,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
       if (data.photos && Array.isArray(data.photos)) {
         data.photos.forEach((photo: any, index: number) => {
           if (photo && photo.photo) {
-            formData.append('photos', photo.photo);
+            formData.append('photos', photo.photo.slice(0,10));
             formData.append(`photoTypes[${index}]`, photo.type || 'vehicle');
             formData.append(`photoDescriptions[${index}]`, photo.description || `Veículo foto-${index + 1}`);
           }

@@ -4,10 +4,9 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "next dev --turbopack",
     "start": "next start",
     "build": "next build",
-    "devs": "next dev --turbopack",
     "builds": "next build",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
