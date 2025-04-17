@@ -7,12 +7,8 @@
     "dev": "next dev --turbopack",
     "start": "next start",
     "build": "next build",
-    "builds": "next build",
     "lint": "next lint",
-    "seed": "tsx prisma/seed.ts",
-    "socket:dev": "ts-node --project tsconfig.server.json server.ts",
-    "socket:build": "next build",
-    "socket:start": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json server.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
