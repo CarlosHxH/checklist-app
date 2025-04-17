@@ -94,18 +94,16 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
     fetcher
   );
 
-  if(!session){ signIn()}
-
-  const isExistingTrip = !["INICIO", "FINAL", "CREATE"].includes(id.toUpperCase());
-
-  const { 
+  const isExistingTrip = !["CREATE"].includes(id.toUpperCase());
+  
+  const {
     register, 
     watch, 
     control, 
     setValue, 
     reset, 
     handleSubmit, 
-    formState: { errors, isSubmitting, isValid } 
+    formState: { errors, isSubmitting } 
   } = useForm<InspectionFormData>({
     mode: "onChange",
     defaultValues: {
@@ -160,6 +158,8 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
     if (funcionamentoParteEletrica === "BOM") setValue("descricaoParteEletrica", '');
   }, [watch, setValue]);
 
+
+
   const onSubmit = async (data: InspectionFormData) => {
     setSubmitting(true);
     setError(null);
@@ -188,7 +188,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL"; id: string }> = ({ ty
         method: 'POST',
         body: formData,
       });
-
+      
       if (!response.ok) {
         const errorData = await response.json()
         console.log({errorData})

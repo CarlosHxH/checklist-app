@@ -18,6 +18,15 @@ export async function PUT( request: NextRequest, { params }: { params: Promise<{
       }
     });
 
+    if(updated){
+      await prisma.inspect.create({
+        data: {
+          userId: updated.userId,
+          vehicleId: updated.vehicleId,
+        },
+      });
+    }
+
     return NextResponse.json(updated,{ status: 201 });
   } catch (error) {
     console.error("Error confirming transfer:", error);
