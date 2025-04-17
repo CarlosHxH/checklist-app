@@ -1,6 +1,6 @@
 {
   "name": "auth-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -10,7 +10,10 @@
     "devs": "next dev --turbopack",
     "builds": "next build",
     "lint": "next lint",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "socket:dev": "ts-node --project tsconfig.server.json server.ts",
+    "socket:build": "next build",
+    "socket:start": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json server.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -33,6 +36,7 @@
     "@types/lodash": "^4.17.16",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
+    "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "global": "^4.4.0",
     "jsonwebtoken": "^9.0.2",
