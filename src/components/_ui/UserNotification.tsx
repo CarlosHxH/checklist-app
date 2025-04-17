@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 import {
   IconButton,
@@ -15,8 +15,7 @@ import {
   CircularProgress,
   Tooltip
 } from '@mui/material';
-import { Notifications, Check, Close, NotificationsActive } from '@mui/icons-material';
-import { useSocket } from '@/provider/SocketProvider';
+import { Notifications, Check, Close } from '@mui/icons-material';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import { debounce } from 'lodash';
@@ -48,20 +47,17 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [newNotifications, setNewNotifications] = useState(0);
-  const socket = useSocket();
-
 
   const {
     data: pendingTransfers,
     isLoading,
     mutate
   } = useSWR<Transfer[]>(`/api/v1/keys/pending/${userId}`, fetcher, {
-    refreshInterval: 7000, // 10 segundos
+    refreshInterval: 7000, // 7 seconds
     revalidateOnFocus: true
   });
 
-  // Tocar som de notificação
+  // Play notification sound
   const playNotificationSound = useCallback(() => {
     if (enableSound) {
       const audio = new Audio('/sounds/notification.wav');
@@ -69,60 +65,26 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
     }
   }, [enableSound]);
 
-  // Handler para ações (confirmar/rejeitar)
+  // Handler for actions (confirm/reject)
   const handleTransferAction = useCallback(debounce(async (action: 'confirm' | 'reject', transferId: string) => {
     setLoadingAction(transferId);
     try {
-      if(action==="confirm"){
+      if(action === "confirm"){
         await axios.put(`/api/v1/keys/confirm/${transferId}`);
-      } else if(action==="reject"){
+      } else if(action === "reject"){
         await axios.delete(`/api/v1/keys/reject/${transferId}`);
       }
       setSuccess(`Transferência ${action === 'confirm' ? 'confirmada' : 'rejeitada'} com sucesso`);
       mutate();
-      // Emitir evento via socket
-      if (socket) {
-        socket.emit('transferUpdate', { transferId, action });
-      }
     } catch (err) {
       setError(`Erro ao ${action === 'confirm' ? 'confirmar' : 'rejeitar'} transferência`);
       console.error(err);
     } finally {
       setLoadingAction(null);
     }
-  }, 500), [mutate, socket]);
-
-  // Efeito para socket e notificações
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleNewNotification = () => {
-      mutate();
-      setNewNotifications(prev => prev + 1);
-      playNotificationSound();
-    };
-
-    // Configurar listeners
-    socket.emit('joinNotifications', userId);
-    socket.on('newTransfer', handleNewNotification);
-    socket.on('transferUpdated', handleNewNotification);
-
-    return () => {
-      socket.off('newTransfer', handleNewNotification);
-      socket.off('transferUpdated', handleNewNotification);
-      socket.emit('leaveNotifications', userId);
-    };
-  }, [socket, userId, mutate, playNotificationSound]);
-
-  // Resetar contador quando modal é aberto
-  useEffect(() => {
-    if (open) {
-      setNewNotifications(0);
-    }
-  }, [open]);
+  }, 500), [mutate]);
 
   const pendingCount = Array.isArray(pendingTransfers) ? pendingTransfers.filter(t => t.status === 'PENDING').length : 0;
-  const hasNewNotifications = newNotifications > 0;
 
   return (
     <>
@@ -133,15 +95,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ userId, enableSou
           sx={{ position: 'relative' }}
         >
           <Badge
-            badgeContent={pendingCount + newNotifications}
-            color={hasNewNotifications ? 'secondary' : 'error'}
+            badgeContent={pendingCount}
+            color="error"
             max={99}
           >
-            {hasNewNotifications ? (
-              <NotificationsActive sx={{ color: 'secondary.main' }} />
-            ) : (
-              <Notifications />
-            )}
+            <Notifications />
           </Badge>
         </IconButton>
       </Tooltip>

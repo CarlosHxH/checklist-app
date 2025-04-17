@@ -9,13 +9,12 @@ import {
 } from '@mui/material'
 import { History } from '@mui/icons-material'
 import CloseIcon from '@mui/icons-material/Close'
-import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkIcon from '@mui/icons-material/Bookmark'
 import HistoryModal from '@/components/_ui/HistoryModal'
 import useSWR from 'swr'
 import { fetcher } from '@/lib/ultils'
 import Loading from '@/components/Loading'
 import { useSession } from 'next-auth/react'
-import { useSocket } from '@/provider/SocketProvider'
 import { formatDate } from '@/utils'
 
 // Types
@@ -64,14 +63,13 @@ interface FormData {
 }
 
 export default function VehicleKeysPage() {
-  const socket = useSocket();
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { data: session } = useSession()
 
   // Data fetching
   const { data, isLoading, mutate } = useSWR<DataType>('/api/v1/dashboard/keys', fetcher, {
-    refreshInterval: 10000,
+    refreshInterval: 7000, // Poll every 10 seconds instead of real-time socket updates
     revalidateOnFocus: true,
     revalidateOnReconnect: true
   })
@@ -87,34 +85,13 @@ export default function VehicleKeysPage() {
   const [formData, setFormData] = useState<FormData>({ userId: '', vehicleId: '' })
   const [isProcessing, setIsProcessing] = useState(false)
 
-  // Socket setup
-  useEffect(() => {
-    if (!socket || !session?.user?.id) return;
-
-    const handleTransferUpdate = () => {
-      console.log("Received transfer update, refreshing data...");
-      mutate();
-    };
-
-    // Register user with socket
-    socket.emit('registerUser', session.user.id);
-
-    // Listen for transfer updates
-    socket.on('newTransferNotification', handleTransferUpdate);
-    socket.on('transferStatusChanged', handleTransferUpdate);
-
-    return () => {
-      socket.off('newTransferNotification', handleTransferUpdate);
-      socket.off('transferStatusChanged', handleTransferUpdate);
-    };
-  }, [socket, session?.user?.id, mutate]);
-
   // Process data when it changes
   useEffect(() => {
     if (data && data.vehicleKeys.length > 0) {
       groupVehicleKeys()
     }
   }, [data])
+
   // Helper functions
   const groupVehicleKeys = useCallback(() => {
     if (!data?.vehicleKeys) return;
@@ -177,9 +154,7 @@ export default function VehicleKeysPage() {
     setIsProcessing(true)
 
     try {
-      if(
-        formData.userId === session?.user.id
-      ){
+      if(formData.userId === session?.user.id) {
         formData.id = session?.user.id;
       }
       
@@ -194,18 +169,7 @@ export default function VehicleKeysPage() {
 
       if (!response.ok) throw new Error('Erro ao transferir chave')
 
-      const newKey = await response.json();
-
-      if (socket) {
-        socket.emit('transferCreated', {
-          transferId: newKey.id,
-          vehicleId: newKey.vehicleId,
-          recipientId: newKey.userId,
-          senderId: session?.user?.id,
-          status: 'PENDING'
-        });
-      }
-
+      await response.json();
       setSuccessMessage('Chave transferida com sucesso!')
       handleCloseModal()
       mutate()
@@ -231,16 +195,6 @@ export default function VehicleKeysPage() {
     try {
       const response = await fetch(`/api/v1/keys/reject/${latestKey.id}`, { method: 'POST' })
       if (!response.ok) throw new Error('Erro ao rejeitar transferência')
-
-      if (socket) {
-        socket.emit('transferUpdated', {
-          transferId: latestKey.id,
-          newStatus: 'REJECTED',
-          recipientId: latestKey.userId,
-          senderId: session?.user?.id
-        });
-      }
-
       mutate()
     } catch (error) {
       setError('Erro ao rejeitar transferência')
@@ -264,17 +218,6 @@ export default function VehicleKeysPage() {
     try {
       const response = await fetch(`/api/v1/keys/confirm/${latestKey.id}`, { method: 'POST' })
       if (!response.ok) throw new Error('Erro ao confirmar transferência')
-      if (socket) {
-        socket.emit('transferUpdated', {
-          transferId: latestKey.id,
-          newStatus: 'CONFIRMED',
-          recipientId: latestKey.userId,
-          senderId: latestKey.parentId ?
-            groupedVehicleKeys[vehicleId]?.keys.find(k => k.id === latestKey.parentId)?.userId :
-            session?.user?.id
-        });
-      }
-
       mutate()
       setSuccessMessage('Transferência confirmada com sucesso!')
     } catch (error) {
@@ -355,7 +298,6 @@ export default function VehicleKeysPage() {
                           <BookmarkIcon color='primary' />
                         </IconButton>
                       )}
-                      
                     </Box>
                   </TableCell>
                 </TableRow>
