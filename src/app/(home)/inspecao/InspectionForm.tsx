@@ -94,7 +94,7 @@ const InspectionForm: React.FC = () => {
       const { fotoDocumento, fotoExtintor, fotoTacografo, ...fields } = data
       if(fotoDocumento || fotoExtintor || fotoTacografo){}
       
-      const response = await fetch('/api/inspecao', {
+      const response = await fetch('/api/v1/inspecao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...fields, photos }),

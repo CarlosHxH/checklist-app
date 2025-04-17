@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { authWithRoleMiddleware } from "@/lib/auth-middleware";
+import { prisma } from "@/lib/prisma";
 
 async function transaction(validatedData: InspectionFormData) {
   const { photos, ...data } = validatedData;
@@ -19,11 +19,7 @@ async function transaction(validatedData: InspectionFormData) {
         })),
       });
     }
-    // 3. Retornar a inspeção criada com suas fotos
-    return tx.inspection.findUnique({
-      where: { id: inspection.id },
-      include: { photos: true },
-    });
+    return inspection;
   });
   return result;
 }
