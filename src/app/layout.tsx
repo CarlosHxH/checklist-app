@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ThemeProvider } from "@mui/material";
 import "./globals.css";
-import { SocketProvider } from "@/provider/SocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,9 +60,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider theme={{}}>
           <SessionProvider session={session}>
-            <SocketProvider>
               {children}
-            </SocketProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>
