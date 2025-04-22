@@ -41,8 +41,6 @@ const InspectionForm: React.FC = () => {
 
   const onSubmit = async (data: InspectionFormData) => {
     try {
-      console.log({data});
-      
       // Create FormData object
       const formData = new FormData();
       
