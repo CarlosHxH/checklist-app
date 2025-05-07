@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { getFullYear } from '@/utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 type InspectionByPlate = {
@@ -14,9 +15,7 @@ type PrismaInspection = {
   created_at: Date;
 }
 async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
-  const currentYear = new Date().getFullYear();
-  const startDate = new Date(currentYear, 0, 1);
-  const endDate = new Date(currentYear + 1, 0, 1);
+  const { startDate, endDate} = getFullYear();
 
   // Buscar todas as inspeções do ano atual
   const inspections = await prisma.inspection.findMany({

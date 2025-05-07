@@ -7,7 +7,8 @@ import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import { LineChart } from '@mui/x-charts/LineChart';
-import { getDaysInMonth } from '@/utils';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/ultils';
 
 function AreaGradient({ color, id }: { color: string; id: string }) {
   return (
@@ -21,30 +22,21 @@ function AreaGradient({ color, id }: { color: string; id: string }) {
 }
 
 export default function SessionsChart() {
-  const [data, setData ] = React.useState([
-    {
-      id: 'organic',
-      label: 'Organic',
-      showMark: false,
-      curve: 'linear' as const,
-      stack: 'total',
-      stackOrder: 'ascending' as const,
-      data: [
-        1000, 1500, 1200, 1700, 1300, 2000, 2400, 2200, 2600, 2800, 2500, 3000, 3400, 3700,
-        3200, 3900, 4100, 3500, 4300, 4500, 4000, 4700, 5000, 5200, 4800, 5400, 5600, 5900,
-        6100, 6300,
-      ],
-      area: true,
-    },
-  ])
   const theme = useTheme();
-  const month = getDaysInMonth();
+  const [total,setTotal] = React.useState(0);
+  const { data } = useSWR('/api/v1/dashboard/chart/lastMonth', fetcher);
+  if(!data) return;
 
-  const colorPalette = [
-    theme.palette.primary.light,
-    theme.palette.primary.main,
-    theme.palette.primary.dark,
-  ];
+
+  React.useMemo(() => {
+    if (data) {
+      const totalDataSum = data.reduce((total: number, item: { data: number[] }) => {
+        return total + item.data.reduce((sum, value) => sum + value, 0);
+      }, 0);
+      setTotal(totalDataSum);
+    }
+  }, [data]);
+  
 
   return (
     <Card variant="outlined" sx={{ width: '100%' }}>
@@ -62,36 +54,19 @@ export default function SessionsChart() {
             }}
           >
             <Typography variant="h4" component="p">
-              {0}
+              {total}
             </Typography>
-            <Chip size="small" color="success" label="0%" />
+            <Chip size="small" color="success" label={`${(total*12/100)}%`} />
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Sessões por dia dos últimos 30 dias
           </Typography>
         </Stack>
         <LineChart
-          colors={colorPalette}
-          xAxis={[
-            {
-              scaleType: 'point', data:month, tickInterval: (index, i) => (i + 1) % 5 === 0,
-            },
-          ]}
           series={data}
           height={250}
           margin={{ left: 50, right: 20, top: 20, bottom: 20 }}
           grid={{ horizontal: true }}
-          sx={{
-            '& .MuiAreaElement-series-organic': {
-              fill: "url('#organic')",
-            },
-            '& .MuiAreaElement-series-referral': {
-              fill: "url('#referral')",
-            },
-            '& .MuiAreaElement-series-direct': {
-              fill: "url('#direct')",
-            },
-          }}
           slotProps={{
             legend: {
               hidden: true,

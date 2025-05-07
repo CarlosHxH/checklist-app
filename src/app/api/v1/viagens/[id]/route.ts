@@ -1,13 +1,9 @@
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma"
 import { fileToBase64 } from "@/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { createInspectionWithTransaction } from "../inspection.service";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER", "USER", "ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
 
   try {
     const id = (await params).id;
@@ -34,10 +30,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER", "USER", "ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const id = (await params).id;
     const formData = await request.formData();

@@ -2,11 +2,9 @@
 
 import * as React from 'react';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { PageContainer } from '@toolpad/core/PageContainer';
 import { Navigation } from '@toolpad/core/AppProvider';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { signIn, signOut, useSession } from "next-auth/react";
-import { AppProvider } from '@toolpad/core/nextjs';
 import { Avatar } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -14,6 +12,9 @@ import { redirect } from 'next/navigation';
 import KeyIcon from '@mui/icons-material/Key';
 import MapIcon from '@mui/icons-material/Map';
 import RoomIcon from '@mui/icons-material/Room';
+import BuildIcon from '@mui/icons-material/Build';
+import { NextAppProvider } from '@toolpad/core/nextjs';
+import { PageContainer } from '@toolpad/core/PageContainer';
 
 const BRANDING = {
   logo: <Avatar src={"/favicon/icon.png"} alt={'logo'} />,
@@ -58,14 +59,20 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
       segment: 'dashboard/vehicle',
       title: 'Veiculos',
       icon: <LocalShippingIcon />,
+    }, {
+      segment: 'dashboard/issues',
+      title: 'Manutenções',
+      icon: <BuildIcon />,
     }
   ];
 
   return (
-    <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={NAVIGATION}>
-      <DashboardLayout defaultSidebarCollapsed>
-        <PageContainer>{children}</PageContainer>
+    <NextAppProvider session={session} authentication={authentication} branding={BRANDING} navigation={NAVIGATION}>
+      <DashboardLayout>
+        <PageContainer>
+        {children}
+        </PageContainer>
       </DashboardLayout>
-    </AppProvider>
+    </NextAppProvider>
   );
 }

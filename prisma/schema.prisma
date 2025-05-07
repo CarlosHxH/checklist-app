@@ -134,13 +134,18 @@ model Inspect {
   updatedAt     DateTime @updatedAt
 }
 
+enum status {
+  INSPECAO
+  INICIO
+  FINAL
+}
 model inspection {
   id                          String            @id @default(cuid())
   userId                      String
   vehicleId                   String
   vehicleKey                  String?
   dataInspecao                DateTime?         @default(now())
-  status                      String?
+  status                      status?
   crlvEmDia                   String?
   certificadoTacografoEmDia   String?
   nivelAgua                   String?

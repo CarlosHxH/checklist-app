@@ -1,11 +1,61 @@
+// src/utils/index.ts
+
+/**
+ * Retorna as datas de início e fim para os últimos 30 dias
+ * @returns Objeto com startDate (data inicial) e endDate (data atual)
+ */
+export function getLast30Days() {
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999); // Fim do dia atual
+
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 29); // 30 dias atrás (incluindo hoje)
+  startDate.setHours(0, 0, 0, 0); // Início do dia
+
+  return { startDate, endDate };
+}
+
+/**
+ * Formata uma data para exibição
+ * @param date Data a ser formatada
+ * @returns String no formato DD/MM
+ */
+export function formatDateShort(date: Date): string {
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Gera um array com as representações de datas dos últimos 30 dias
+ * @returns Array de strings no formato DD/MM
+ */
+export function getLast30DaysLabels(): string[] {
+  const { startDate } = getLast30Days();
+  const labels: string[] = [];
+
+  for (let i = 0; i < 30; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    labels.push(formatDateShort(date));
+  }
+
+  return labels;
+}
+
+export function getFullYear(): { startDate: Date, endDate: Date } {
+  const currentYear = new Date().getFullYear();
+  const startDate = new Date(currentYear, 0, 1);
+  const endDate = new Date(currentYear + 1, 0, 1);
+  return { startDate, endDate };
+}
+
 export async function fileToBase64(file: Blob): Promise<string> {
   try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
+
     // Fallback for mime type
     const mimeType = 'type' in file ? (file as File).type : 'application/octet-stream';
-    
+
     return `data:${mimeType};base64,${buffer.toString('base64')}`;
   } catch (error) {
     console.error('Error converting file to base64:', error);
@@ -77,10 +127,12 @@ export function filterInspections(obj: any, searchTerm: string): string[] {
   return results || obj;
 }
 
-export function formatDate(date: Date, format = 'yyyy-MM-dd') {
+export function formatDate(date: Date | string, format = 'yyyy-MM-dd') {
+  if(typeof date === 'string') date = new Date(date);
   const pad = (num: number): string => num.toString().padStart(2, '0');
   return format
     .replace('yyyy', date.getFullYear().toString())
+    .replace('yy', date.getFullYear().toString().slice(2))
     .replace('MM', pad(date.getMonth() + 1))
     .replace('dd', pad(date.getDate()))
     .replace('HH', pad(date.getHours()))
@@ -101,7 +153,7 @@ interface CSVOptions {
 export class CSVExporter {
   private static formatDate(date: Date, format = 'yyyy-MM-dd') {
     const pad = (num: number): string => num.toString().padStart(2, '0');
-    
+
     return format
       .replace('yyyy', date.getFullYear().toString())
       .replace('MM', pad(date.getMonth() + 1))
@@ -145,22 +197,22 @@ export class CSVExporter {
       // Headers row
       csvHeaders.join(delimiter),
       // Data rows
-      ...data.map(item => 
+      ...data.map(item =>
         csvHeaders
           .map(header => {
             const value = (item as any)[header];
-            
+
             // Format date if dateFormat is provided
             if (value instanceof Date && dateFormat) {
               return this.formatDate(value, dateFormat);
             }
-            
+
             // Escape values containing delimiter or quotes
             const formattedValue = this.formatValue(value);
             if (formattedValue.includes(delimiter) || formattedValue.includes('"')) {
               return `"${formattedValue.replace(/"/g, '""')}"`;
             }
-            
+
             return formattedValue;
           })
           .join(delimiter)
@@ -175,7 +227,7 @@ export class CSVExporter {
       navigator.msSaveBlob(blob, filename);
       return;
     }*/
-    
+
     const url = URL.createObjectURL(blob);
     link.href = url;
     link.setAttribute('download', filename);

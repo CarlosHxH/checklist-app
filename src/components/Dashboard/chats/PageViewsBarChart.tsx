@@ -10,7 +10,6 @@ import { useTheme } from '@mui/material/styles';
 import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import { fetcher } from '@/lib/ultils';
-import { useRouter } from 'next/navigation';
 
 export default function PageViewsBarChart() {
   const [total,setTotal] = React.useState(0);

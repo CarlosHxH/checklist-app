@@ -1,11 +1,12 @@
 // src/lib/auth.ts
-import NextAuth, { JWT, NextAuthConfig, User} from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { generateToken } from "./auth/jwt";
 import { hoje } from "./ultils";
-import * as jose from 'jose';
+
 interface CustomUser extends User {
   id: string;
   role: string;
@@ -14,7 +15,7 @@ interface CustomUser extends User {
   name: string;
   image: string | null;
 }
-/*
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -28,75 +29,9 @@ declare module "next-auth" {
     };
   }
 }
-*/
 
-// Generate a secure key (in production, use environment variables)
-export const SECRET_KEY = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET
-);
-// JOSE encryption configuration
-const ENCRYPTION_ALG = 'A256GCM'; // AES-GCM with 256-bit key
-const KEY_ALG = 'dir';           // Direct encryption with shared key
-/**
- * Custom JWT Encoding function using JOSE
- * @param token - The token to encrypt
- */
-export async function encodeJWT({ token }: { token: JWT }): Promise<string> {
-  try {
-    // Convert token to a string for encryption
-    const tokenString = JSON.stringify(token);
-    
-    // Create a JWE (JSON Web Encryption)
-    const jwe = await new jose.CompactEncrypt(
-      new TextEncoder().encode(tokenString)
-    )
-      .setProtectedHeader({ 
-        alg: KEY_ALG, 
-        enc: ENCRYPTION_ALG 
-      })
-      .encrypt(SECRET_KEY);
-      
-    return jwe;
-  } catch (error) {
-    console.error("Error encoding JWT:", error);
-    throw new Error("Failed to encode JWT");
-  }
-}
-
-/**
- * Custom JWT Decoding function using JOSE
- * @param token - The encrypted token to decrypt
- */
-export async function decodeJWT(token: string): Promise<JWT> {
-  try {
-    // Decrypt the JWE
-    const { plaintext } = await jose.compactDecrypt(token, SECRET_KEY);
-    
-    // Convert decrypted data back to an object
-    const decodedToken = JSON.parse(new TextDecoder().decode(plaintext));
-    return decodedToken;
-  } catch (error) {
-    console.error("Error decoding JWT:", error);
-    throw new Error("Failed to decode JWT");
-  }
-}
-// Example of using custom payloads in the token
-export interface CustomJWT extends JWT {
-  user?: {
-    id: string;
-    name?: string;
-    email?: string;
-    role?: string;
-  };
-  customClaims?: {
-    permissions?: string[];
-    metadata?: Record<string, any>;
-  };
-}
-
-
-export const authOptions: NextAuthConfig = {
-  //adapter: PrismaAdapter(prisma),
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -107,7 +42,7 @@ export const authOptions: NextAuthConfig = {
       async authorize(credentials) {
         try {
           if (!credentials?.username || !credentials?.password) throw "Campos não preenchidos!";
-          const { username, password } = credentials as { username:string, password:string };
+          const { username, password } = credentials;
           // Buscar usuário
           const user = await prisma.user.findUnique({where: { username }});
 
@@ -206,7 +141,7 @@ export const authOptions: NextAuthConfig = {
     async signIn({ user }) {
       console.log(`${hoje} Usuário logado: ${(user as CustomUser).username}`);
     },
-    async signOut({ token }:any) {
+    async signOut({ token }) {
       // Remover tokens ao fazer logout
       await prisma.account.deleteMany({
         where: {
@@ -223,16 +158,6 @@ export const authOptions: NextAuthConfig = {
   session: {
     strategy: "jwt"
   },
-  logger: {
-    error(code, ...message) {
-    },
-    warn(code, ...message) {
-    },
-    debug(code, ...message) {
-    },
-  },
   secret: process.env.NEXTAUTH_SECRET,
-  //debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === "development",
 };
-
-export const { auth, handlers, signIn, signOut } = NextAuth(authOptions);
