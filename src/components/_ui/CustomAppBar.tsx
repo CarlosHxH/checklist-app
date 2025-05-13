@@ -4,9 +4,10 @@ import { AppBar as App, IconButton, Toolbar, Typography, Container, Box, Chip, A
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
-import { useSession } from "next-auth/react";
+import { useSession } from '@toolpad/core/useSession';
 import Image from "next/image";
 import NotificationModal from "./UserNotification";
+import { Account } from "@toolpad/core/Account";
 
 interface Props {
   title?: string;
@@ -18,10 +19,10 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const router = useRouter();
-  const { data: session } = useSession();
+  const session = useSession();
 
   const handleNext = () => {
-    if (session?.user.role === "ADMIN") { router.push("/dashboard") };
+    if ((session as any)?.user?.role === "ADMIN") { router.push("/dashboard") };
   };
 
   const ShowBackButton = () => {
@@ -47,14 +48,15 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
               { title || <Image width={100} height={100} src={'/logo.png'} alt="logo" style={{ width: 'auto', height: '100%' }} />}
             </Typography>
 
+            <Account/>
             <Box sx={{ flexGrow: 0, marginLeft: "auto", display: 'flex', gap: 1 }}>
               {!isMobile && <Chip
                 sx={{ color: '#fff', p: 0 }}
-                avatar={<Avatar alt={session?.user.name || ""} src={session?.user.image || ""} />}
-                label={session?.user.name}
+                avatar={<Avatar alt={session?.user?.name || ""} src={session?.user?.image || ""} />}
+                label={session?.user?.name}
                 variant="outlined"
               />}
-              {(session) && <NotificationModal userId={session?.user.id} enableSound/>}
+              {/*(session) && <NotificationModal userId={session?.user?.id} enableSound/>*/}
               <LogoutButton />
             </Box>
           </Toolbar>

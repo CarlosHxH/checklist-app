@@ -1,67 +1,36 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import SessionProvider from "@/provider/SessionProvider";
-import { auth } from "@/lib/auth";
-import { ThemeProvider } from "@mui/material";
-import "./globals.css";
+import * as React from 'react';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { SessionProvider, signIn, signOut } from 'next-auth/react';
+import { theme } from '@/theme';
+import { auth } from '@/lib/auth';
+import { NextAppProvider } from '@toolpad/core/nextjs';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "CheckList 5s",
-  description: "5sTransportes",
-  icons: [
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon/icon.png',
-    },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon/icon.png',
-    },
-    {
-      rel: 'apple-touch-icon',
-      sizes: '180x180',
-      url: '/favicon/icon.png',
-    },
-  ],
+const AUTHENTICATION = {
+  signIn,
+  signOut,
 };
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
   return (
-    <html lang="pt-BR" data-toolpad-color-scheme="light">
-      <head>
-        <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider theme={{}}>
-          <SessionProvider session={session}>
+    <html lang="en" data-toolpad-color-scheme="light" suppressHydrationWarning>
+      <body>
+        <SessionProvider session={session}>
+          <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+            <NextAppProvider
+              branding={{
+                logo: <img style={{ marginLeft: '30px' }} src="/icon.png" alt="logo" width={'auto'} height={120} />,
+                title: '',
+                homeUrl: '/',
+              }}
+              theme={theme}
+              session={session}
+              authentication={AUTHENTICATION}
+            >
               {children}
-          </SessionProvider>
-        </ThemeProvider>
+            </NextAppProvider>
+          </AppRouterCacheProvider>
+        </SessionProvider>
       </body>
     </html>
   );

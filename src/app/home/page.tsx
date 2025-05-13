@@ -5,8 +5,7 @@ import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import CustomAppBar from '@/components/_ui/CustomAppBar';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@toolpad/core/useSession';
 import Viagens from './PageViagens';
 import Inspecao from './PageInspecao';
 
@@ -33,7 +32,7 @@ const a11yProps = (index: number) => ({
 
 export default function Page() {
   const theme = useTheme();
-  const { data: session } = useSession();
+  const session = useSession();
   const [value, setValue] = React.useState(0);
 
   const idUser = session?.user?.id ?? '';
@@ -46,10 +45,10 @@ export default function Page() {
     { label: "VIAGENS", index: 0 },
     { label: "INSPEÇÕES", index: 1 }
   ], []);
-
+//<CustomAppBar />
   return (
     <Box>
-      <CustomAppBar />
+      
       <AppBar position="sticky" color='transparent' sx={{ boxShadow: 'none', borderBottom: '1px solid #E0E0E0', zIndex: 1000 }}>
         <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="inherit" variant="fullWidth" aria-label="Page-tabs">
           {tabs.map((tab) => (

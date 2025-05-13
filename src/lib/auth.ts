@@ -1,9 +1,8 @@
 // src/lib/auth.ts
-import NextAuth, { JWT, NextAuthConfig, User} from "next-auth";
+import NextAuth, { AuthError, JWT, NextAuthConfig, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { generateToken } from "./auth/jwt";
 import { hoje } from "./ultils";
 import * as jose from 'jose';
 interface CustomUser extends User {
@@ -14,6 +13,7 @@ interface CustomUser extends User {
   name: string;
   image: string | null;
 }
+
 /*
 declare module "next-auth" {
   interface Session {
@@ -45,17 +45,17 @@ export async function encodeJWT({ token }: { token: JWT }): Promise<string> {
   try {
     // Convert token to a string for encryption
     const tokenString = JSON.stringify(token);
-    
+
     // Create a JWE (JSON Web Encryption)
     const jwe = await new jose.CompactEncrypt(
       new TextEncoder().encode(tokenString)
     )
-      .setProtectedHeader({ 
-        alg: KEY_ALG, 
-        enc: ENCRYPTION_ALG 
+      .setProtectedHeader({
+        alg: KEY_ALG,
+        enc: ENCRYPTION_ALG
       })
       .encrypt(SECRET_KEY);
-      
+
     return jwe;
   } catch (error) {
     console.error("Error encoding JWT:", error);
@@ -71,7 +71,7 @@ export async function decodeJWT(token: string): Promise<JWT> {
   try {
     // Decrypt the JWE
     const { plaintext } = await jose.compactDecrypt(token, SECRET_KEY);
-    
+
     // Convert decrypted data back to an object
     const decodedToken = JSON.parse(new TextDecoder().decode(plaintext));
     return decodedToken;
@@ -107,62 +107,15 @@ export const authOptions: NextAuthConfig = {
       async authorize(credentials) {
         try {
           if (!credentials?.username || !credentials?.password) throw "Campos não preenchidos!";
-          const { username, password } = credentials as { username:string, password:string };
+          const { username, password } = credentials as { username: string, password: string };
           // Buscar usuário
-          const user = await prisma.user.findUnique({where: { username }});
+          const user = await prisma.user.findUnique({ where: { username } });
 
-          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas!";
+          if (!user || !user.password || !user?.isActive)
+            throw new AuthError("Credenciais inválidas!");
           // Verificar senha
-          if (!(await compare(password, user.password))) throw "Credenciais inválidas!";
-
-          await prisma.log.create({
-            data:{
-              level: "INFO",
-              message: JSON.stringify({type: "AuthLogin"}),
-              context: `${hoje} - SIGNIN: ${user?.username}`,
-              userId: user.id,
-          }});
-
-          // Atualizar ou criar Account
-          try {
-            // Gerar access token
-            const expires_at = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
-            const access_token = generateToken({id: user.id, username:user.username});
-            await prisma.account.upsert({
-              where: {
-                provider_providerAccountId: {
-                  provider: "credentials",
-                  providerAccountId: user.id,
-                }
-              },
-              create: {
-                userId: user.id,
-                type: "credentials",
-                provider: "credentials",
-                providerAccountId: user.id,
-                access_token: access_token,
-                expires_at,
-                token_type: "Bearer",
-              },
-              update: {
-                access_token: access_token,
-                expires_at,
-              },
-            });
-            console.log(`${hoje} Sucesso ao atualizar account: `,user.username);
-          } catch (error) {
-            console.log("Erro ao atualizar account: ",user.username);
-            // continue com a autenticação mesmo se falhar
-            await prisma.log.create({
-              data:{
-                level: "WARN",
-                message: JSON.stringify({error}),
-                context: `${hoje} Erro ao atualizar account: ${user?.username}`,
-                userId: user.id,
-            }});
-          }
-          
-          // Retornar objeto do usuário (importante!)
+          if (!(await compare(password, user.password)))
+            throw new AuthError("Credenciais inválidas!");
           return {
             id: user.id,
             username: user.username,
@@ -171,14 +124,7 @@ export const authOptions: NextAuthConfig = {
             role: user.role
           };
         } catch (error) {
-          await prisma.log.create({
-            data:{
-              level: "ERROR",
-              message: JSON.stringify({error}),
-              context: `${hoje} Erro na autenticação: ${credentials?.username}`,
-          }});
-          console.error(`${hoje} Erro na autenticação:`, error);
-          return null;
+          throw error;
         }
       }
     })
@@ -206,7 +152,7 @@ export const authOptions: NextAuthConfig = {
     async signIn({ user }) {
       console.log(`${hoje} Usuário logado: ${(user as CustomUser).username}`);
     },
-    async signOut({ token }:any) {
+    async signOut({ token }: any) {
       // Remover tokens ao fazer logout
       await prisma.account.deleteMany({
         where: {
@@ -224,12 +170,9 @@ export const authOptions: NextAuthConfig = {
     strategy: "jwt"
   },
   logger: {
-    error(code, ...message) {
-    },
-    warn(code, ...message) {
-    },
-    debug(code, ...message) {
-    },
+    error(code, ...message) { },
+    warn(code, ...message) { },
+    debug(code, ...message) { },
   },
   secret: process.env.NEXTAUTH_SECRET,
   //debug: process.env.NODE_ENV === "development",

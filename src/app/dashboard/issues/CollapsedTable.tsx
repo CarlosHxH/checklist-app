@@ -528,7 +528,6 @@ export default function CollapsibleTable() {
           showFirstButton
           showLastButton
         />
-
       </Box>
 
       {/* Indicador de resultados */}
@@ -538,6 +537,7 @@ export default function CollapsibleTable() {
           {searchTerm || filters.responsavel || filters.periodo || filters.status ? ' (filtrados)' : ''}
         </Typography>
       </Box>
+
     </Paper>
   );
 }

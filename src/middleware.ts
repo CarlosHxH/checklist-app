@@ -81,12 +81,12 @@ export default auth((req) => {
     redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
-
+/*
   // If user IS logged in and tries to access auth pages (prevent logged-in users from seeing login page)
   if (session?.user && nextUrl.pathname.startsWith("/auth/")) {
     return NextResponse.redirect(new URL("/", nextUrl.origin));
   }
-
+*/
   // Permit all other scenarios
   return NextResponse.next();
 }) as unknown as (request: NextRequest) => Promise<NextResponse>;
