@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 
 async function transfer(id: string) {
   return prisma.$transaction(async (tx) => {
@@ -56,10 +55,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN","USER","DRIVER",]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const id = (await params).id;
     const updatedTransfer = transfer(id);

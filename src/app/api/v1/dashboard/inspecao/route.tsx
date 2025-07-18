@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { InspectionFormData } from "@/types/InspectionSchema";
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 
 async function transaction(validatedData: InspectionFormData) {
   const { photos, ...data } = validatedData;
@@ -32,9 +31,6 @@ async function transaction(validatedData: InspectionFormData) {
   return result;
 }
 export async function GET(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
 
   try {
     const inspections = await prisma.inspection.findMany({
@@ -59,9 +55,6 @@ export async function GET(request: NextRequest) {
 
 
 export async function POST(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
 
   try {
     const data = await request.json();

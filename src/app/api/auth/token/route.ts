@@ -1,37 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { generateToken, verifyHeader } from "@/lib/auth/jwt";
+import { decoded, encoded } from "@/webToken";
+import { prisma } from "@/lib/prisma";
 
-
-const prisma = new PrismaClient();
-
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const authorization = await verifyHeader();
-    if (!authorization) {
-      throw new Error("Authorization header is missing");
+    const authHeader = await request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Token não fornecido' }, { status: 401 });
     }
-    return NextResponse.json({ authorization });
-  } catch (error : any) {
-    return NextResponse.json({ error: error?.message }, { status: 403 });
+    const token = authHeader.split(' ')[1];
+    if (!token) throw new Error("Erro interno do servidor")
+    const decode = await decoded(token);
+    return NextResponse.json( decode );
+  } catch (error) {
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 403 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
+    
+    // Validate input
+    if (!username || !password) {
+      return NextResponse.json({ error: "Username e password são obrigatórios" }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({ where: { username } });
-
-    if (!user || !bcrypt.compareSync(password, user.password)) {
-      return NextResponse.json({ error: "Credenciais inválidas" },{ status: 403 });
+    if (!user) {
+      return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
     }
-    const { id } = user;
-    const token = generateToken({id, username});
+
+    // Use async version of bcrypt.compare
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+    }
+
+    const { id, role } = user;
+    const token = await encoded({ user: { id, username, role } });
+
+    if (!token) {
+      return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    }
 
     return NextResponse.json({ token });
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno do servidor" },{ status: 403 });
+    console.error('Authentication error:', error);
+    
+    // Return specific error messages for known errors
+    if (error instanceof Error && error.message === "Credenciais inválidas") {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

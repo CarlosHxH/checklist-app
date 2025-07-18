@@ -1,4 +1,3 @@
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,10 +29,6 @@ async function createInspectionWithTransaction({ data, id }: { data: any, id?: s
 
 
 export async function GET(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const inspections = await prisma.inspect.findMany({
       include: {

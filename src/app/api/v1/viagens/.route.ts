@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createInspectionWithTransaction } from './inspection.service';
-import { authWithRoleMiddleware } from '@/lib/auth-middleware';
 
 export async function POST(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["DRIVER","USER","ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const body = await request.json();
 

@@ -102,20 +102,14 @@ const CardViagem = ({ inspection }: CardViagemProps) => {
             Veiculo: {inspection.vehicle?.plate + " - " + inspection.vehicle?.model}
           </Typography>
           <Grid item xs={12} direction={'column'} sx={{ display: "flex", justifyContent: "flex-end", gap: 1, }}>
-            {inspection.start?.isFinished ? (
+            {inspection.start?.isFinished && (
               <Chip label="Início" color={getStatusColor('INICIO')} size="small" icon={<CheckCircleIcon />} />
-            ) : (
-              <Link href={`/viagem/${inspection.start?.id}/edit`}>
-                <Chip label="Iniciar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
-              </Link>
             )}
 
-            {!inspection.start?.isFinished ?
-              (<></>)
-              : inspection.end ? (
+            { inspection.end ? (
                 <Chip label="Final" color={getStatusColor('FINAL')} size="small" icon={<CheckCircleIcon />} />
               ) : (
-                <Link href={`/viagem/final/${inspection.vehicleId}`}>
+                <Link href={`/viagem/final/${inspection.id}`}>
                   <Chip label="Clique para finalizar" color={getStatusColor('')} size="small" icon={<ErrorOutlineIcon />} />
                 </Link>
               )}

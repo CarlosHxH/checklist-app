@@ -29,25 +29,40 @@ model user {
   corrections    correction[]
   
   Inspect Inspect[] @relation(map: "Access_userId_fkey")
+  logs  Log[]
 }
 
+model Log {
+  id        Int      @id @default(autoincrement())
+  level     logType  @default(INFO)   // Nível do log (ex: INFO, WARN, ERROR)
+  message   String                    // Mensagem do log
+  timestamp DateTime @default(now())  // Data e hora do log
+  context   String?                   // Contexto adicional (opcional)
+  userId    String?                      // ID do usuário associado (opcional)
+  user      user?    @relation(fields: [userId], references: [id])
+}
+enum logType {
+    INFO
+    WARN
+    ERROR
+}
 model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String    @id @default(cuid())
+  userId               String    @map("user_id")
+  type                 String
+  provider             String
+  providerAccountId    String    @map("provider_account_id")
+  refresh_token        String?   @db.Text
+  access_token         String?   @db.Text
+  expires_at           Int?      @db.Int
+  token_type           String?
+  scope                String?
+  id_token             String?   @db.Text
+  session_state        String?
+  user                 user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
-  @@index([userId], map: "accounts_user_id_fkey")
+  @@unique([provider, providerAccountId], name: "provider_providerAccountId_unique")
+  @@index([userId], name: "account_userId_index")
   @@map("accounts")
 }
 
@@ -119,13 +134,18 @@ model Inspect {
   updatedAt     DateTime @updatedAt
 }
 
+enum status {
+  INSPECAO
+  INICIO
+  FINAL
+}
 model inspection {
   id                          String            @id @default(cuid())
   userId                      String
   vehicleId                   String
   vehicleKey                  String?
   dataInspecao                DateTime?         @default(now())
-  status                      String?
+  status                      status?
   crlvEmDia                   String?
   certificadoTacografoEmDia   String?
   nivelAgua                   String?

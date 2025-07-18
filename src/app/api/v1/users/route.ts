@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
-import { authWithRoleMiddleware } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
   // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) { return authResponse; }
 
   try {
     const users = await prisma.user.findMany({
@@ -29,9 +26,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) { return authResponse; }
 
   const { username, password, name, role } = await request.json();
   if (!username || !password || !name) {
@@ -52,9 +46,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) { return authResponse; }
 
   try {
     const {id, ...data} = await request.json();

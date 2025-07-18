@@ -57,39 +57,6 @@ export const authOptions: NextAuthOptions = {
           const isPasswordValid = await compare(credentials.password, user.password);
           
           if (!isPasswordValid) throw "Credenciais inválidas ou usuário não ativo! code: 0x04";
-
-          // Atualizar ou criar Account
-          try {
-            // Gerar access token
-            const expires_at = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
-            const access_token = generateToken({id: user.id, username:user.username});
-            await prisma.account.upsert({
-              where: {
-                provider_providerAccountId: {
-                  provider: "credentials",
-                  providerAccountId: user.id,
-                }
-              },
-              create: {
-                userId: user.id,
-                type: "credentials",
-                provider: "credentials",
-                providerAccountId: user.id,
-                access_token: access_token,
-                expires_at,
-                token_type: "Bearer",
-              },
-              update: {
-                access_token: access_token,
-                expires_at,
-              },
-            });
-            console.log(`${hoje} Sucesso ao atualizar account: `,user.username);
-          } catch (error) {
-            console.log("Erro ao atualizar account: ",user.username);
-            // continue com a autenticação mesmo se falhar
-          }
-          
           // Retornar objeto do usuário (importante!)
           return {
             id: user.id,

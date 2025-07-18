@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 
 // GET all keys
 export async function GET(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const [users, vehicles, vehicleKeys] = await prisma.$transaction([
       prisma.user.findMany({
@@ -40,10 +35,6 @@ export async function GET(request: NextRequest) {
 
 // POST new key transfer
 export async function POST(request: NextRequest) {
-  // Verificar autenticação e permissão
-  const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-  if (authResponse.status !== 200) return authResponse;
-
   try {
     const body = await request.json();
     const { userId, vehicleId, parentId } = body;

@@ -26,27 +26,22 @@ export interface EixoSectionProps {
 }
 
 export const EixoSection: React.FC<EixoSectionProps> = ({ eixoNumber, label, fieldName, selectedVehicle, control, register, watch, setValue }) => {
-    if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
+  const currentValue = watch(fieldName);
+  const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
 
-    useEffect(() => {
-        setValue("eixo", String(eixoNumber));
-    }, [eixoNumber, setValue]);
+  useEffect(() => {
+    if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return;
+    if (currentValue === "BOM") setValue(field, "");
+  }, [currentValue, field, setValue, selectedVehicle, eixoNumber]);
 
-    const currentValue = watch(fieldName);
-    const field = `descricao${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}` as keyof InspectionFormData;
+  if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
 
-    useEffect(() => {
-        if (currentValue === "BOM") {
-            setValue(field, "");
-        }
-    }, [currentValue, field, setValue]);
-
-    return (
-        <Grid item xs={12} md={6}>
-            <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-            {currentValue === "RUIM" && (
-                <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />
-            )}
-        </Grid>
-    );
+  return (
+    <Grid item xs={12} md={6}>
+      <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+      {currentValue === "RUIM" && (
+        <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />
+      )}
+    </Grid>
+  );
 };

@@ -1,4 +1,3 @@
-import { authWithRoleMiddleware } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,11 +18,6 @@ const format = async (
 
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticação e permissão
-    const authResponse = await authWithRoleMiddleware(request, ["ADMIN"]);
-    if (authResponse.status !== 200) return authResponse;
-    //const { searchParams } = new URL(request.url);
-    //const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
 
     const inspections = await prisma.inspection.count({where: { status: "INSPECAO" }});
     const viagens = await prisma.inspection.count({where: { NOT: { status: "INSPECAO" } }});

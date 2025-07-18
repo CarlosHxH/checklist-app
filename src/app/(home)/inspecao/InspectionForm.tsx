@@ -18,14 +18,13 @@ import PhotoUploader from "@/components/_ui/PhotoUploader";
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: vehicles, error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
-
+  const { data: vehicles, isLoading,error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
+  
   const { register, watch, control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { 
       userId: session?.user?.id, 
       status: 'INSPECAO', 
-      vehicleId: "", 
-      eixo: "0", 
+      vehicleId: "",
       isFinished: true 
     }
   });
@@ -44,7 +43,6 @@ const InspectionForm: React.FC = () => {
     try {
       // Prepare photos array for the transaction
       const photos = [];
-
       // Add documento photo if exists
       if (data.fotoDocumento) {
         photos.push({
@@ -53,7 +51,6 @@ const InspectionForm: React.FC = () => {
           description: 'Documento do veículo'
         });
       }
-
       // Add tacografo photo if exists
       if (data.fotoTacografo) {
         photos.push({
@@ -62,7 +59,6 @@ const InspectionForm: React.FC = () => {
           description: 'Tacógrafo'
         });
       }
-
       // Add extintor photo if exists
       if (data.fotoExtintor) {
         photos.push({
@@ -71,7 +67,6 @@ const InspectionForm: React.FC = () => {
           description: 'Extintor'
         });
       }
-
       // Add avarias photos if they exist
       if (data.photos && Array.isArray(data.photos)) {
         data.photos.forEach((photo, index) => {
@@ -84,7 +79,6 @@ const InspectionForm: React.FC = () => {
           }
         });
       }
-
       // Validate minimum 4 photos for avarias
       const vehiclePhotos = photos.filter(p => p.type === 'vehicle');
       if (vehiclePhotos.length < 4) {
@@ -93,25 +87,24 @@ const InspectionForm: React.FC = () => {
       }
       const { fotoDocumento, fotoExtintor, fotoTacografo, ...fields } = data
       if(fotoDocumento || fotoExtintor || fotoTacografo){}
-      
-      const response = await fetch('/api/inspecao', {
+      const response = await fetch('/api/v1/inspecao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...fields, photos }),
       });
-
       if (!response.ok) {
         throw new Error('Falha ao criar inspeção');
       }
       //const result = await response.json();
-      router.push('/');
+      router.replace('/');
     } catch (error) {
       console.error('Erro ao enviar os dados:', error);
       alert('Erro ao criar a inspeção!');
     }
   };
 
-  if (!vehicles) return <Loading />;
+  if (!isLoading) return <Loading />;
+  if (!vehicles) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
   if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
 
   const selectedVehicleId = watch("vehicleId");
@@ -121,25 +114,17 @@ const InspectionForm: React.FC = () => {
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting && <Loading />}
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h4" gutterBottom>CRIAR INSPEÇÃO</Typography>
+        <Typography variant="h5" fontWeight={'bold'} color="primary" style={{textShadow: '1px 1px 2px blue'}} gutterBottom>CRIAR INSPEÇÃO</Typography>
 
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
-
-          <Grid item xs={12}>
-            <ButtonLabel disabled label="Viagem" name="status" options={["INSPECAO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
-
           <Grid item xs={12} md={6}>
             <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
           </Grid>
-
           <Grid item xs={12} md={6}>
             <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
           </Grid>
-
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
-
           <Grid item xs={12}  md={selectedVehicle?.tacografo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO DOCUMENTO'} onChange={async (photos: File[]) => {
@@ -154,7 +139,6 @@ const InspectionForm: React.FC = () => {
               }
             }} />
           </Grid>
-
           {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO TACOGRAFO'} onChange={async (photos: File[]) => {
@@ -169,17 +153,13 @@ const InspectionForm: React.FC = () => {
               }
             }} />
           </Grid>}
-
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
-
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
-
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Nível Óleo" name="nivelOleo" options={["NORMAL", "BAIXO", "CRITICO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
-
           {selectedVehicle && (
             <>
               <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
@@ -189,23 +169,19 @@ const InspectionForm: React.FC = () => {
               <EixoSection eixoNumber={4} label="QUARTO EIXO" fieldName="quartoEixo" selectedVehicle={selectedVehicle} control={control} register={register} watch={watch} setValue={setValue} />
             </>
           )}
-
           <Grid item xs={12}><Divider>Avarias</Divider></Grid>
-
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
               <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
           </Grid>
-
           <Grid item xs={12} md={6}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
               <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
           </Grid>
-
           <Grid item xs={12} md={6}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
@@ -213,7 +189,6 @@ const InspectionForm: React.FC = () => {
               <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
           </Grid>
-
           <Grid item xs={12} md={6}>
             <Divider>EXTINTOR</Divider>
             <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
@@ -229,7 +204,6 @@ const InspectionForm: React.FC = () => {
               }
             }} />
           </Grid>
-
           <Grid item xs={12} md={12}>
             <Divider>FOTO DO VEICULO</Divider>
             <Typography color="error">Minimo 4 fotos</Typography>
@@ -241,21 +215,13 @@ const InspectionForm: React.FC = () => {
                 setValue('photos', photosBase64);
             }}/>
           </Grid>
-
-
           <Grid item xs={12} md={12}>
             {Object.keys(errors).length > 0 && (
               <Typography color="error" align="center" gutterBottom>
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
-            <Button 
-              fullWidth 
-              type="submit" 
-              variant="contained" 
-              color="primary"
-              disabled={isSubmitting}
-            >
+            <Button fullWidth type="submit" variant="contained" color="primary" disabled={isSubmitting}>
               {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </Grid>
