@@ -1,61 +1,47 @@
 "use client";
 import useSWR from "swr";
-import React from "react";
+import React, { useState } from "react";
 import Loading from "@/components/Loading";
 import ButtonLabel from "@/components/ButtonLabel";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
 import PhotoUploader from "@/components/_ui/PhotoUploader";
 import CustomAppBar from "@/components/_ui/CustomAppBar";
-import { TextField, Button, Grid, Typography, Paper, Divider, Box } from "@mui/material";
+import { TextField, Button, Grid, Typography, Paper, Divider, Box, Alert, Snackbar } from "@mui/material";
 import { fetcher } from "@/lib/ultils";
 import { useSession } from "next-auth/react";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { EixoSection } from "@/components/EixoSection";
+import axios from "axios";
+import { vehicle } from "@prisma/client";
 
-export interface Option {
-  [key: string]: any;
-  setValue: (name: keyof InspectionFormData, value: any) => void;
-}
 
-export interface Vehicle extends Option {
-  id: string;
-  plate: string;
-  model: string;
-}
 
-const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ type, id }) => {
-  const [submitting, setSubmitting] = React.useState(false);
+
+
+const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
+  const { data: vehicles, error } = useSWR<vehicle[], Error>(`/api/v1/vehicles`, fetcher);
 
-  const { data: vehicles, error } = useSWR<Vehicle[], Error>(`/api/v1/vehicles`, fetcher);
+  const [submitError, setSubmitError] = useState<string>("");
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   
   const { register, watch, control, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { 
       userId: session?.user?.id, 
-      status: type, 
+      status: "INICIO", 
       vehicleId: "",
-      isFinished: true,
     }
   });
-
-  const selectedVehicleId = watch("vehicleId");
-  const selectedVehicle = vehicles && vehicles.find((v) => v.id === id || v.id === selectedVehicleId);
-
-  React.useEffect(() => {
-    const defaultValues: Partial<InspectionFormData> = {};
-    defaultValues.userId = session?.user?.id;
-    defaultValues.vehicleId = id;
-    defaultValues.status = type;
-    reset({ ...defaultValues });
-  }, [id, reset, session?.user?.id, type]);
 
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
+  const selectedVehicleId = watch("vehicleId");
+  const selectedVehicle = vehicles && vehicles.find((v) => v.id === selectedVehicleId);
 
   React.useEffect(() => {
     // Redefinir campos de descrição com base nos valores principais do campo
@@ -67,58 +53,98 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
   if (!vehicles) return <Loading />;
   if (error) return (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Erro ao carregar os veículos <Link href={'/'}>Voltar</Link></Box>);
 
+  // Handle form submission
+  const onSubmit = async (data: InspectionFormData) => {
+    try {
+      setSubmitError("");
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Append all form fields except photos
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'photos' && value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+
+      // Append photos if they exist
+      if (data.photos && data.photos.length > 0) {
+        data.photos.forEach((photoData: any, index: number) => {
+          if (photoData.photo instanceof File) {
+            formData.append(`photos`, photoData.photo);
+            formData.append(`photoTypes`, photoData.type || 'vehicle');
+            formData.append(`photoDescriptions`, photoData.description || `Photo ${index + 1}`);
+          }
+        });
+      }
+
+      const response = await axios.post("/api/v1/viagens", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 30000, // 30 second timeout
+      });
+
+      if (response.data.success) {
+        setSubmitSuccess(true);
+        setTimeout(() => {
+          router.replace('/');
+        }, 2000);
+      } else {
+        throw new Error(response.data.error || 'Erro ao salvar inspeção');
+      }
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.error) {
+          setSubmitError(error.response.data.error);
+        } else if (error.code === 'ECONNABORTED') {
+          setSubmitError('Tempo limite excedido. Tente novamente.');
+        } else {
+          setSubmitError('Erro de conexão. Verifique sua internet.');
+        }
+      } else {
+        setSubmitError('Erro inesperado. Tente novamente.');
+      }
+    }
+  };
+
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       <CustomAppBar showBackButton />
+      {/* Loading overlay */}
       {isSubmitting && <Loading />}
-      <form
-        onSubmit={handleSubmit(async (data) => {
-          console.log('>',watch('vehicleId'));
-          
-          if (watch('vehicleId').length < 25) return;
-          
-          setSubmitting(true);
-          const formData = new FormData();
-
-          // Append all form fields except photos
-          Object.entries(data).forEach(([key, value]) => {
-            if (key !== 'photos') {
-              formData.append(key, String(value));
-            }
-          });
-
-          // Append photos
-          if (data.photos) {
-            data.photos.forEach((photo: any) => {
-              formData.append('photos', photo.photo);
-            });
-          }
-
-          try {
-            const response = await fetch('/api/v1/viagens', {
-              method: 'POST',
-              body: formData,
-            });
-            if (!response.ok) throw new Error('Failed to submit form');
-            router.replace('/');
-          } catch (error) {
-            console.error('Error submitting form:', error);
-            alert("Erro ao enviar os dados!");
-            setSubmitting(false);
-          }
-        })}
+      
+      {/* Success/Error messages */}
+      <Snackbar 
+        open={submitSuccess} 
+        autoHideDuration={6000} 
+        onClose={() => setSubmitSuccess(false)}
       >
-        <Typography variant="h5" fontWeight={'bold'} color="primary" style={{textShadow: '1px 1px 2px blue'}} gutterBottom>VIAGEM - {type}</Typography>
-
+        <Alert severity="success" onClose={() => setSubmitSuccess(false)}>
+          Inspeção salva com sucesso! Redirecionando...
+        </Alert>
+      </Snackbar>
+      
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSubmitError("")}>
+          {submitError}
+        </Alert>
+      )}
+      
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
 
-          {/*<Grid item xs={12}>
+          <Grid item xs={12}>
             <ButtonLabel disabled label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>*/}
+          </Grid>
 
           <Grid item xs={12} md={6}>
-            <ComboBox disabled={!!(vehicles.find((v) => v.id === id))} name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
+            <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
           </Grid>
 
           <Grid item xs={12} md={6}>
@@ -201,7 +227,7 @@ const InspectionForm: React.FC<{ type: "INICIO" | "FINAL", id: string }> = ({ ty
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
-            <Button disabled={submitting || Object.keys(errors).length > 0} fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
+            <Button disabled={isSubmitting || Object.keys(errors).length > 0} fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
           </Grid>
         </Grid>
       </form>

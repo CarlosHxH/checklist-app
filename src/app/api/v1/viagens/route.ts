@@ -11,9 +11,8 @@ setupFilePolyfill();
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-
     const data: any = {};
-
+    
     // Process all form fields
     for (const [key, value] of formData.entries()) {
       if (key === "photos") {
@@ -34,51 +33,10 @@ export async function POST(request: Request) {
         data[key] = value;
       }
     }
-
-    // Validate required fields
-    if (!data.userId || !data.vehicleId || !data.status) {
-      return NextResponse.json(
-        { error: "Missing required fields: userId, vehicleId, or status" },
-        { status: 400 }
-      );
-    }
-
-    // Validate user exists
-    const user = await prisma.user.findUnique({ where: { id: data.userId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Validate vehicle exists
-    const vehicle = await prisma.vehicle.findUnique({
-      where: { id: data.vehicleId },
-    });
-    if (!vehicle) {
-      return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
-    }
-
-    // Convert isFinished to boolean
-    data.isFinished = true;
-    
     const result = await createInspectionWithTransaction(data);
+
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("Error processing form:", error);
-
-    // Handle specific Prisma errors
-    if (
-      error instanceof PrismaClientKnownRequestError &&
-      error.code === "P2003"
-    ) {
-      return NextResponse.json(
-        {
-          error: "Invalid reference to user or vehicle",
-          details: "The specified user or vehicle does not exist",
-        },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
       {
         error: "Failed to process form",

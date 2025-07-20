@@ -2,6 +2,7 @@ import { Grid, TextField } from "@mui/material";
 import ButtonLabel from "./ButtonLabel";
 import { InspectionFormData } from "@/types/InspectionSchema";
 import { useEffect } from "react";
+import { vehicle } from "@prisma/client";
 
 export interface Option {
     [key: string]: any;
@@ -18,7 +19,7 @@ export interface EixoSectionProps {
     eixoNumber: number;
     label: string;
     fieldName: keyof InspectionFormData;
-    selectedVehicle?: Vehicle;
+    selectedVehicle?: vehicle;
     control: any;
     register: any;
     watch: any;

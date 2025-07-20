@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/prisma";
+
+export interface InspectionPhoto {
+  photo: string;
+  type: string;
+  description?: string;
+}
+
 export interface InspectionInput {
-  id: string | '';
+  id: string;
   userId: string;
   vehicleId: string;
   status: "INICIO" | "FINAL";
@@ -27,20 +34,35 @@ export interface InspectionInput {
   kilometer: string;
   isFinished: boolean;
   extintor: string;
-  photos?: [{
-    [x: string]: string,
-  }]
+  photos?: InspectionPhoto[];
 }
 
-export async function createInspectionWithTransaction(validatedData: InspectionInput) {
+export interface CreateInspectionResult {
+  success: boolean;
+  data?: {
+    inspection: any;
+    inspect: any;
+  };
+  error?: string;
+}
+
+export async function createInspectionWithTransaction(
+  validatedData: InspectionInput
+): Promise<CreateInspectionResult> {
   const { id, ...data } = validatedData;
 
+  if (!["INICIO", "FINAL"].includes(data.status)) {
+    return {
+      success: false,
+      error: "Invalid status. Must be 'INICIO' or 'FINAL'"
+    };
+  }
+
   try {
-    return await prisma.$transaction(async (tx) => {
-      // 1. Create the inspection record
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the inspection record
       const inspection = await tx.inspection.create({
-        data: data
-        /*data: {
+        data: {
           userId: data.userId,
           vehicleId: data.vehicleId,
           status: data.status,
@@ -49,6 +71,7 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           certificadoTacografoEmDia: data.certificadoTacografoEmDia,
           nivelAgua: data.nivelAgua,
           nivelOleo: data.nivelOleo,
+          eixo: data.eixo, // Added missing field
           avariasCabine: data.avariasCabine,
           descricaoAvariasCabine: data.descricaoAvariasCabine,
           bauPossuiAvarias: data.bauPossuiAvarias,
@@ -64,82 +87,100 @@ export async function createInspectionWithTransaction(validatedData: InspectionI
           descricaoTruck: data.descricaoTruck,
           quartoEixo: data.quartoEixo,
           descricaoQuartoEixo: data.descricaoQuartoEixo,
-          isFinished: true,
-          photos: {
-            create: data?.photos ? data.photos?.map((photo: any) => ({
+          vehicleKey: data.vehicleKey, // Added missing field
+          isFinished: data.isFinished,
+          photos: data.photos && data.photos.length > 0 ? {
+            create: data.photos.map((photo) => ({
               photo: photo.photo,
               type: photo.type,
               description: photo.description
-            })) : []
-          }
-        }*/
+            }))
+          } : undefined
+        }
       });
 
+      // Handle inspect record based on status
       let inspect;
-      
+      const inspectData = {
+        userId: data.userId,
+        vehicleId: data.vehicleId
+      };
+
       if (data.status === "INICIO") {
-        // For START inspections:
-        // Find the most recent open inspection for this vehicle and user or create a new one
-        const openInspection = await tx.inspect.findUnique({
-          where: {
-            id,
-            userId: data.userId,
-            vehicleId: data.vehicleId,
-            endId: null
+        inspect = await tx.inspect.create({
+          data: {
+            ...inspectData,
+            startId: inspection.id
           }
         });
-
-        if (openInspection) {
-          // Update existing inspection with new startId
-          inspect = await tx.inspect.update({
-            where: { id: openInspection.id },
-            data: { startId: inspection.id }
-          });
-        } else {
-          // Create new Inspect
-          inspect = await tx.inspect.create({
-            data: {
-              userId: data.userId,
-              vehicleId: data.vehicleId,
-              startId: inspection.id
-            }
-          });
-        }
       } else if (data.status === "FINAL") {
-        // For END inspections:
-        // Try to find an open inspection to update
-        const openInspection = await tx.inspect.findFirst({
-          where: {
-            userId: data.userId,
-            vehicleId: data.vehicleId,
-            startId: { not: null },
-            endId: null
-          },
-          orderBy: { createdAt: 'desc' }
+        inspect = await tx.inspect.update({
+          where: { id },
+          data: { endId: inspection.id }
         });
-
-        if (openInspection) {
-          // Update with endId
-          inspect = await tx.inspect.update({
-            where: { id: openInspection.id },
-            data: { endId: inspection.id }
-          });
-        } else {
-          // Create new with just endId
-          inspect = await tx.inspect.create({
-            data: {
-              userId: data.userId,
-              vehicleId: data.vehicleId,
-              endId: inspection.id
-            }
-          });
-        }
       }
-
       return { inspection, inspect };
     });
+    return { success: true, data: result };
   } catch (error) {
-    console.error("Transaction failed:", error);
-    throw error;
+    console.error("Error creating inspection:", error);
+    
+    return {
+      success: false,
+      error: error instanceof Error 
+        ? error.message 
+        : "An unexpected error occurred while creating the inspection"
+    };
+  }
+}
+
+// Helper function to validate inspection data
+export function validateInspectionInput(data: Partial<InspectionInput>): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  if (!data.id) errors.push("ID is required");
+  if (!data.userId) errors.push("User ID is required");
+  if (!data.vehicleId) errors.push("Vehicle ID is required");
+  if (!data.status || !["INICIO", "FINAL"].includes(data.status)) {
+    errors.push("Status must be 'INICIO' or 'FINAL'");
+  }
+  if (!data.kilometer) errors.push("Kilometer reading is required");
+  if (!data.crlvEmDia) errors.push("CRLV status is required");
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+// Utility function to get inspection by ID
+export async function getInspectionById(inspectionId: string) {
+  try {
+    return await prisma.inspection.findUnique({
+      where: { id: inspectionId },
+      include: {
+        photos: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        vehicle: {
+          select: {
+            id: true,
+            plate: true,
+            model: true
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching inspection:", error);
+    return null;
   }
 }

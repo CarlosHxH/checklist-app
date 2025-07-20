@@ -10,24 +10,19 @@ import CardViagemList from './CardViagemList';
 
 export default function Viagens({ id }: { id: string }) {
   const { data, error, isLoading } = useSWR(id ? `/api/v1/viagens/user/${id}` : null, fetcher)
-
   if (isLoading) return <Loading />;
   if (error) return <Container>Erro ao carregar dados. Por favor, tente novamente.</Container>;
 
   const ShowCustomFab = () => {
     if (data[0] && (data[0].startId && !data[0].endId)) return;
-    return <CustomFab href="/viagem/inicio/create" variant="Plus" />
+    return <CustomFab href="/viagem" variant="Plus" />
   };
   
   return (
     <Suspense fallback={<Loading />}>
       <Container maxWidth="lg">
         <ShowCustomFab/>
-        {data ? (
-          <CardViagemList data={data} />
-        ) : (
-          <Container>Nenhuma viagem encontrada.</Container>
-        )}
+        <CardViagemList data={data} />
       </Container>
     </Suspense>
   );

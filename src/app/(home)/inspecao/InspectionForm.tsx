@@ -5,27 +5,27 @@ import { fetcher } from "@/lib/ultils";
 import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
 import ButtonLabel from "@/components/ButtonLabel";
-import { TextField, Button, Grid, Typography, Paper, Divider } from "@mui/material";
+import { TextField, Button, Grid, Typography, Paper, Divider, Box } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { InspectionFormData } from "@/types/InspectionSchema";
-import { EixoSection, Vehicle } from "@/components/EixoSection";
+import { EixoSection } from "@/components/EixoSection";
 import ComboBox from "@/components/ComboBox";
 import Link from "next/link";
 import { getBase64 } from "@/utils";
 import PhotoUploader from "@/components/_ui/PhotoUploader";
+import { vehicle } from "@prisma/client";
 
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: vehicles, isLoading,error } = useSWR<Vehicle[], { [key: string]: any }>(`/api/v1/vehicles`, fetcher);
+  const { data: vehicles, isLoading,error } = useSWR<vehicle[]>(`/api/v1/vehicles`, fetcher);
   
   const { register, watch, control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { 
       userId: session?.user?.id, 
       status: 'INSPECAO', 
       vehicleId: "",
-      isFinished: true 
     }
   });
 
@@ -103,9 +103,9 @@ const InspectionForm: React.FC = () => {
     }
   };
 
-  if (!isLoading) return <Loading />;
-  if (!vehicles) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
-  if (error) return <div>Erro de carregamento dos veículos <Link href={'/'}>Voltar</Link></div>;
+  if (isLoading) return <Loading />;
+  if (!vehicles) return (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Erro ao carregar os veículos <Link href={'/'}>Voltar</Link></Box>);
+  if (error) return (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Erro ao carregar os veículos <Link href={'/'}>Voltar</Link></Box>);
 
   const selectedVehicleId = watch("vehicleId");
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
@@ -114,8 +114,6 @@ const InspectionForm: React.FC = () => {
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto" }}>
       {isSubmitting && <Loading />}
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h5" fontWeight={'bold'} color="primary" style={{textShadow: '1px 1px 2px blue'}} gutterBottom>CRIAR INSPEÇÃO</Typography>
-
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
           <Grid item xs={12} md={6}>

@@ -56,6 +56,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="mobile-web-app-capable" content="yes"/>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider theme={{}}>
