@@ -19,8 +19,6 @@ import { vehicle } from "@prisma/client";
 
 
 
-
-
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
