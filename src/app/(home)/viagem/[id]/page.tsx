@@ -114,7 +114,7 @@ const Page: React.FC = () => {
           router.replace('/');
         }, 2000);
       } else {
-        throw new Error(response.data.error || 'Erro ao salvar inspeção');
+        throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
       
     } catch (error) {
@@ -133,6 +133,12 @@ const Page: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (inspect?.endId) {
+      router.replace("/");
+    }
+  }, [inspect?.endId, router]);
 
   // Loading states
   if (isLoading) return <Loading />;
@@ -188,7 +194,7 @@ const Page: React.FC = () => {
         onClose={() => setSubmitSuccess(false)}
       >
         <Alert severity="success" onClose={() => setSubmitSuccess(false)}>
-          Inspeção salva com sucesso! Redirecionando...
+          Viagem salva com sucesso! Redirecionando...
         </Alert>
       </Snackbar>
       
@@ -211,7 +217,7 @@ const Page: React.FC = () => {
           <Grid item xs={12}>
             <ButtonLabel 
               disabled 
-              label="Tipo de Inspeção" 
+              label="VIAGEN" 
               name="status" 
               options={["INICIO", "FINAL"]} 
               control={control} 

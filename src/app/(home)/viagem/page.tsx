@@ -89,7 +89,7 @@ const InspectionForm: React.FC = () => {
           router.replace('/');
         }, 2000);
       } else {
-        throw new Error(response.data.error || 'Erro ao salvar inspeção');
+        throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
       
     } catch (error) {
@@ -122,7 +122,7 @@ const InspectionForm: React.FC = () => {
         onClose={() => setSubmitSuccess(false)}
       >
         <Alert severity="success" onClose={() => setSubmitSuccess(false)}>
-          Inspeção salva com sucesso! Redirecionando...
+          Viagem salva com sucesso! Redirecionando...
         </Alert>
       </Snackbar>
       
@@ -137,7 +137,7 @@ const InspectionForm: React.FC = () => {
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
 
           <Grid item xs={12}>
-            <ButtonLabel disabled label="Viagem" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+            <ButtonLabel disabled label="VIAGEM" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
 
           <Grid item xs={12} md={6}>
