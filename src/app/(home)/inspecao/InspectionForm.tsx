@@ -133,6 +133,7 @@ const InspectionForm: React.FC = () => {
                 setValue('fotoDocumento', base64 as string);
               } catch (error) {
                 console.error('Erro ao converter imagem:', error);
+                
                 alert('Erro ao processar a imagem, tente novamente.')
               }
             }} />
