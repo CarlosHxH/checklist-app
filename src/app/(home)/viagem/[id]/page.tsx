@@ -506,7 +506,7 @@ const Page: React.FC = () => {
               color="primary"
               size="large"
             >
-              {isSubmitting ? 'Salvando...' : 'Salvar Inspeção'}
+              {isSubmitting ? 'Salvando...' : 'SALVAR VIAGEM'}
             </Button>
           </Grid>
         </Grid>
