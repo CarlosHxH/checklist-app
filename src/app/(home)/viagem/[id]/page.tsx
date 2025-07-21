@@ -16,6 +16,7 @@ import { EixoSection } from "@/components/EixoSection";
 import { Inspect, vehicle } from "@prisma/client";
 import axios from "axios";
 
+
 interface InspectWithVehicle extends Inspect {
   vehicle: vehicle;
   vehicles?: vehicle[];
