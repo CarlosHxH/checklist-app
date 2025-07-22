@@ -28,20 +28,20 @@ const Page: React.FC = () => {
   const { id } = useParams();
   const [submitError, setSubmitError] = useState<string>("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
+
   const { data: inspect, error, isLoading } = useSWR<InspectWithVehicle>(
-    id ? `/api/v1/viagens/${id}` : null, 
+    id ? `/api/v1/viagens/${id}` : null,
     fetcher
   );
 
-  const { 
-    register, 
-    watch, 
-    control, 
-    setValue, 
-    handleSubmit, 
+  const {
+    register,
+    watch,
+    control,
+    setValue,
+    handleSubmit,
     reset,
-    formState: { errors, isSubmitting } 
+    formState: { errors, isSubmitting }
   } = useForm<InspectionFormData>({
     defaultValues: {
       userId: session?.user?.id || "",
@@ -55,10 +55,10 @@ const Page: React.FC = () => {
   const avariasCabine = watch("avariasCabine");
   const bauPossuiAvarias = watch("bauPossuiAvarias");
   const funcionamentoParteEletrica = watch("funcionamentoParteEletrica");
-  
+
   // Get selected vehicle from inspect data
   const selectedVehicle = inspect?.vehicle || null;
-  
+
   // Update form defaults when data loads
   useEffect(() => {
     if (inspect && session?.user?.id) {
@@ -79,10 +79,10 @@ const Page: React.FC = () => {
   const onSubmit = async (data: InspectionFormData) => {
     try {
       setSubmitError("");
-      
+
       // Create FormData for file upload
       const formData = new FormData();
-      
+
       // Append all form fields except photos
       Object.entries(data).forEach(([key, value]) => {
         if (key !== 'photos' && value !== undefined && value !== null) {
@@ -116,10 +116,10 @@ const Page: React.FC = () => {
       } else {
         throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
-      
+
     } catch (error) {
       console.error('Submission error:', error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.data?.error) {
           setSubmitError(error.response.data.error);
@@ -142,15 +142,15 @@ const Page: React.FC = () => {
 
   // Loading states
   if (isLoading) return <Loading />;
-  
+
   // Error state
   if (error || !inspect) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
+      <Box sx={{
+        display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         gap: 2
       }}>
@@ -167,11 +167,11 @@ const Page: React.FC = () => {
   // Session check
   if (!session?.user) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
       }}>
         <Typography variant="h6">
           Você precisa estar logado para acessar esta página
@@ -183,21 +183,21 @@ const Page: React.FC = () => {
   return (
     <Paper sx={{ p: 3, maxWidth: 800, margin: "auto", mb: 4 }}>
       <CustomAppBar showBackButton />
-      
+
       {/* Loading overlay */}
       {isSubmitting && <Loading />}
-      
+
       {/* Success/Error messages */}
-      <Snackbar 
-        open={submitSuccess} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={submitSuccess}
+        autoHideDuration={6000}
         onClose={() => setSubmitSuccess(false)}
       >
         <Alert severity="success" onClose={() => setSubmitSuccess(false)}>
           Viagem salva com sucesso! Redirecionando...
         </Alert>
       </Snackbar>
-      
+
       {submitError && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSubmitError("")}>
           {submitError}
@@ -206,25 +206,25 @@ const Page: React.FC = () => {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
-          
+
           {/* User Data Section */}
           <Grid item xs={12}>
             <Divider>
               <Typography variant="h6">Dados da Viagem</Typography>
             </Divider>
           </Grid>
-          
+
           <Grid item xs={12}>
-            <ButtonLabel 
-              disabled 
-              label="VIAGEN" 
-              name="status" 
-              options={["INICIO", "FINAL"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              disabled
+              label="VIAGEN"
+              name="status"
+              options={["INICIO", "FINAL"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
           </Grid>
-          
+
           {/* Vehicle Selection */}
           <Grid item xs={12} md={6}>
             <TextField
@@ -238,16 +238,16 @@ const Page: React.FC = () => {
               }}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <TextField 
-              type="number" 
-              {...register("kilometer", { 
+            <TextField
+              type="number"
+              {...register("kilometer", {
                 required: "Quilometragem é obrigatória",
                 min: { value: 0, message: "Quilometragem deve ser positiva" }
-              })} 
-              fullWidth 
-              size="small" 
+              })}
+              fullWidth
+              size="small"
               label="Quilometragem Atual"
               error={!!errors.kilometer}
               helperText={errors.kilometer?.message}
@@ -260,25 +260,25 @@ const Page: React.FC = () => {
               <Typography variant="h6">Documentos</Typography>
             </Divider>
           </Grid>
-          
+
           <Grid item xs={12} md={selectedVehicle?.tacografo ? 6 : 12}>
-            <ButtonLabel 
-              label="CRLV em dia?" 
-              name="crlvEmDia" 
-              options={["SIM", "NÃO"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="CRLV em dia?"
+              name="crlvEmDia"
+              options={["SIM", "NÃO"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
           </Grid>
-          
+
           {selectedVehicle?.tacografo && (
             <Grid item xs={12} md={6}>
-              <ButtonLabel 
-                label="Certificado Tacógrafo em Dia?" 
-                name="certificadoTacografoEmDia" 
-                options={["SIM", "NÃO"]} 
-                control={control} 
-                rules={{ required: "Este campo é obrigatório" }} 
+              <ButtonLabel
+                label="Certificado Tacógrafo em Dia?"
+                name="certificadoTacografoEmDia"
+                options={["SIM", "NÃO"]}
+                control={control}
+                rules={{ required: "Este campo é obrigatório" }}
               />
             </Grid>
           )}
@@ -289,24 +289,24 @@ const Page: React.FC = () => {
               <Typography variant="h6">Níveis</Typography>
             </Divider>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <ButtonLabel 
-              label="Nível de Água" 
-              name="nivelAgua" 
-              control={control} 
-              options={["NORMAL", "BAIXO", "CRITICO"]} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Nível de Água"
+              name="nivelAgua"
+              control={control}
+              options={["NORMAL", "BAIXO", "CRITICO"]}
+              rules={{ required: "Este campo é obrigatório" }}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <ButtonLabel 
-              label="Nível de Óleo" 
-              name="nivelOleo" 
-              options={["NORMAL", "BAIXO", "CRITICO"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Nível de Óleo"
+              name="nivelOleo"
+              options={["NORMAL", "BAIXO", "CRITICO"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
           </Grid>
 
@@ -318,49 +318,49 @@ const Page: React.FC = () => {
                   <Typography variant="h6">Situação dos Pneus</Typography>
                 </Divider>
               </Grid>
-              
-              <EixoSection 
-                eixoNumber={1} 
-                selectedVehicle={selectedVehicle} 
-                label="DIANTEIRA" 
-                fieldName="dianteira" 
-                control={control} 
-                register={register} 
-                watch={watch} 
-                setValue={setValue} 
+
+              <EixoSection
+                eixoNumber={1}
+                selectedVehicle={selectedVehicle}
+                label="DIANTEIRA"
+                fieldName="dianteira"
+                control={control}
+                register={register}
+                watch={watch}
+                setValue={setValue}
               />
-              
-              <EixoSection 
-                eixoNumber={2} 
-                selectedVehicle={selectedVehicle} 
-                label="TRAÇÃO" 
-                fieldName="tracao" 
-                control={control} 
-                register={register} 
-                watch={watch} 
-                setValue={setValue} 
+
+              <EixoSection
+                eixoNumber={2}
+                selectedVehicle={selectedVehicle}
+                label="TRAÇÃO"
+                fieldName="tracao"
+                control={control}
+                register={register}
+                watch={watch}
+                setValue={setValue}
               />
-              
-              <EixoSection 
-                eixoNumber={3} 
-                selectedVehicle={selectedVehicle} 
-                label="TRUCK" 
-                fieldName="truck" 
-                control={control} 
-                register={register} 
-                watch={watch} 
-                setValue={setValue} 
+
+              <EixoSection
+                eixoNumber={3}
+                selectedVehicle={selectedVehicle}
+                label="TRUCK"
+                fieldName="truck"
+                control={control}
+                register={register}
+                watch={watch}
+                setValue={setValue}
               />
-              
-              <EixoSection 
-                eixoNumber={4} 
-                selectedVehicle={selectedVehicle} 
-                label="QUARTO EIXO" 
-                fieldName="quartoEixo" 
-                control={control} 
-                register={register} 
-                watch={watch} 
-                setValue={setValue} 
+
+              <EixoSection
+                eixoNumber={4}
+                selectedVehicle={selectedVehicle}
+                label="QUARTO EIXO"
+                fieldName="quartoEixo"
+                control={control}
+                register={register}
+                watch={watch}
+                setValue={setValue}
               />
             </>
           )}
@@ -371,49 +371,49 @@ const Page: React.FC = () => {
               <Typography variant="h6">Avarias</Typography>
             </Divider>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <ButtonLabel 
-              label="Avarias na Cabine" 
-              name="avariasCabine" 
-              options={["NÃO", "SIM"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Avarias na Cabine"
+              name="avariasCabine"
+              options={["NÃO", "SIM"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
             {watch("avariasCabine") === "SIM" && (
-              <TextField 
-                {...register("descricaoAvariasCabine", { 
-                  required: "Descreva as avarias da cabine" 
-                })} 
-                label="Descreva as avarias" 
+              <TextField
+                {...register("descricaoAvariasCabine", {
+                  required: "Descreva as avarias da cabine"
+                })}
+                label="Descreva as avarias"
                 error={!!errors.descricaoAvariasCabine}
                 helperText={errors.descricaoAvariasCabine?.message}
-                multiline 
-                fullWidth 
+                multiline
+                fullWidth
                 rows={2}
                 sx={{ mt: 1 }}
               />
             )}
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <ButtonLabel 
-              label="Avarias no Baú" 
-              name="bauPossuiAvarias" 
-              options={["NÃO", "SIM"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Avarias no Baú"
+              name="bauPossuiAvarias"
+              options={["NÃO", "SIM"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
             {watch("bauPossuiAvarias") === "SIM" && (
-              <TextField 
-                {...register("descricaoAvariasBau", { 
-                  required: "Descreva as avarias do baú" 
-                })} 
-                label="Descreva as avarias" 
+              <TextField
+                {...register("descricaoAvariasBau", {
+                  required: "Descreva as avarias do baú"
+                })}
+                label="Descreva as avarias"
                 error={!!errors.descricaoAvariasBau}
                 helperText={errors.descricaoAvariasBau?.message}
-                multiline 
-                fullWidth 
+                multiline
+                fullWidth
                 rows={2}
                 sx={{ mt: 1 }}
               />
@@ -425,23 +425,23 @@ const Page: React.FC = () => {
             <Divider>
               <Typography variant="subtitle1">Sistema Elétrico</Typography>
             </Divider>
-            <ButtonLabel 
-              label="Funcionamento Parte Elétrica" 
-              name="funcionamentoParteEletrica" 
-              options={["BOM", "RUIM"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Funcionamento Parte Elétrica"
+              name="funcionamentoParteEletrica"
+              options={["BOM", "RUIM"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
-              <TextField 
-                {...register("descricaoParteEletrica", { 
-                  required: "Descreva o problema elétrico" 
-                })} 
-                label="Descreva o defeito" 
+              <TextField
+                {...register("descricaoParteEletrica", {
+                  required: "Descreva o problema elétrico"
+                })}
+                label="Descreva o defeito"
                 error={!!errors.descricaoParteEletrica}
                 helperText={errors.descricaoParteEletrica?.message}
-                multiline 
-                fullWidth 
+                multiline
+                fullWidth
                 rows={2}
                 sx={{ mt: 1 }}
               />
@@ -453,12 +453,12 @@ const Page: React.FC = () => {
             <Divider>
               <Typography variant="subtitle1">Extintor</Typography>
             </Divider>
-            <ButtonLabel 
-              label="Extintor em Dia?" 
-              name="extintor" 
-              options={["SIM", "NÃO"]} 
-              control={control} 
-              rules={{ required: "Este campo é obrigatório" }} 
+            <ButtonLabel
+              label="Extintor em Dia?"
+              name="extintor"
+              options={["SIM", "NÃO"]}
+              control={control}
+              rules={{ required: "Este campo é obrigatório" }}
             />
           </Grid>
 
@@ -497,12 +497,12 @@ const Page: React.FC = () => {
                 Existem campos obrigatórios não preenchidos!
               </Alert>
             )}
-            
-            <Button 
-              disabled={isSubmitting} 
-              fullWidth 
-              type="submit" 
-              variant="contained" 
+
+            <Button
+              disabled={isSubmitting}
+              fullWidth
+              type="submit"
+              variant="contained"
               color="primary"
               size="large"
             >
