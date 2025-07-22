@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getInspectionsReport12Months } from "./inspectionServiceYears.ts";
-//import { getInspectionsLast30Days, getInspectionStatusLast30Days } from "./inspectionService.js";
 
 const format = async (
   title: string,
@@ -13,14 +12,24 @@ const format = async (
     title,
     value: `${occurrences}`,
     interval: interval,
-    trend: { label }
+    trend: { label },
   };
 };
 
 async function processInspectionData() {
-  const users = await prisma.user.findMany({select: { id: true, name: true }});
-  const iniciada = await prisma.inspection.groupBy({ by: ["userId"], where: { status: "INICIO" }, _count: { id: true }});
-  const finalizada = await prisma.inspection.groupBy({ by: ["userId"], where: { status: "FINAL" }, _count: { id: true }});
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true },
+  });
+  const iniciada = await prisma.inspection.groupBy({
+    by: ["userId"],
+    where: { status: "INICIO" },
+    _count: { id: true },
+  });
+  const finalizada = await prisma.inspection.groupBy({
+    by: ["userId"],
+    where: { status: "FINAL" },
+    _count: { id: true },
+  });
 
   const result = iniciada.map((inicio) => {
     const userId = inicio.userId;
@@ -35,12 +44,20 @@ async function processInspectionData() {
   return result;
 }
 
-export async function getInspectionStatusLast30Days() {
-  const startIdCount = await prisma.inspect.count({ where: { startId: { not: null }}});
-  const endIdCount = await prisma.inspect.count({ where: { endId: { not: null }}});
-  const finishedPercentage = startIdCount > 0 ? (endIdCount / startIdCount) * 100 : 0;
+// Removed 'export' keyword - this function is only used within this route
+async function getStatusLast30Days() {
+  const startIdCount = await prisma.inspect.count({
+    where: { startId: { not: null } },
+  });
+  const endIdCount = await prisma.inspect.count({
+    where: { endId: { not: null } },
+  });
+  const finishedPercentage =
+    startIdCount > 0 ? (endIdCount / startIdCount) * 100 : 0;
   const unfinishedCount = startIdCount - endIdCount;
-  const unfinishedPercentage = startIdCount > 0 ? (unfinishedCount / startIdCount) * 100 : 0;
+  const unfinishedPercentage =
+    startIdCount > 0 ? (unfinishedCount / startIdCount) * 100 : 0;
+
   return {
     finished: endIdCount,
     unfinished: unfinishedCount,
@@ -49,7 +66,6 @@ export async function getInspectionStatusLast30Days() {
     unfinishedPercentage: unfinishedPercentage.toFixed(2),
   };
 }
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,17 +82,17 @@ export async function GET(request: NextRequest) {
     const viagen = await format("Viagens", "up", "Total", viagens);
     const user = await format("Usuários", "down", "Total", users);
     const vehicle = await format("Veiculos", "neutral", "Total", vehicles);
-
     const byUsers = await processInspectionData();
     const lastYears = await getInspectionsReport12Months();
-    const statusSummary = await getInspectionStatusLast30Days();
-    
+    const statusSummary = await getStatusLast30Days();
+    const inspectionsByDate = lastYears.chartData;
+
     return NextResponse.json(
       {
         cards: [user, viagen, inspection, vehicle],
         byUsers,
         lastYears,
-        inspectionsByDate: lastYears.chartData,
+        inspectionsByDate,
         statusSummary,
       },
       { status: 200 }
