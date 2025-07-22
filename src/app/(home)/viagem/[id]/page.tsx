@@ -105,14 +105,14 @@ const Page: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 10000, // 10 second timeout
       });
 
       if (response.data.success) {
         setSubmitSuccess(true);
         setTimeout(() => {
           router.replace('/');
-        }, 2000);
+        }, 300);
       } else {
         throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
