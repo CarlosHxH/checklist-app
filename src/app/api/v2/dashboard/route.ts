@@ -1,7 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getInspectionsReport12Months } from "./inspectionServiceYears.ts";
-
+/*
+  const iniciada = await prisma.inspection.groupBy({
+    by: ["userId"],
+    where: { status: "INICIO" },
+    _count: { id: true },
+  });
+  const finalizada = await prisma.inspection.groupBy({
+    by: ["userId"],
+    where: { status: "FINAL" },
+    _count: { id: true },
+  });
+*/
 const format = async (
   title: string,
   label: "up" | "down" | "neutral",
@@ -20,14 +31,14 @@ async function processInspectionData() {
   const users = await prisma.user.findMany({
     select: { id: true, name: true },
   });
-  const iniciada = await prisma.inspection.groupBy({
+  const iniciada = await prisma.inspect.groupBy({
     by: ["userId"],
-    where: { status: "INICIO" },
+    where: { startId: { not: null } },
     _count: { id: true },
   });
-  const finalizada = await prisma.inspection.groupBy({
+  const finalizada = await prisma.inspect.groupBy({
     by: ["userId"],
-    where: { status: "FINAL" },
+    where: { endId: { not: null } },
     _count: { id: true },
   });
 
