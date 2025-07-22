@@ -13,30 +13,18 @@ const format = async (
     title,
     value: `${occurrences}`,
     interval: interval,
-    trend: { label, value: "" },
-    data: [],
+    trend: { label }
   };
 };
 
 async function processInspectionData() {
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true },
-  });
-  const iniciada = await prisma.inspection.groupBy({
-    by: ["userId"],
-    where: { status: "INICIO" },
-    _count: { id: true },
-  });
-  const finalizada = await prisma.inspection.groupBy({
-    by: ["userId"],
-    where: { status: "FINAL" },
-    _count: { id: true },
-  });
+  const users = await prisma.user.findMany({select: { id: true, name: true }});
+  const iniciada = await prisma.inspection.groupBy({ by: ["userId"], where: { status: "INICIO" }, _count: { id: true }});
+  const finalizada = await prisma.inspection.groupBy({ by: ["userId"], where: { status: "FINAL" }, _count: { id: true }});
 
   const result = iniciada.map((inicio) => {
     const userId = inicio.userId;
     const final = finalizada.find((f) => f.userId === userId);
-
     const user = users.find((e) => e.id === userId);
     return {
       iniciada: inicio._count.id,
@@ -48,26 +36,11 @@ async function processInspectionData() {
 }
 
 export async function getInspectionStatusLast30Days() {
-  const startIdCount = await prisma.inspect.count({
-    where: {
-      startId: {
-        not: null,
-      },
-    },
-  });
-
-  const endIdCount = await prisma.inspect.count({
-    where: {
-      endId: {
-        not: null,
-      },
-    },
-  });
-
+  const startIdCount = await prisma.inspect.count({ where: { startId: { not: null }}});
+  const endIdCount = await prisma.inspect.count({ where: { endId: { not: null }}});
   const finishedPercentage = startIdCount > 0 ? (endIdCount / startIdCount) * 100 : 0;
-  const unfinishedCount = startIdCount - endIdCount; // Contagem de não finalizados
+  const unfinishedCount = startIdCount - endIdCount;
   const unfinishedPercentage = startIdCount > 0 ? (unfinishedCount / startIdCount) * 100 : 0;
-
   return {
     finished: endIdCount,
     unfinished: unfinishedCount,

@@ -53,15 +53,17 @@ export default function InspectionsDashboard({
             <Grid item xs={6} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
-                        <Typography variant="h5" gutterBottom>
-                            Total de Viagens
+                        <Typography variant="subtitle1" fontWeight={"bold"} gutterBottom>
+                            VIAGENS FINALIZADAS
                         </Typography>
                         <Typography variant="h3">
                             {data?.statusSummary?.finished}
                         </Typography>
-                        <Typography variant="subtitle1" color="textSecondary">
-                            FINALIZADAS
-                        </Typography>
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle1" fontSize={14} color="textSecondary">
+                                {data.statusSummary.finished || 0} {data.statusSummary.finished > 1?"FINALIZADAS":"FINALIZADA"}
+                            </Typography>
+                        </Box>
                     </CardContent>
                 </Card>
             </Grid>
@@ -69,15 +71,17 @@ export default function InspectionsDashboard({
             <Grid item xs={6} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
-                        <Typography variant="h5" gutterBottom>
-                            Total de Viagens
+                        <Typography variant="subtitle1" fontWeight={"bold"} gutterBottom>
+                            VIAGENS PENDENTES
                         </Typography>
                         <Typography variant="h3">
                             {data.statusSummary.unfinished}
                         </Typography>
-                        <Typography variant="subtitle1" color="textSecondary">
-                            PENDENTE
-                        </Typography>
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle1" fontSize={14} color="textSecondary">
+                                {data.statusSummary.unfinished || 0} {data.statusSummary.unfinished > 1?"PENDENTES":"PENDENTE"}
+                            </Typography>
+                        </Box>
                     </CardContent>
                 </Card>
             </Grid>
@@ -86,7 +90,7 @@ export default function InspectionsDashboard({
                 <Card style={{ height: 180 }}>
                     <CardContent>
                         <Typography variant="h5" gutterBottom>
-                            Taxa de Finalização
+                            FINALIZADAS
                         </Typography>
                         <Typography variant="h3">
                             {data.statusSummary.finishedPercentage || 0}%
@@ -117,7 +121,6 @@ export default function InspectionsDashboard({
                     </CardContent>
                 </Card>
             </Grid>
-
             <Grid item xs={12}>
                 <Card>
                     <CardContent>

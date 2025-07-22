@@ -19,7 +19,7 @@ export type MonthlyInspectionData = {
 export type InspectionTrend = {
   period: string;
   count: number;
-  growth: number; // Percentual de crescimento em relação ao período anterior
+  growth: number;
 };
 
 export type InspectionReport = {
