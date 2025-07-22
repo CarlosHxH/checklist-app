@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { createInspectionWithTransaction } from "./inspection.service";
 import { fileToBase64 } from "@/utils";
 import { setupFilePolyfill } from "@/utils/file-polyfill";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { prisma } from "@/lib/prisma";
 
 // Set up File polyfill before processing
 setupFilePolyfill();

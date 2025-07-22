@@ -125,8 +125,8 @@ model Inspect {
   vehicleId     String?
 
   // These relations need opposite relations in the inspection model
-  start         inspection?  @relation("StartInspection", fields: [startId], references: [id])
-  end           inspection?  @relation("EndInspection", fields: [endId], references: [id])
+  start         inspection?  @relation("StartInspection", fields: [startId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  end           inspection?  @relation("EndInspection", fields: [endId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   vehicle       vehicle? @relation("EndInspection", fields: [vehicleId], references: [id])
   user          user     @relation(fields: [userId], references: [id], map: "Inspect_userId_fkey")

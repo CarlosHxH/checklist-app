@@ -1,10 +1,8 @@
 'use client';
-
 import React from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box, Paper, Typography, Alert, Skeleton } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import useSWR from 'swr';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -76,6 +74,8 @@ function ChartSkeleton({ height }: { height: number }) {
     );
 }
 
+
+
 // Componente principal
 export default function InspectionBarChart({
     title = 'Inspeções por Mês',
@@ -102,9 +102,7 @@ export default function InspectionBarChart({
                 format(new Date(item.year, item.monthNumber - 1), 'MMM yy', { locale: ptBR })
             ),
             data: monthlyData.map(item => item.count),
-            averageData: showAverage
-                ? Array(monthlyData.length).fill(data.averagePerMonth)
-                : [],
+            averageData: [],
             monthlyData,
         };
     }, [data, period, showAverage]);
@@ -116,19 +114,10 @@ export default function InspectionBarChart({
         const series = [
             {
                 data: processedData.data,
-                label: 'Inspeções',
+                label: 'Viagens',
                 color: theme.palette.primary.main,
             }
         ];
-
-        if (showAverage && processedData.averageData.length > 0) {
-            series.push({
-                data: processedData.averageData,
-                label: 'Média',
-                color: theme.palette.secondary.main,
-            });
-        }
-
         return {
             series,
             xAxis: [

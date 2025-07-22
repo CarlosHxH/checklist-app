@@ -15,11 +15,12 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import useSWR from 'swr';
 import { fetcher, formatDate } from '@/lib/ultils';
 import Loading from '@/components/Loading';
-import { Visibility } from '@mui/icons-material';
+import { Delete, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import StatusUpdateModal from './Modal';
 import { useInspectionUpdate } from '@/hooks/useInspectionUpdate';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import { handlerDelete } from './handlerDelete';
 
 // Definição do tipo para os dados
 interface VehicleInspection {
@@ -113,7 +114,7 @@ interface FilterOptions {
 }
 
 // Componente de linha da tabela (Row)
-function Row(props: { row: VehicleInspection }) {
+function Row(props: { row: VehicleInspection, mutate: () => void }) {
   const router = useRouter();
   const { row } = props;
   const [open, setOpen] = useState(false);
@@ -165,12 +166,30 @@ function Row(props: { row: VehicleInspection }) {
     return startIssues || endIssues;
   };
 
-  // Diferença de quilometragem
-  const kmDiff = (row?.end?.kilometer) ? parseInt(row?.end?.kilometer) - parseInt(row?.start?.kilometer) : 0;
+  async function onHandlerDelete(id: string) {
+    if (window.confirm('Tem certeza que deseja excluir esta Viagem?')) {
+      const result = await handlerDelete(id);
+      if (result.success) {
+        alert('Viagem deletada com sucesso!');
+      } else {
+        if (result.error === 'NOT_FOUND') {
+          alert('Viagem não encontrada ou já deletada.');
+        } else if (result.error === 'CONFLICT') {
+          alert('Não é possível deletar esta viagem, pois existem dependências.');
+        } else if (result.error === 'NETWORK_ERROR') {
+          alert('Erro de conexão. Verifique sua internet e tente novamente.');
+        }
+        else {
+          alert(`Erro ao deletar viagem: ${result.message}`);
+        }
+      }
+      props.mutate();
+    }
+  }
 
   return (
     <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' }, backgroundColor: !!row?.endId ? 'inherit' : '#f5f5f5' }}>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -185,24 +204,20 @@ function Row(props: { row: VehicleInspection }) {
         </TableCell>
         <TableCell component="th" scope="row">
           <Typography variant='subtitle2'>{row.vehicle.plate}</Typography>
-          <Typography variant='caption'>{row.vehicle.model}</Typography>
+          <Typography variant='subtitle2'>{row.vehicle.model}</Typography>
         </TableCell>
         <TableCell align="right">
-          <Typography sx={{ display: 'block' }} variant='caption'>
-            {row?.start?.createdAt && 'Inicial: ' + formatDate(row.start.createdAt)}
+          <Typography>
+            {row?.start?.createdAt && formatDate(row.start.createdAt)}
           </Typography>
-          <Typography color={row?.end ? 'textPrimary' : 'warning'} sx={{ display: 'block' }} variant='caption'>
-            {row?.end?.createdAt ? 'Final: ' + formatDate(row?.end?.createdAt) : 'Em andamento'}
+        </TableCell>
+        <TableCell align="right">
+          <Typography color={row?.end ? 'textPrimary' : 'warning'}>
+            {row?.end?.createdAt ? formatDate(row?.end?.createdAt) : 'Em andamento'}
           </Typography>
         </TableCell>
         <TableCell align="right">{row?.start?.kilometer || 0} km</TableCell>
         <TableCell align="right">{row?.end?.kilometer || 0} km</TableCell>
-        <TableCell align="right">
-          <Chip
-            label={kmDiff ? `+${kmDiff} km` : 'Em andamento'}
-            color={kmDiff > 0 ? "success" : "warning"} size="small" />
-        </TableCell>
-
         <TableCell align="right">
           <Box>
             <Tooltip title="Visualizar">
@@ -210,23 +225,25 @@ function Row(props: { row: VehicleInspection }) {
                 <Visibility />
               </IconButton>
             </Tooltip>
-            
             {hasIssues() && (
               <Tooltip title="Corrigir Problemas/Avarias">
-                <IconButton 
-                  size="small" 
-                  onClick={() => setModalOpen(true)} 
+                <IconButton
+                  size="small"
+                  onClick={() => setModalOpen(true)}
                   color="warning"
                 >
                   <ReportProblemIcon />
                 </IconButton>
               </Tooltip>
             )}
+            <Tooltip title="Atualizar Status">
+              <IconButton size="small" color='error' onClick={() => onHandlerDelete(row.id)}>
+                <Delete />
+              </IconButton>
+            </Tooltip>
           </Box>
         </TableCell>
-
       </TableRow>
-
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -234,7 +251,6 @@ function Row(props: { row: VehicleInspection }) {
               <Typography variant="h6" gutterBottom component="div">
                 Detalhes da Viagem
               </Typography>
-
               <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: { xs: 'column', md: 'row' } }}>
                 <Box>
                   <Typography variant="subtitle1" gutterBottom>
@@ -293,7 +309,6 @@ function Row(props: { row: VehicleInspection }) {
                         <TableCell>Extintor</TableCell>
                         <TableCell>{row?.start?.extintor || ''}</TableCell>
                       </TableRow>
-
                     </TableBody>
                   </Table>
                 </Box>
@@ -382,7 +397,7 @@ function Row(props: { row: VehicleInspection }) {
 
 // Componente principal da tabela
 export default function CollapsibleTable() {
-  const { data: allRows, isLoading } = useSWR<VehicleInspection[]>('/api/v1/dashboard/viagens', fetcher);
+  const { data: allRows, isLoading, mutate } = useSWR<VehicleInspection[]>('/api/v1/dashboard/viagens', fetcher);
   // Estados para paginação, busca e filtros
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);
@@ -505,7 +520,7 @@ export default function CollapsibleTable() {
               label="Buscar"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Pesquisar por responsável, KM..."
+              placeholder="Pesquisar por responsável, Veiculo..."
               variant="outlined"
               InputProps={{
                 startAdornment: (
@@ -516,7 +531,6 @@ export default function CollapsibleTable() {
               }}
             />
           </Grid>
-
           <Grid item xs={12} md={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <FormControl sx={{ minWidth: 140 }}>
@@ -567,7 +581,7 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
 
-              <FormControl sx={{ minWidth: 60 }}>
+              <FormControl sx={{ minWidth: 100 }}>
                 <InputLabel id="status-filter-label">Status</InputLabel>
                 <Select
                   labelId="status-filter-label"
@@ -586,7 +600,6 @@ export default function CollapsibleTable() {
                   <MenuItem value="problemas">Com problemas</MenuItem>
                 </Select>
               </FormControl>
-
               <Button fullWidth sx={{ minWidth: 90 }} variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
                 Exportar
               </Button>
@@ -594,7 +607,6 @@ export default function CollapsibleTable() {
           </Grid>
         </Grid>
       </Toolbar>
-
       {/* Tabela */}
       <TableContainer>
         <Table aria-label="collapsible table">
@@ -603,17 +615,17 @@ export default function CollapsibleTable() {
               <TableCell />
               <TableCell>Responsável</TableCell>
               <TableCell>Veiculo</TableCell>
-              <TableCell align="right">Data</TableCell>
+              <TableCell align="right">Data INICIO</TableCell>
+              <TableCell align="right">Data FINAL</TableCell>
               <TableCell align="right">KM Inicial</TableCell>
               <TableCell align="right">KM Final</TableCell>
-              <TableCell align="right">Diferença</TableCell>
               <TableCell align="right">Opções</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedRows.length > 0 ? (
               paginatedRows.map((row) => (
-                <Row key={row.id} row={row} />
+                <Row key={row.id} row={row} mutate={mutate}/>
               ))
             ) : (
               <TableRow>
@@ -625,7 +637,6 @@ export default function CollapsibleTable() {
           </TableBody>
         </Table>
       </TableContainer>
-
       {/* Paginação */}
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
         <Pagination
@@ -636,9 +647,7 @@ export default function CollapsibleTable() {
           showFirstButton
           showLastButton
         />
-
       </Box>
-
       {/* Indicador de resultados */}
       <Box sx={{ p: 2, borderTop: '1px solid rgba(224, 224, 224, 1)' }}>
         <Typography variant="body2" color="text.secondary">
