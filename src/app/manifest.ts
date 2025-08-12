@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
- 
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Checklist 5S',
@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'fullscreen',
     background_color: '#ffffff',
-    theme_color: '#5500f6',
+    theme_color: '#2788e4ff',
     icons: [
       {
         src: '/favicon/icon.png',

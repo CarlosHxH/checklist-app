@@ -4,7 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { generateToken } from "./auth/jwt";
 import { hoje } from "./ultils";
 
 interface CustomUser extends User {
@@ -41,9 +40,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.username || !credentials?.password) {
-            return null;
-          }
+          if (!credentials?.username || !credentials?.password) return null;
           // Buscar usuário
           const user = await prisma.user.findUnique({
             where: { username: credentials.username }
@@ -51,12 +48,12 @@ export const authOptions: NextAuthOptions = {
 
           console.log("Resultado da busca:",user ? `${hoje} Usuário encontrado: ${user.email}` : `${hoje} Usuário: ${credentials?.username}, não encontrado`);
 
-          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas ou usuário não ativo! code: 0x02";
+          if (!user || !user.password || !user?.isActive) throw "Credenciais inválidas!";
 
           // Verificar senha
           const isPasswordValid = await compare(credentials.password, user.password);
           
-          if (!isPasswordValid) throw "Credenciais inválidas ou usuário não ativo! code: 0x04";
+          if (!isPasswordValid) throw "Credenciais inválidas!";
           // Retornar objeto do usuário (importante!)
           return {
             id: user.id,
