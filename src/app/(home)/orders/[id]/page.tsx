@@ -1,13 +1,13 @@
 'use client';
-import { useParams } from 'next/navigation';
 import React from 'react';
+import { useParams } from 'next/navigation';
 import { Box, Typography, Paper, Divider, Chip, Stack } from '@mui/material';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import { getOrders, OrderWithRelations } from './action';
 import Loading from '@/components/Loading';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
 import CustomFab from '@/components/_ui/CustomFab';
-import formatDate from '../formatDate';
+import formatDate from '@/lib/formatDate';
 
 export default function OrderPage() {
   const params = useParams();

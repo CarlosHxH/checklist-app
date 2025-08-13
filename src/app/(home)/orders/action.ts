@@ -11,6 +11,9 @@ export type OrderWithRelations = Order & {
         plate: string;
         model: string | null;
     };
+    maintenanceCenter: {
+        name: string;
+    }
 };
 
 export const getOrders = async (id: string): Promise<OrderWithRelations[]> => {

@@ -7,7 +7,7 @@ import { OrderWithRelations } from './action';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import IconButton from '@mui/material/IconButton';
-import formatDate from './formatDate';
+import formatDate from '@/lib/formatDate';
 import { CheckCircle } from '@mui/icons-material';
 
 // Expanda o ícone de expansão para girar quando expandido

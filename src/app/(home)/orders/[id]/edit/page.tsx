@@ -6,13 +6,13 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { useEffect } from 'react';
-import GroupRadio from '../../create/GroupRadio';
 import FreeSoloCreateOption from '../../create/FreeSoloCreateOption';
 import { useParams, useRouter } from 'next/navigation';
 import { EditType, getOrders } from './action';
 import Loading from '@/components/Loading';
-import { formattedDate } from '../../formatDate';
+import { formattedDate } from '@/lib/formatDate';
 import axios from 'axios';
+import GroupRadio from '@/components/_ui/GroupRadio';
 
 interface VehicleLabel {
   name: string;
@@ -39,7 +39,7 @@ export default function OrderEditPage() {
   const router = useRouter();
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { data, isLoading: orderLoading, error: orderError } = useSWR<EditType>(id, getOrders);
+  const { data, isLoading: orderLoading, error: errors } = useSWR<EditType>(id, getOrders);
   const { data: session } = useSession();
 
   const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>();
@@ -66,7 +66,6 @@ export default function OrderEditPage() {
   }, [session, data, reset, setValue]);
 
   const onSubmit = (formData: FormData) => {
-    console.log('Form submitted:', formData);
     axios.put(`/api/v1/orders/${id}`, formData)
       .then(response => {
         console.log(response.data);
@@ -78,9 +77,12 @@ export default function OrderEditPage() {
   };
 
   if (orderLoading) return <Loading />;
-  if (orderError) return <Typography color="error">Failed to load order data</Typography>;
+  if (errors) return <Typography color="error">Failed to load order data</Typography>;
   if (!data || !order || !centers) return <Typography>Order not found</Typography>;
-
+  const maintenanceOptions = [
+    { value: 'PREVENTIVA', label: 'PREVENTIVA' },
+    { value: 'CORRETIVA', label: 'CORRETIVA' }
+  ];
   return (
     <Container>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -95,8 +97,8 @@ export default function OrderEditPage() {
 
               <Grid item xs={12}>
                 <Box display={"flex"} alignItems={"center"}>
-                    <Typography variant='inherit' fontSize={18}>Ordem de Serviço </Typography>
-                    <Typography ml={1} fontSize={22} variant='h6' fontWeight={600}>#{String(order.id).padStart(5, '0')}</Typography>
+                  <Typography variant='inherit' fontSize={18}>Ordem de Serviço </Typography>
+                  <Typography ml={1} fontSize={22} variant='h6' fontWeight={600}>#{String(order.id).padStart(5, '0')}</Typography>
                 </Box>
               </Grid>
 
@@ -134,7 +136,14 @@ export default function OrderEditPage() {
               </Grid>
 
               <Grid item xs={12}>
-                <GroupRadio control={control} name="maintenanceType" label="TIPO DE MANUTENÇÃO" />
+                <GroupRadio
+                  control={control}
+                  name="maintenanceType"
+                  label="Tipo de Manutenção"
+                  options={maintenanceOptions}
+                  error={errors?.maintenanceType}
+                  required
+                />
               </Grid>
 
               <Grid item xs={12}>

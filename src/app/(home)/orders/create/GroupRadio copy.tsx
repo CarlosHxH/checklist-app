@@ -1,11 +1,5 @@
-import {
-  ToggleButtonGroup,
-  ToggleButton,
-  Typography,
-  Stack,
-  useTheme
-} from '@mui/material';
 import { Controller } from 'react-hook-form';
+import { ToggleButtonGroup, ToggleButton, Typography, Stack, useTheme } from '@mui/material';
 
 interface MaintenanceTypeToggleProps {
   control: any;
