@@ -63,7 +63,7 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
   });
 
   // Gera dados mensais
-  const monthlyData = generateMonthlyData(inspections, startDate);
+  const monthlyData = generateMonthlyData(inspections);
   
   // Gera dados para gráfico (diários dos últimos 30 dias)
   const chartData = await generateDailyChartData();
@@ -93,9 +93,8 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
 /**
  * Gera dados mensais agrupados
  */
-function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspectionData[] {
+function generateMonthlyData(inspections: any[]): MonthlyInspectionData[] {
   const monthlyData: MonthlyInspectionData[] = [];
-  
   // Cria array com todos os 12 meses
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(new Date(), 11 - i);
@@ -296,7 +295,7 @@ export async function getInspectionsLast30Days(): Promise<InspectionChartData[]>
  * Retorna contagem de inspeções finalizadas vs não-finalizadas nos últimos 30 dias
  */
 export async function getInspectionStatusLast360Days() {
-  const thirtyDaysAgo = subDays(new Date(), 360);
+  //const thirtyDaysAgo = subDays(new Date(), 360);
 
   const finishedCount = await prisma.inspection.count({
     where: {

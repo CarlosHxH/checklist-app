@@ -133,68 +133,68 @@ const InspectionForm: React.FC = () => {
       )}
       
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
+        <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(12, 1fr)' }}>
+          <Box sx={{ gridColumn: 'span 12' }}><Divider>Dados do usuário</Divider></Box>
 
-          <Grid item xs={12}>
+          <Box sx={{ gridColumn: 'span 12' }}>
             <ButtonLabel disabled label="VIAGEM" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={6}>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={6}>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
-          </Grid>
-          <Grid item xs={12}><Divider>Documentos</Divider></Grid>
-          <Grid item xs={12} md={selectedVehicle?.tacografo ? 6 : 12}>
+          </Box>
+          <Box sx={{ gridColumn: 'span 12' }}><Divider>Documentos</Divider></Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: selectedVehicle?.tacografo ? 'span 6' : 'span 12' } }}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
-          {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
+          </Box>
+          {selectedVehicle?.tacografo && <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>}
-          <Grid item xs={12}><Divider>Níveis</Divider></Grid>
-          <Grid item xs={12} md={6}>
+          </Box>}
+          <Box sx={{ gridColumn: 'span 12' }}><Divider>Níveis</Divider></Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Nível Óleo" name="nivelOleo" options={["NORMAL", "BAIXO", "CRITICO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
+          </Box>
           {selectedVehicle && (
             <>
-              <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
+              <Box sx={{ gridColumn: 'span 12' }}><Divider>Situação dos Pneus</Divider></Box>
               <EixoSection eixoNumber={1} selectedVehicle={selectedVehicle} label="DIANTEIRA" fieldName="dianteira" control={control} register={register} watch={watch} setValue={setValue} />
               <EixoSection eixoNumber={2} selectedVehicle={selectedVehicle} label="TRAÇÃO" fieldName="tracao" control={control} register={register} watch={watch} setValue={setValue} />
               <EixoSection eixoNumber={3} selectedVehicle={selectedVehicle} label="TRUCK" fieldName="truck" control={control} register={register} watch={watch} setValue={setValue} />
               <EixoSection eixoNumber={4} selectedVehicle={selectedVehicle} label="QUARTO EIXO" fieldName="quartoEixo" control={control} register={register} watch={watch} setValue={setValue} />
             </>
           )}
-          <Grid item xs={12}><Divider>Avarias</Divider></Grid>
-          <Grid item xs={12} md={6}>
+          <Box sx={{ gridColumn: 'span 12' }}><Divider>Avarias</Divider></Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
               <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
               <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
               <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <Divider>Extintor</Divider>
             <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
-          </Grid>
-          <Grid item xs={12} md={12}>
+          </Box>
+          <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 12' } }}>
             <Divider>Foto da frente do veiculo</Divider>
             <Controller
               name="photos"
@@ -217,16 +217,16 @@ const InspectionForm: React.FC = () => {
                 />
               )}
             />
-          </Grid>
-          <Grid item xs={12}>
+          </Box>
+          <Box sx={{ gridColumn: 'span 12' }}>
             {Object.keys(errors).length > 0 && (
               <Typography color="error" align="center" gutterBottom>
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}
               </Typography>
             )}
             <Button disabled={isSubmitting || Object.keys(errors).length > 0} fullWidth type="submit" variant="contained" color="primary">Salvar</Button>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </form>
     </Paper>
   );

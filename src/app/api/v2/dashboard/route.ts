@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getInspectionsReport12Months } from "./inspectionServiceYears.ts";
 /*
   const iniciada = await prisma.inspection.groupBy({
@@ -78,7 +78,7 @@ async function getStatusLast30Days() {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const inspections = await prisma.inspection.count({
       where: { status: "INSPECAO" },

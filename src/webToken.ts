@@ -10,7 +10,7 @@ export interface CustomJWT {
 	};
 	customClaims?: {
 		permissions?: string[];
-		metadata?: Record<string, any>;
+		metadata?: Record<string, undefined>;
 	};
 	iat?: number;
 	exp?: number;
@@ -36,13 +36,26 @@ export async function decoded(token: string): Promise<CustomJWT> {
 		const { payload } = await jwtVerify(token, getSecretKey());
 		return payload as CustomJWT;
 	} catch (error) {
+		console.log(error);
 		throw new Error('Invalid token');
 	}
 }
-
+interface EncodeType {
+	user: {
+		id: string;
+		username: string;
+		role: string;
+	}
+}
 // Create and sign new JWT token
-export async function encoded(payload: CustomJWT): Promise<string> {
-	return await new SignJWT(payload as any)
+export async function encoded(payload: EncodeType): Promise<string> {
+	const jwtPayload = {
+		...payload,
+		user: {
+			...payload.user
+		}
+	};
+	return await new SignJWT(jwtPayload)
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
 		.setExpirationTime('1d')

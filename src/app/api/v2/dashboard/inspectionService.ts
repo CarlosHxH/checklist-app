@@ -75,7 +75,7 @@ export async function getInspectionStatusLast30Days() {
 
   const finishedPercentage = total > 0 ? (finishedCount / total) * 100 : 0;
   const unfinishedPercentage = total > 0 ? (unfinishedCount / total) * 100 : 0;
-  Math.round((unfinishedCount / total) * 100) || 0;
+  //Math.round((unfinishedCount / total) * 100) || 0;
   return {
     finished: finishedCount,
     unfinished: unfinishedCount,
