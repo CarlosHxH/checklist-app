@@ -73,6 +73,7 @@ const ViewModal: React.FC<{
           <Grid size={{ xs: 7, sm: 4 }}>
             <Typography sx={{ mt: 2 }}>Tipo: {data.maintenanceType || 'N/A'}</Typography>
           </Grid>
+<<<<<<< HEAD
           <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Status: {data.isCompleted ? 'Finalizado' : 'Em andamento'}</Typography>
           </Grid>
@@ -84,17 +85,38 @@ const ViewModal: React.FC<{
             <Typography sx={{ mt: 2 }}>Veículo: {vehicle}</Typography>
           </Grid>
           <Grid item xs={12} sm={4}>
+=======
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Typography sx={{ mt: 2 }}>Status: {data.isCompleted ? 'Finalizado' : 'Em andamento'}</Typography>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Typography sx={{ mt: 2 }}>Usuário: {data.user?.name || 'N/A'} </Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Typography sx={{ mt: 2 }}>Veículo: {vehicle}</Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+>>>>>>> 1b903dacc644c9bbd407e1518f92f0c4aa3341d9
             <Typography>Data de Entrada: {data.entryDate ? formatDate(data.entryDate) : 'N/A'}
             </Typography>
             <Typography>Data de Conclusão: {data.completionDate ? formatDate(data.completionDate) : 'Em andamento'}
             </Typography>
           </Grid>
 
+<<<<<<< HEAD
           <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Centro de manutenção: {data?.maintenanceCenter?.name || "N/A"}</Typography>
           </Grid>
 
           <Grid item xs={12} sm={4}>
+=======
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Typography sx={{ mt: 2 }}>Centro de manutenção: {data?.maintenanceCenter?.name || "N/A"}</Typography>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 4 }}>
+>>>>>>> 1b903dacc644c9bbd407e1518f92f0c4aa3341d9
             <Typography sx={{ mt: 2 }}>Oficina: {data?.destination || "N/A"}</Typography>
           </Grid>
 
