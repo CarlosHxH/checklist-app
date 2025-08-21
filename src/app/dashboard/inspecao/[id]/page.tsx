@@ -94,7 +94,7 @@ const InspectionViewPage: React.FC = () => {
   }
 
   const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-    <Grid item xs={12} md={6}>
+    <Grid item xs={12} sm={6}>
       <Box display="flex" alignItems="center" gap={1}>
         <Typography variant="subtitle1" fontWeight="bold">{label}:</Typography>
         <StatusChip value={value} />
@@ -162,10 +162,10 @@ const InspectionViewPage: React.FC = () => {
         <InfoRow label="Extintor em dia" value={inspection.extintor} />
 
         <Grid item xs={12}><Divider>Fotos</Divider></Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} sm={6}>
           <Photo type="documento" title="Fotos do Documento" />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} sm={6}>
           <Photo type="tacografo" title="Fotos do Tacógrafo" />
         </Grid>
         <Grid item xs={12}>

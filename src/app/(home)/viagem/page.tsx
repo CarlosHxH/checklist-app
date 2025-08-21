@@ -17,7 +17,6 @@ import { EixoSection } from "@/components/EixoSection";
 import axios from "axios";
 import { vehicle } from "@prisma/client";
 
-
 const InspectionForm: React.FC = () => {
   const router = useRouter();
   const { data: session } = useSession();
@@ -26,7 +25,7 @@ const InspectionForm: React.FC = () => {
   const [submitError, setSubmitError] = useState<string>("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
   
-  const { register, watch, control, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
+  const { register, watch, control, setValue, handleSubmit, formState: { errors, isSubmitting } } = useForm<InspectionFormData>({
     defaultValues: { 
       userId: session?.user?.id, 
       status: "INICIO", 
@@ -67,11 +66,12 @@ const InspectionForm: React.FC = () => {
 
       // Append photos if they exist
       if (data.photos && data.photos.length > 0) {
-        data.photos.forEach((photoData: any, index: number) => {
-          if (photoData.photo instanceof File) {
-            formData.append(`photos`, photoData.photo);
+        data.photos.forEach((photoData: { photo: string; type?: string | null; description?: string | null }, i: number) => {
+          if (typeof photoData.photo === 'string') {
+            const photoFile = new File([photoData.photo], `photo_${i}.jpg`, { type: 'image/jpeg' });
+            formData.append(`photos`, photoFile);
             formData.append(`photoTypes`, photoData.type || 'vehicle');
-            formData.append(`photoDescriptions`, photoData.description || `Photo ${index + 1}`);
+            formData.append(`photoDescriptions`, photoData.description || `Photo ${i + 1}`);
           }
         });
       }
@@ -140,16 +140,25 @@ const InspectionForm: React.FC = () => {
             <ButtonLabel disabled label="VIAGEM" name="status" options={["INICIO", "FINAL"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Box>
 
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
           </Box>
 
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
           </Box>
           <Box sx={{ gridColumn: 'span 12' }}><Divider>Documentos</Divider></Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: selectedVehicle?.tacografo ? 'span 6' : 'span 12' } }}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           </Box>
           {selectedVehicle?.tacografo && <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
@@ -159,6 +168,17 @@ const InspectionForm: React.FC = () => {
             <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }} />
           </Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          </Grid>
+          {selectedVehicle?.tacografo && <Grid item xs={12} sm={6}>
+            <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+          </Grid>}
+          <Grid item xs={12}><Divider>Níveis</Divider></Grid>
+          <Grid item xs={12} sm={6}>
+            <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <ButtonLabel label="Nível Óleo" name="nivelOleo" options={["NORMAL", "BAIXO", "CRITICO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Box>
           {selectedVehicle && (
@@ -170,31 +190,55 @@ const InspectionForm: React.FC = () => {
               <EixoSection eixoNumber={4} selectedVehicle={selectedVehicle} label="QUARTO EIXO" fieldName="quartoEixo" control={control} register={register} watch={watch} setValue={setValue} />
             </>
           )}
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           <Box sx={{ gridColumn: 'span 12' }}><Divider>Avarias</Divider></Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          <Grid item xs={12}><Divider>Avarias</Divider></Grid>
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
               <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           </Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          </Grid>
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
               <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           </Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
+=======
+          </Grid>
+          <Grid item xs={12} sm={6}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
               <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
+<<<<<<< HEAD:src/app/(home)/viagem/create/page.tsx
           </Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <Divider>Extintor</Divider>
             <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Box>
           <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 12' } }}>
+=======
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Divider>Extintor</Divider>
+            <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
+          </Grid>
+          <Grid item xs={12}>
+>>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2:src/app/(home)/viagem/page.tsx
             <Divider>Foto da frente do veiculo</Divider>
             <Controller
               name="photos"

@@ -1,10 +1,8 @@
 import { createTheme } from "@mui/material";
-
 export const theme = createTheme({
-  cssVariables: {
-    colorSchemeSelector: 'data-toolpad-color-scheme',
+  palette: {
+    mode: 'light',
   },
-  colorSchemes: { light: true, dark: true },
   breakpoints: {
     values: {
       xs: 0,

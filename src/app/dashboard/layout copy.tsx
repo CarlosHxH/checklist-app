@@ -1,6 +1,6 @@
 "use client";
 import * as React from 'react';
-import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Avatar } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Avatar, ThemeProvider } from '@mui/material';
 import { signOut, useSession } from "next-auth/react";
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
@@ -66,7 +66,7 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
   );
 
   return (
-    <MuiProvider>
+    <ThemeProvider theme={{}}>
       <Box sx={{ display: 'flex' }}>
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar>

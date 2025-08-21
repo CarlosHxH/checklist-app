@@ -116,14 +116,14 @@ const InspectionForm: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid item xs={12}><Divider>Dados do usuário</Divider></Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <ComboBox name="vehicleId" label="Selecione um veículo" options={vehicles.map((v) => ({ label: `${v.plate} - ${v.model}`, value: v.id }))} control={control} rules={{ required: 'Veículo é obrigatório' }} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <TextField type="number" {...register("kilometer", { required: "Este campo é obrigatório" })} fullWidth size="small" label="Quilometragem:" />
           </Grid>
           <Grid item xs={12}><Divider>Documentos</Divider></Grid>
-          <Grid item xs={12}  md={selectedVehicle?.tacografo?6:12}>
+          <Grid item xs={12} sm={selectedVehicle?.tacografo?6:12}>
             <ButtonLabel label="CRLV em dia?" name="crlvEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO DOCUMENTO'} onChange={async (photos: File[]) => {
               const [file] = photos;
@@ -138,7 +138,7 @@ const InspectionForm: React.FC = () => {
               }
             }} />
           </Grid>
-          {selectedVehicle?.tacografo && <Grid item xs={12} md={6}>
+          {selectedVehicle?.tacografo && <Grid item xs={12} sm={6}>
             <ButtonLabel label="Cert. Tacografo em Dia?" name="certificadoTacografoEmDia" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'FOTO DO TACOGRAFO'} onChange={async (photos: File[]) => {
               const [file] = photos;
@@ -153,10 +153,10 @@ const InspectionForm: React.FC = () => {
             }} />
           </Grid>}
           <Grid item xs={12}><Divider>Níveis</Divider></Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <ButtonLabel label="Nível Água" name="nivelAgua" control={control} options={["NORMAL", "BAIXO", "CRITICO"]} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <ButtonLabel label="Nível Óleo" name="nivelOleo" options={["NORMAL", "BAIXO", "CRITICO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
           </Grid>
           {selectedVehicle && (
@@ -169,26 +169,26 @@ const InspectionForm: React.FC = () => {
             </>
           )}
           <Grid item xs={12}><Divider>Avarias</Divider></Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <ButtonLabel label="Avarias na Cabine" name="avariasCabine" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("avariasCabine") === "SIM" && (
               <TextField {...register("descricaoAvariasCabine", { required: "Este campo é obrigatório" })} label="Qual avaria?" error={!!errors.descricaoAvariasCabine} multiline fullWidth rows={2} />
             )}
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <ButtonLabel label="Avarias no Baú" name="bauPossuiAvarias" options={["NÃO", "SIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("bauPossuiAvarias") === "SIM" && (
               <TextField {...register("descricaoAvariasBau", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoAvariasBau} multiline fullWidth rows={2} />
             )}
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <Divider>Elétrica</Divider>
             <ButtonLabel label="Parte Elétrica" name="funcionamentoParteEletrica" options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             {watch("funcionamentoParteEletrica") === "RUIM" && (
               <TextField {...register("descricaoParteEletrica", { required: "Este campo é obrigatório" })} label="Qual defeito?" error={!!errors.descricaoParteEletrica} multiline fullWidth rows={2} />
             )}
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} sm={6}>
             <Divider>EXTINTOR</Divider>
             <ButtonLabel label="EXTINTOR EM DIAS?" name="extintor" options={["SIM", "NÃO"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
             <PhotoUploader name={'veiculo'} label={'Foto do EXTINTOR'} onChange={async (photos: File[]) => {
@@ -203,7 +203,7 @@ const InspectionForm: React.FC = () => {
               }
             }} />
           </Grid>
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12}>
             <Divider>FOTO DO VEICULO</Divider>
             <Typography color="error">Minimo 4 fotos</Typography>
             <PhotoUploader name={'veiculo'} multiple label={'Foto do veiculo'} isRemoved onChange={async (photos: File[]) => {
@@ -214,7 +214,7 @@ const InspectionForm: React.FC = () => {
                 setValue('photos', photosBase64);
             }}/>
           </Grid>
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12}>
             {Object.keys(errors).length > 0 && (
               <Typography color="error" align="center" gutterBottom>
                 {errors.root?.message || "Existem campos obrigatórios não preenchidos!"}

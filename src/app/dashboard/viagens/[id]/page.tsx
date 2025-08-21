@@ -137,7 +137,7 @@ const VehicleInspectionDetail: React.FC = () => {
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <Box display="flex" alignItems="center" mb={2}>
                 <DirectionsCarIcon sx={{ mr: 1 }} />
                 <Typography variant="h6">
@@ -154,7 +154,7 @@ const VehicleInspectionDetail: React.FC = () => {
                 <strong>Tacógrafo:</strong> {vehicle.tacografo ? 'Sim' : 'Não'}
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <Box display="flex" alignItems="center" mb={2}>
                 <PersonIcon sx={{ mr: 1 }} />
                 <Typography variant="h6">Inspetor: {user.name}</Typography>
@@ -172,7 +172,7 @@ const VehicleInspectionDetail: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Seção de início da inspeção */}
-        {start && <Grid item xs={12} md={6}>
+        {start && <Grid item xs={12} sm={6}>
           <Paper elevation={3} sx={{ p: 2 }}>
             <Box display="flex" alignItems="center" mb={2}>
               <ScheduleIcon sx={{ mr: 1 }} />
@@ -379,7 +379,7 @@ const VehicleInspectionDetail: React.FC = () => {
         </Grid>}
 
         {/* Seção de fim da inspeção */}
-        {end && <Grid item xs={12} md={6}>
+        {end && <Grid item xs={12} sm={6}>
           <Paper elevation={3} sx={{ p: 2 }}>
             <Box display="flex" alignItems="center" mb={2}>
               <ScheduleIcon sx={{ mr: 1 }} />

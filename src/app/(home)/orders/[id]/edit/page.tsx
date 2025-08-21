@@ -14,16 +14,6 @@ import { formattedDate } from '@/lib/formatDate';
 import axios from 'axios';
 import GroupRadio from '@/components/_ui/GroupRadio';
 
-interface VehicleLabel {
-  name: string;
-  id: string;
-}
-
-interface ApiData {
-  vehicles: VehicleLabel[];
-  centers: VehicleLabel[];
-}
-
 interface FormData {
   userId: string;
   vehicleId: string;
@@ -63,7 +53,7 @@ export default function OrderEditPage() {
     if (session?.user?.id) {
       setValue('userId', session.user.id);
     }
-  }, [session, data, reset, setValue]);
+  }, [order, session, data, reset, setValue]);
 
   const onSubmit = (formData: FormData) => {
     axios.put(`/api/v1/orders/${id}`, formData)
@@ -120,11 +110,11 @@ export default function OrderEditPage() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={12}>
+              <Grid item xs={12}>
                 <TextField fullWidth {...register('destination', { required: 'Destination is required' })} sx={{ width: { xs: '100%', sm: '365px' } }} label="DESTINO" />
               </Grid>
 
-              <Grid item xs={12} sm={12}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   sx={{ width: { xs: '100%', sm: '365px' } }}

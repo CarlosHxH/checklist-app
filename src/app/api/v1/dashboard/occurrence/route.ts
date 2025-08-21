@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.json(occurrences);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Erro ao buscar ocorrências' },
+      { error: 'Erro ao buscar ocorrências',errors:error },
       { status: 500 }
     );
   }

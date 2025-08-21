@@ -30,7 +30,7 @@ async function transaction(validatedData: InspectionFormData) {
 
   return result;
 }
-export async function GET(request: NextRequest) {
+export async function GET() {
 
   try {
     const inspections = await prisma.inspection.findMany({

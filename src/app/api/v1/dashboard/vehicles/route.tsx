@@ -12,7 +12,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const {id, ...data} = await request.json();
+  const data = await request.json();
+  
+  delete data.id;
+
   if (!data) return NextResponse.json({ message: 'Is are required.' }, { status: 400 });
   try {
     const isExist = await prisma.vehicle.findUnique({where:{plate:data.plate}})
@@ -22,6 +25,7 @@ export async function POST(request: Request) {
     const vehicle = await prisma.vehicle.create({data});
     return NextResponse.json(vehicle, { status: 201 });
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 403 });
   }
 }
@@ -39,6 +43,7 @@ export async function PUT(request: NextRequest)
     });
     return NextResponse.json(vehicle);
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: 'Falha ao atualizar o veículo' },{ status: 500 }
     );
   }

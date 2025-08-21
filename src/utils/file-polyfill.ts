@@ -2,7 +2,7 @@
 export function setupFilePolyfill() {
   if (typeof globalThis.File === 'undefined') {
     try {
-      // @ts-ignore
+      // @ts-expect-error File will be defined on globalThis for environments without native support
       globalThis.File = class File extends Blob {
         name: string;
         lastModified: number;

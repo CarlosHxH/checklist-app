@@ -514,7 +514,7 @@ export default function CollapsibleTable() {
       {/* Barra de busca e filtros */}
       <Toolbar sx={{ p: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Buscar"
@@ -531,7 +531,7 @@ export default function CollapsibleTable() {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} sm={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <FormControl sx={{ minWidth: 140 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
