@@ -80,14 +80,14 @@ const InspectionForm: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 10000, // 10 second timeout
+        timeout: 30000, // 30 second timeout
       });
 
       if (response.data.success) {
         setSubmitSuccess(true);
         setTimeout(() => {
           router.replace('/');
-        }, 300);
+        }, 2000);
       } else {
         throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
