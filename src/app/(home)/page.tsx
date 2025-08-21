@@ -7,9 +7,8 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
 import { useSession } from 'next-auth/react';
-import Viagens from './viagem/PageViagens';
-import Inspecao from './inspecao/PageInspecao';
-import ServicePage from './orders/page';
+import Viagens from './PageViagens';
+import Inspecao from './PageInspecao';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -38,21 +37,15 @@ export default function Page() {
   const [value, setValue] = React.useState(0);
 
   const idUser = session?.user?.id ?? '';
-  const role = session?.user.role ?? '';
-  const check = role === "DRIVER";
 
   const handleChange = React.useCallback((event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   }, []);
 
-  const tabs = React.useMemo(() => {
-    const baseTabs = [
-      { label: "VIAGENS", index: 0 },
-      { label: "INSPEÇÕES", index: 1 }
-    ];
-    if (!check) baseTabs.push({ label: "Ordem Serviço", index: 2 });
-    return baseTabs;
-  }, [check]);
+  const tabs = React.useMemo(() => [
+    { label: "VIAGENS", index: 0 },
+    { label: "INSPEÇÕES", index: 1 }
+  ], []);
 
   return (
     <Box>
@@ -72,9 +65,6 @@ export default function Page() {
           <TabPanel value={value} index={1} dir={theme.direction}>
             <Inspecao id={idUser} />
           </TabPanel>
-          {!check&&<TabPanel value={value} index={2} dir={theme.direction}>
-            <ServicePage id={idUser} />
-          </TabPanel>}
         </>
       )}
     </Box>

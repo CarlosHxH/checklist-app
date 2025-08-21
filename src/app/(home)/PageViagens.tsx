@@ -15,7 +15,7 @@ export default function Viagens({ id }: { id: string }) {
 
   const ShowCustomFab = () => {
     if (data[0] && (data[0].startId && !data[0].endId)) return;
-    return <CustomFab href="/viagem/create" variant="Plus" />
+    return <CustomFab href="/viagem" variant="Plus" />
   };
   
   return (

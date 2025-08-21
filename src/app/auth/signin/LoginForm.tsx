@@ -1,8 +1,9 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
-import { Box, Button, TextField, Typography, CircularProgress } from '@mui/material';
-import { useRouter } from 'next/navigation';
+// /src/components/LoginForm.tsx
+'use client'
+import { useState, useEffect } from 'react'
+import { signIn } from 'next-auth/react'
+import { Box, Button, TextField, Typography, CircularProgress } from '@mui/material'
+import { useRouter } from 'next/navigation'
 
 export default function LoginForm() {
   // Hydration-safe state
@@ -28,20 +29,15 @@ export default function LoginForm() {
 
     try {
       const result = await signIn('credentials', {
-        redirect: false,
+        redirect: true,
         username: credentials.username,
-        password: credentials.password,
+        password: credentials.password
       })
-      if (!result?.ok) {
-        if(result?.error === "CredentialsSignin") {
-          setError('Usuario ou senha invalido!')
-        } else {
-          setError('Erro ao fazer login, verifique suas credenciais e tente novamente!')
-        }
-        setIsLoading(false)
-      } else if (result?.ok) {
-          router.replace('/');
-      }
+
+      if (result?.error) {
+        setError('Erro ao processar o login')
+      } else if (result?.ok) { router.replace('/') }
+      setIsLoading(false)
     } catch (err:unknown) {
       console.log(err);
       setError('Erro ao processar o login')
@@ -49,6 +45,7 @@ export default function LoginForm() {
     }
   }
 
+  // Prevent server-side rendering of dynamic content
   if (!mounted) return null;
 
   return (
@@ -66,7 +63,6 @@ export default function LoginForm() {
         autoComplete="username"
         autoFocus
         value={credentials.username}
-        disabled={isLoading}
         onChange={(e) => setCredentials({
           ...credentials, 
           username: e.target.value
@@ -83,7 +79,6 @@ export default function LoginForm() {
         id="password"
         autoComplete="current-password"
         value={credentials.password}
-        disabled={isLoading}
         onChange={(e) => setCredentials({
           ...credentials, 
           password: e.target.value
