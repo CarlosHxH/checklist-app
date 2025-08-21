@@ -16,7 +16,7 @@ export default function Inspecao({ id }: { id: string }) {
   return (
     <Suspense>
       <Container maxWidth="lg">
-        <CustomFab href={'/inspecao'} variant={"Plus"} color='success' />
+        <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
         <VehicleInspectionCard data={data} />
       </Container>
     </Suspense>

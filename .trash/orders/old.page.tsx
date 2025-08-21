@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import {
   DataGrid, GridColDef, GridToolbar,
   GridRowParams, GridToolbarQuickFilter, GridToolbarContainer,
@@ -11,6 +12,27 @@ import { getOrders, OrderWithRelations } from './action';
 import formatDate from '@/lib/formatDate';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
+
+
+function BasicSimpleTreeView() {
+  return (
+    <Box sx={{ minHeight: 352, minWidth: 250 }}>
+      <SimpleTreeView>
+        <TreeItem itemId="grid" label="Data Grid">
+          <TreeItem itemId="grid-community" label="@mui/x-data-grid" />
+          <TreeItem itemId="grid-pro" label="@mui/x-data-grid-pro" />
+          <TreeItem itemId="grid-premium" label="@mui/x-data-grid-premium" />
+        </TreeItem>
+        <TreeItem itemId="pickers" label="Date and Time Pickers">
+          <TreeItem itemId="pickers-community" label="@mui/x-date-pickers" />
+          <TreeItem itemId="pickers-pro" label="@mui/x-date-pickers-pro" />
+        </TreeItem>
+      </SimpleTreeView>
+    </Box>
+  );
+}
+
 // Separate Modal Component
 const ViewModal: React.FC<{
   data: OrderWithRelations | null;
@@ -30,8 +52,6 @@ const ViewModal: React.FC<{
   };
 
   if (!data) return null;
-  console.log(data);
-
   const vehicle = data.vehicle ? `${data.vehicle.plate} - ${data.vehicle.model}` : 'N/A'
   return (
     <Modal
@@ -53,28 +73,28 @@ const ViewModal: React.FC<{
           <Grid size={{ xs: 7, sm: 4 }}>
             <Typography sx={{ mt: 2 }}>Tipo: {data.maintenanceType || 'N/A'}</Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Status: {data.isCompleted ? 'Finalizado' : 'Em andamento'}</Typography>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Usuário: {data.user?.name || 'N/A'} </Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Veículo: {vehicle}</Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography>Data de Entrada: {data.entryDate ? formatDate(data.entryDate) : 'N/A'}
             </Typography>
             <Typography>Data de Conclusão: {data.completionDate ? formatDate(data.completionDate) : 'Em andamento'}
             </Typography>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Centro de manutenção: {data?.maintenanceCenter?.name || "N/A"}</Typography>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Typography sx={{ mt: 2 }}>Oficina: {data?.destination || "N/A"}</Typography>
           </Grid>
 
@@ -169,18 +189,27 @@ const OrdersPage: React.FC = () => {
     setSelectedOrder(null);
   };
 
+
+  const ITEMS = [
+    { id: 'tree-view-community', label: 'Community' },
+    { id: 'tree-view-another-item', label: 'Another Item' },
+  ];
+
+function getItemId(item:OrderWithRelations) {
+  return item.id;
+}
+  
   // Column definitions
   const columns: GridColDef[] = [
     {
       field: '', headerName: '', width: 20, renderCell(params) {
         const check = () => setCollapsed(test ? "" : params.row.id)
         const test = (params.row.id === collapsed);
-        return <Box>
-          <IconButton onClick={check}>{test ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}</IconButton>
-          {test ? (<Box zIndex={9999}>
-            <Alert>Descrição</Alert>
-          </Box>) : null}
-        </Box>
+        return (
+          <Box>
+            <IconButton onClick={check}>{test ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}</IconButton>
+          </Box>
+        )
       },
     },
     { field: 'id', headerName: 'OS', maxWidth: 70, valueFormatter: (v) => `#${String(v).padStart(5, '0')}` },

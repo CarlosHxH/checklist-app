@@ -38,7 +38,7 @@ export const EixoSection: React.FC<EixoSectionProps> = ({ eixoNumber, label, fie
   if (!selectedVehicle || Number(selectedVehicle.eixo) < Number(eixoNumber)) return null;
 
   return (
-    <Grid item xs={12} md={6}>
+    <Grid item xs={12} sm={6}>
       <ButtonLabel label={label} name={fieldName} options={["BOM", "RUIM"]} control={control} rules={{ required: "Este campo é obrigatório" }} />
       {currentValue === "RUIM" && (
         <TextField {...register(field, { required: "Este campo é obrigatório" })} label="Qual Defeito?" multiline fullWidth rows={2} />

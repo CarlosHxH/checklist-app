@@ -1,9 +1,6 @@
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
-import Custom from './actions';
-
-
 
 export default async function Page() {
     const session = await getServerSession(authOptions);

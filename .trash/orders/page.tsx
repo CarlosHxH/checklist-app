@@ -5,6 +5,7 @@ import {
   TableCell, TableContainer, TableHead, TableRow, Typography,
   TextField, MenuItem, FormControl, InputLabel, Toolbar,
   Select, Stack, Pagination, InputAdornment, SelectChangeEvent,
+  Tooltip,
   Button,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -25,6 +26,7 @@ interface Filters {
   status?: string;
 }
 
+// Componente de linha da tabela (Row)
 function Row(props: { row: OrderWithRelations, mutate: () => void }) {
   const { row } = props;
   const [open, setOpen] = useState(false);
@@ -38,9 +40,8 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">#{String(row.id).padStart(5, '0')}</TableCell>
-        <TableCell>{row.user.name}</TableCell>
-        <TableCell>{row.vehicle.plate} - {row.vehicle.model}</TableCell>
-        <TableCell align="right">{row.kilometer}</TableCell>
+        <TableCell component="th" scope="row">{row.user.name}</TableCell>
+        <TableCell component="th" scope="row">{row.vehicle.plate} - {row.vehicle.model}</TableCell>
         <TableCell align="right">{formatDate(row.entryDate)}</TableCell>
         <TableCell align="right">{row?.completionDate ? formatDate(row?.completionDate) : "N/A"}</TableCell>
         <TableCell align="right">{dateDiff(row.entryDate, row.completionDate)}</TableCell>
@@ -335,7 +336,6 @@ export default function CollapsibleTable() {
               <TableCell>OS</TableCell>
               <TableCell>Responsável</TableCell>
               <TableCell>Veículo</TableCell>
-              <TableCell>Quilometragem</TableCell>
               <TableCell align="right">Data INÍCIO</TableCell>
               <TableCell align="right">Data FINAL</TableCell>
               <TableCell align="right">Tempo Parado</TableCell>

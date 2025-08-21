@@ -2,25 +2,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, Typography, Collapse, Grid, Box, Stack, Chip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { styled } from '@mui/material/styles';
 import { OrderWithRelations } from './action';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import IconButton from '@mui/material/IconButton';
 import formatDate from '@/lib/formatDate';
 import { CheckCircle } from '@mui/icons-material';
-
-// Expanda o ícone de expansão para girar quando expandido
-const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<typeof IconButton>) => {
-  const { expanded, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expanded }) => ({
-  transform: !expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  })
-}));
+import ExpandMore from '@/components/_ui/ExpandMore';
 
 const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
   const [expanded, setExpanded] = useState(false);
@@ -30,7 +18,12 @@ const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
   return (
     <Card sx={{ margin: 2 }}>
       <CardHeader
-        title={<Box fontSize={18} display={"flex"} alignItems={"center"}>Ordem de Serviço <Typography ml={1} fontSize={22} variant='h6' fontWeight={600}>#{String(order.id).padStart(5, '0')}</Typography></Box>}
+        title={<Box fontSize={18} display="flex" textAlign="center">
+          Ordem de Serviço
+          <Typography ml={1} fontSize={22} variant='h6' fontWeight={600}>
+            {"#" + String(order.id).padStart(5, '0')}
+            </Typography>
+          </Box>}
         subheader={
           <Stack>
             <Typography variant='h6'>{order.vehicle.plate} - {order.vehicle.model}</Typography>

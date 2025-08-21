@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { decoded, encoded } from "@/webToken";
 import { prisma } from "@/lib/prisma";
+import { decoded, encoded } from "@/webToken";
 
 export async function GET(request: NextRequest) {
   try {

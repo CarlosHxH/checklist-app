@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 type InspectionByPlate = {
   id: string;
@@ -76,7 +76,7 @@ async function getInspectionsByPlate(): Promise<InspectionByPlate[]> {
   return result;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const data = await getInspectionsByPlate();
 

@@ -16,8 +16,8 @@ interface FreeSoloCreateOptionProps {
 interface OptionType {
     inputValue?: string;
     name: string;
-    id?: string | number | any;
-    [key: string]: any;
+    id?: string | number | undefined;
+    //[key: string]: string;
 }
 
 
@@ -34,7 +34,7 @@ export default function FreeSoloCreateOption(props: FreeSoloCreateOptionProps) {
         if (value) {
             props.onChange(value);
         }
-    }, [value]);
+    }, [value,props]);
 
     const handleChange = (event: React.SyntheticEvent, newValue: OptionType | string | null) => {
         if (typeof newValue === 'string') {

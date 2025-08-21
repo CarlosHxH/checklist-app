@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const format = async (
   title: string,
@@ -16,7 +16,7 @@ const format = async (
   };
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
 
     const inspections = await prisma.inspection.count({where: { status: "INSPECAO" }});

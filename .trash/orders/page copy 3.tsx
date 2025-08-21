@@ -5,6 +5,7 @@ import {
   TableCell, TableContainer, TableHead, TableRow, Typography,
   TextField, MenuItem, FormControl, InputLabel, Toolbar,
   Select, Stack, Pagination, InputAdornment, SelectChangeEvent,
+  Tooltip,
   Button,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -12,49 +13,36 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Loading from '@/components/Loading';
-import { Delete, Edit, Visibility } from '@mui/icons-material';
+import { Visibility } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 import { getOrders, OrderWithRelations } from './action';
 import formatDate from '@/lib/formatDate';
 import { dateDiff } from '@/lib/ultils';
 
-// Define proper filter interface
-interface Filters {
-  responsavel?: string;
-  placa?: string;
-  periodo?: string;
-  status?: string;
-}
-
+// Componente de linha da tabela (Row)
 function Row(props: { row: OrderWithRelations, mutate: () => void }) {
   const { row } = props;
   const [open, setOpen] = useState(false);
 
   return (
     <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' }, backgroundColor: 'inherit' }}>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' }, backgroundColor: true ? 'inherit' : '#f5f5f5' }}>
         <TableCell>
-          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>{open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}</IconButton>
         </TableCell>
         <TableCell component="th" scope="row">#{String(row.id).padStart(5, '0')}</TableCell>
-        <TableCell>{row.user.name}</TableCell>
-        <TableCell>{row.vehicle.plate} - {row.vehicle.model}</TableCell>
-        <TableCell align="right">{row.kilometer}</TableCell>
+        <TableCell component="th" scope="row">{row.user.name}</TableCell>
+        <TableCell component="th" scope="row">{row.vehicle.plate} - {row.vehicle.model}</TableCell>
         <TableCell align="right">{formatDate(row.entryDate)}</TableCell>
         <TableCell align="right">{row?.completionDate ? formatDate(row?.completionDate) : "N/A"}</TableCell>
         <TableCell align="right">{dateDiff(row.entryDate, row.completionDate)}</TableCell>
         <TableCell align="right">{row.isCompleted ? "FINALIZADO" : "EM MANUTENÇÃO"}</TableCell>
         <TableCell align="right">
-          <IconButton size="small" onClick={() => { }}>
-            <Edit />
-          </IconButton>
-          <IconButton size="small" onClick={() => { }}>
-            <Visibility />
-          </IconButton>
-          <IconButton size="small" color='error' onClick={() => { }}>
-            <Delete />
-          </IconButton>
+          <Tooltip title="Visualizar">
+            <IconButton size="small" onClick={() =>{}}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
 
@@ -70,7 +58,7 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
                   <Table size="small" aria-label="inspection-start">
                     <TableHead>
                       <TableRow>
-                        <TableCell>Tipo de manutenção</TableCell>
+                        <TableCell>Tipo de manuteçao</TableCell>
                         <TableCell>Centro de manutenção</TableCell>
                         <TableCell>Oficina</TableCell>
                         <TableCell>Status</TableCell>
@@ -81,10 +69,10 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
                         <TableCell>{row.maintenanceType}</TableCell>
                         <TableCell>{row.maintenanceCenter.name}</TableCell>
                         <TableCell>{row.destination}</TableCell>
-                        <TableCell>{row.isCompleted ? 'Finalizado' : 'Em andamento'}</TableCell>
+                        <TableCell>{row.isCompleted}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={8}>
                           <Typography>Descrição do serviço:</Typography>
                           <Typography variant='subtitle1'>{row.serviceDescriptions}</Typography>
                         </TableCell>
@@ -103,15 +91,15 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
 
 // Componente principal da tabela
 export default function CollapsibleTable() {
-  const [allRows, setRows] = useState<OrderWithRelations[]>([]);
+  const [allRows, setRows] = useState<OrderWithRelations[]>();
   const [isLoading, setLoading] = useState(true);
   // Estados para paginação, busca e filtros
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<OrderWithRelations>();
   // Estado para linhas filtradas
-  const [filteredRows, setFilteredRows] = useState<OrderWithRelations[]>([]);
+  const [filteredRows, setFilteredRows] = useState<OrderWithRelations[]>(allRows || []);
 
   const mutate = () => { }
 
@@ -122,7 +110,7 @@ export default function CollapsibleTable() {
         const orders = await getOrders();
         if (orders) {
           setRows(orders);
-          setFilteredRows(orders);
+          setFilteredRows(orders)
         }
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -133,61 +121,66 @@ export default function CollapsibleTable() {
 
     setup();
   }, []);
-
-  // Função para aplicar filtros e busca
-  useEffect(() => {
-    if (allRows.length > 0) {
-      let result = [...allRows];
-
-      // Aplicar busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        result = result.filter(row =>
-          (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
-          (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
-          (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
-        );
-      }
-
-      // Aplicar filtros
-      if (filters.placa) {
-        result = result.filter(row => row.vehicle.plate === filters.placa);
-      }
-
-      if (filters.responsavel) {
-        result = result.filter(row => row.user.name === filters.responsavel);
-      }
-
-      if (filters.periodo) {
-        const today = new Date();
-        const filterDate = new Date();
-
-        switch (filters.periodo) {
-          case 'hoje':
-            result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
-            break;
-          case 'semana':
-            filterDate.setDate(today.getDate() - 7);
-            result = result.filter(row => new Date(row.createdAt) >= filterDate);
-            break;
-          case 'mes':
-            filterDate.setMonth(today.getMonth() - 1);
-            result = result.filter(row => new Date(row.createdAt) >= filterDate);
-            break;
-          default:
-            break;
+  
+    // Função para aplicar filtros e busca
+    useEffect(() => {
+      if (allRows) {
+        let result = [...allRows];
+  
+        // Aplicar busca
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+  
+          result = result.filter(row =>
+            (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
+            (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
+            (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
+          );
         }
+        // Aplicar filtros
+        if (filters?.vehicle.plate) {
+          result = result.filter(row => row.vehicle.plate === filters.vehicle.plate);
+        }
+        // Aplicar filtros
+        if (filters?.user.name) {
+          result = result.filter(row => row.user.name === filters.user.name);
+        }
+  
+        if (filters?.entryDate) {
+          const today = new Date();
+          const filterDate = new Date();
+  
+          switch (filters.entryDate) {
+            case 'hoje':
+              result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
+              break;
+            case 'semana':
+              filterDate.setDate(today.getDate() - 7);
+              result = result.filter(row => new Date(row.createdAt) >= filterDate);
+              break;
+            case 'mes':
+              filterDate.setMonth(today.getMonth() - 1);
+              result = result.filter(row => new Date(row.createdAt) >= filterDate);
+              break;
+            default:
+              break;
+          }
+        }
+  
+        if (filters?.isCompleted !== undefined) {
+          result = result.filter(row => {
+            if (filters.isCompleted === true) {
+              return row.isCompleted === true;
+            } else if (filters.isCompleted === false) {
+              return row.isCompleted === false;
+            }
+            return true;
+          });
+        }
+        setFilteredRows(result);
       }
-
-      if (filters.status) {
-        const isCompleted = filters.status === 'true';
-        result = result.filter(row => row.isCompleted === isCompleted);
-      }
-
-      setFilteredRows(result);
-    }
-  }, [searchTerm, filters, allRows]);
-
+    }, [searchTerm, filters, allRows]);
+  
   // Calcular total de páginas
   const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
 
@@ -204,33 +197,32 @@ export default function CollapsibleTable() {
     setPage(1); // Resetar para primeira página após busca
   };
 
-  const handleFilterChange = (event: SelectChangeEvent<string>) => {
+  const handleFilterChange = (event: SelectChangeEvent<string|boolean|number>) => {
     const { name, value } = event.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value === '' ? undefined : value
-    }));
+    setFilters(prev => {
+      if (!prev) return prev;
+      return { ...prev, [name]: value };
+    });
     setPage(1);
   };
 
   // Obter lista de responsáveis únicos para o filtro
-  const responsaveis = Array.from(new Set(allRows.map(row => row.user.name))).filter(Boolean);
-  const placas = Array.from(new Set(allRows.map(row => row.vehicle.plate))).filter(Boolean);
+  const responsaveis = Array.from(new Set(allRows && allRows.map(row => row.user.name)));
+  const placas = Array.from(new Set(allRows && allRows.map(row => row.vehicle.plate)));
 
-  if (isLoading) return <Loading />;
-
+  if (isLoading || !allRows) return <Loading />;
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       {/* Barra de busca e filtros */}
-      <Toolbar sx={{ p: 2, width: "100%" }}>
-        <Grid container spacing={2} justifyContent={"end"}>
-          <Grid item xs={12} sm={8}>
+      <Toolbar sx={{ p: 2 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Buscar"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Pesquisar por responsável, Veículo..."
+              placeholder="Pesquisar por responsável, Veiculo..."
               variant="outlined"
               InputProps={{
                 startAdornment: (
@@ -241,14 +233,14 @@ export default function CollapsibleTable() {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <Stack sx={{ width: "100%" }} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth sx={{ minWidth: 140 }}>
+          <Grid item xs={12} sm={8}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl sx={{ minWidth: 140 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
-                <Select fullWidth
+                <Select
                   labelId="responsavel-filter-label"
                   name="responsavel"
-                  value={filters.responsavel || ""}
+                  value={filters?.user.name||""}
                   label="Responsável"
                   onChange={handleFilterChange}
                 >
@@ -259,12 +251,12 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth sx={{ minWidth: 120 }}>
-                <InputLabel id="placa-filter-label">Placa</InputLabel>
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel id="responsavel-filter-label">Placa</InputLabel>
                 <Select
-                  labelId="placa-filter-label"
+                  labelId="responsavel-filter-label"
                   name="placa"
-                  value={filters.placa || ""}
+                  value={filters?.vehicle.plate||""}
                   label="Placa"
                   onChange={handleFilterChange}
                 >
@@ -280,7 +272,7 @@ export default function CollapsibleTable() {
                 <Select
                   labelId="periodo-filter-label"
                   name="periodo"
-                  value={filters.periodo || ""}
+                  value={filters?.entryDate}
                   label="Período"
                   onChange={handleFilterChange}
                 >
@@ -296,7 +288,7 @@ export default function CollapsibleTable() {
                 <Select
                   labelId="status-filter-label"
                   name="status"
-                  value={filters.status || ""}
+                  value={filters?.isCompleted}
                   label="Status"
                   onChange={handleFilterChange}
                   startAdornment={
@@ -310,21 +302,15 @@ export default function CollapsibleTable() {
                   <MenuItem value="false">EM MANUTENÇÃO</MenuItem>
                 </Select>
               </FormControl>
-
-              <Button
-                fullWidth
-                sx={{ minWidth: 90 }}
-                size='small'
-                variant='contained'
-                color='primary'
-                onClick={() => console.log(filteredRows)}
-              >
+              <Button fullWidth sx={{ minWidth: 90 }} variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
                 Exportar
               </Button>
             </Stack>
           </Grid>
         </Grid>
       </Toolbar>
+
+
 
       {/* Tabela */}
       <TableContainer>
@@ -334,9 +320,8 @@ export default function CollapsibleTable() {
               <TableCell />
               <TableCell>OS</TableCell>
               <TableCell>Responsável</TableCell>
-              <TableCell>Veículo</TableCell>
-              <TableCell>Quilometragem</TableCell>
-              <TableCell align="right">Data INÍCIO</TableCell>
+              <TableCell>Veiculo</TableCell>
+              <TableCell align="right">Data INICIO</TableCell>
               <TableCell align="right">Data FINAL</TableCell>
               <TableCell align="right">Tempo Parado</TableCell>
               <TableCell align="right">Status</TableCell>
@@ -358,7 +343,6 @@ export default function CollapsibleTable() {
           </TableBody>
         </Table>
       </TableContainer>
-
       {/* Paginação */}
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
         <Pagination
@@ -370,12 +354,11 @@ export default function CollapsibleTable() {
           showLastButton
         />
       </Box>
-
       {/* Indicador de resultados */}
       <Box sx={{ p: 2, borderTop: '1px solid rgba(224, 224, 224, 1)' }}>
         <Typography variant="body2" color="text.secondary">
           Mostrando {paginatedRows.length} de {filteredRows.length} registros
-          {searchTerm || filters.responsavel || filters.placa || filters.status ? ' (filtrados)' : ''}
+          {searchTerm || filters?.user.name || filters?.vehicle.plate || filters?.isCompleted ? ' (filtrados)' : ''}
         </Typography>
       </Box>
     </Paper>

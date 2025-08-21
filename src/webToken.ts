@@ -10,7 +10,7 @@ export interface CustomJWT {
 	};
 	customClaims?: {
 		permissions?: string[];
-		metadata?: Record<string, any>;
+		metadata?: Record<string, undefined>;
 	};
 	iat?: number;
 	exp?: number;
@@ -36,6 +36,7 @@ export async function decoded(token: string): Promise<CustomJWT> {
 		const { payload } = await jwtVerify(token, getSecretKey());
 		return payload as CustomJWT;
 	} catch (error) {
+		console.log(error);
 		throw new Error('Invalid token');
 	}
 }

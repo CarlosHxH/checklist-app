@@ -63,7 +63,7 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
   });
 
   // Gera dados mensais
-  const monthlyData = generateMonthlyData(inspections, startDate);
+  const monthlyData = generateMonthlyData(inspections);
   
   // Gera dados para gráfico (diários dos últimos 30 dias)
   const chartData = await generateDailyChartData();
@@ -93,7 +93,7 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
 /**
  * Gera dados mensais agrupados
  */
-function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspectionData[] {
+function generateMonthlyData(inspections: { createdAt: Date }[]): MonthlyInspectionData[] {
   const monthlyData: MonthlyInspectionData[] = [];
   
   // Cria array com todos os 12 meses
@@ -293,7 +293,7 @@ export async function getInspectionsLast30Days(): Promise<InspectionChartData[]>
 
 
 /**
- * Retorna contagem de inspeções finalizadas vs não-finalizadas nos últimos 30 dias
+ * Retorna contagem de inspeções finalizadas vs não-finalizadas nos últimos 360 dias
  */
 export async function getInspectionStatusLast360Days() {
   const thirtyDaysAgo = subDays(new Date(), 360);
@@ -320,7 +320,6 @@ export async function getInspectionStatusLast360Days() {
 
   const finishedPercentage = total > 0 ? (finishedCount / total) * 100 : 0;
   const unfinishedPercentage = total > 0 ? (unfinishedCount / total) * 100 : 0;
-  Math.round((unfinishedCount / total) * 100) || 0;
   return {
     finished: finishedCount,
     unfinished: unfinishedCount,

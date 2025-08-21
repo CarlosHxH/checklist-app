@@ -48,9 +48,9 @@ export default function Page() {
   const tabs = React.useMemo(() => {
     const baseTabs = [
       { label: "VIAGENS", index: 0 },
-      { label: "INSPEÇÕES", index: 1 }
+      { label: "INSPEÇÕES", index: 1 },
+      ...(!check?[{ label: "Ordem Serviço", index: 2 }]:[])
     ];
-    if (!check) baseTabs.push({ label: "Ordem Serviço", index: 2 });
     return baseTabs;
   }, [check]);
 
@@ -73,7 +73,7 @@ export default function Page() {
             <Inspecao id={idUser} />
           </TabPanel>
           {!check&&<TabPanel value={value} index={2} dir={theme.direction}>
-            <ServicePage id={idUser} />
+            <ServicePage />
           </TabPanel>}
         </>
       )}

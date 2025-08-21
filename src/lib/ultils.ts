@@ -1,3 +1,32 @@
+export const calcularDiferenca = (inicio: string, fim?: string|null) => {
+  const inicio1 = new Date(inicio);
+  const fim1 = fim ? new Date(fim) : new Date();
+  const diferencaMs = fim1.getTime() - inicio1.getTime();
+  return {
+    milissegundos: diferencaMs,
+    segundos: Math.floor(diferencaMs / 1000),
+    minutos: Math.floor(diferencaMs / (1000 * 60)),
+    horas: Math.floor(diferencaMs / (1000 * 60 * 60)),
+    dias: Math.floor(diferencaMs / (1000 * 60 * 60 * 24)),
+    meses: Math.floor(diferencaMs / (1000 * 60 * 60 * 24 * 30.44)), // aproximado
+    anos: Math.floor(diferencaMs / (1000 * 60 * 60 * 24 * 365.25)) // aproximado
+  };
+}
+
+export function dateDiff(dataInicial: string, dataFinal: string|null) {
+  const diff = calcularDiferenca(dataInicial, dataFinal);
+  if (diff.dias > 0) {
+    const horasRestantes = diff.horas % 24;
+    const minRest = diff.minutos % 60;
+    return `${diff.dias} dias, ${horasRestantes} horas ${minRest > 0 ? "e " + minRest + " minutos" : ""} `;
+  } else if (diff.horas > 0) {
+    const minRest = diff.minutos % 60;
+    return `${diff.horas} horas ${minRest > 0 ? "e " + minRest + " minutos" : ""}`;
+  } else {
+    return `${diff.minutos} minutos`;
+  }
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const fakeArray = (value: number) =>
   Array.from({ length: value }, (_, i) => i + 1);
