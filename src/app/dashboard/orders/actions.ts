@@ -27,6 +27,12 @@ export type OrderWithRelations = Order & {
     } | null;
 };
 
+export interface typesReturnsOrders {
+    orders: OrderWithRelations[];
+    users: user[];
+    vehicles: vehicle[];
+    maintenanceCenter: MaintenanceCenter[];
+}
 export const getOrders = async (): Promise<{
     orders: OrderWithRelations[];
     users: user[];
@@ -63,7 +69,13 @@ export const getOrders = async (): Promise<{
             },
             orderBy: { createdAt: 'desc' }
         });
-        return { orders, users, vehicles, maintenanceCenter };
+        const newOrders = orders.map(item=>({
+            usuario: item.user.name,
+            veiculo: item.vehicle.plate,
+            centroManutencao: item.maintenanceCenter.name,
+            ...item
+        }))
+        return { orders: newOrders, users, vehicles, maintenanceCenter };
     } catch (error) {
         console.error('Error fetching orders:', error);
         return { orders: [], users: [], vehicles: [], maintenanceCenter: [] };

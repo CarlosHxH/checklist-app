@@ -41,7 +41,7 @@ export default function OrderPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const { control, setValue, handleSubmit, register } = useForm<FormData>({
+  const { control, setValue, handleSubmit, register, watch } = useForm<FormData>({
     defaultValues: {
       userId: session?.user?.id,
       vehicleId: '',
@@ -110,7 +110,7 @@ export default function OrderPage() {
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },
     { value: 'CORRETIVA', label: 'CORRETIVA' }
   ];
-  
+
   return (
     <Container>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -126,7 +126,7 @@ export default function OrderPage() {
 
               <Grid item xs={12}><Typography>OS: automatico</Typography></Grid>
 
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={8} sm={4}>
                 <Autocomplete<VehicleLabel>
                   fullWidth
                   disablePortal
@@ -148,7 +148,7 @@ export default function OrderPage() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={8}>
+              <Grid item xs={4} sm={8}>
                 <TextField
                   {...register('kilometer', { valueAsNumber: true })}
                   fullWidth

@@ -5,7 +5,7 @@ import {
   GridRowParams, GridToolbarQuickFilter, GridToolbarContainer,
   GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarExport
 } from '@mui/x-data-grid';
-import { Box, Button,  Stack, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button,  Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import useSWR from 'swr';
@@ -80,7 +80,8 @@ const UserDataGrid: React.FC = () => {
 
   const xs = isMobile ? { year: false, eixo: false, model: false } : null
   return (
-    <Box sx={{ height: 'auto', width: '100%' }}>
+    <Box sx={{ height: 'auto', width: '100%', p:4 }}>
+      <Typography variant='h5' mb={2}>Painel de Usuários</Typography>
       <DataGrid
         rows={users}
         columns={columns}
@@ -126,7 +127,6 @@ const UserDataGrid: React.FC = () => {
         user={selectedUser}
         onSubmit={async () => { await mutate() }}
       />
-
     </Box>
   );
 };

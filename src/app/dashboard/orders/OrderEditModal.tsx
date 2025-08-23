@@ -80,7 +80,6 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
 
   const onSubmit = (formData: FormData) => {
     if (!order?.id) return;
-    console.log(formData);
     
     axios.put(`/api/v1/orders/${order.osNumber}`, formData)
       .then(response => {
@@ -190,7 +189,9 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
                       type='datetime-local'
                       {...register('entryDate', { required: 'Data de finalização é obrigatória' })}
                       label="INICIO"
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{
+                        inputLabel:{ shrink: true }
+                      }}
                     />
                   </Grid>
 
@@ -200,7 +201,9 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
                       type='datetime-local'
                       {...register('completionDate', { required: 'Data de finalização é obrigatória' })}
                       label="FINALIZAÇÃO"
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{
+                        inputLabel:{ shrink: true }
+                      }}
                     />
                   </Grid>
 
