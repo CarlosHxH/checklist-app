@@ -12,10 +12,14 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Loading from '@/components/Loading';
-import { Delete, Edit, Visibility } from '@mui/icons-material';
-import { getOrders, OrderWithRelations } from './action';
+import { Add, Delete, Edit } from '@mui/icons-material';
+import { getOrders, OrderWithRelations, MaintenanceCenter, deleteOrder } from './actions';
 import formatDate from '@/lib/formatDate';
 import { dateDiff } from '@/lib/ultils';
+import { user, vehicle } from '@prisma/client';
+import OrderEditModal from './OrderEditModal';
+import Swal from 'sweetalert2';
+import OrderCreateModal from './OrderCreateModal';
 
 // Define proper filter interface
 interface Filters {
@@ -25,8 +29,7 @@ interface Filters {
   status?: string;
 }
 
-function Row(props: { row: OrderWithRelations, mutate: () => void }) {
-  const { row } = props;
+function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>void,onEdit: (row: OrderWithRelations) => void }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +40,9 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">#{String(row.id).padStart(5, '0')}</TableCell>
+        <TableCell component="th" scope="row">
+          #{String(row.id).padStart(5, '0')}
+        </TableCell>
         <TableCell>{row.user.name}</TableCell>
         <TableCell>{row.vehicle.plate} - {row.vehicle.model}</TableCell>
         <TableCell align="right">{row.kilometer}</TableCell>
@@ -46,20 +51,38 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
         <TableCell align="right">{dateDiff(row.entryDate, row.completionDate)}</TableCell>
         <TableCell align="right">{row.isCompleted ? "FINALIZADO" : "EM MANUTENÇÃO"}</TableCell>
         <TableCell align="right">
-          <IconButton size="small" onClick={() => { }}>
+          <IconButton size="small" onClick={() => onEdit(row)}>
             <Edit />
           </IconButton>
-          <IconButton size="small" onClick={() => { }}>
-            <Visibility />
-          </IconButton>
-          <IconButton size="small" color='error' onClick={() => { }}>
+          <IconButton size="small" color='error' onClick={async () => {
+            Swal.fire({
+              title: "Tem certeza?",
+              text: "Você não será capaz de reverter isso!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Sim, exclua!"
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                await deleteOrder(row.osNumber)
+                Swal.fire({
+                  title: "Excluída!",
+                  text: "Excluido com sucesso!",
+                  icon: "success"
+                });
+                setTimeout(onDelete, 1000);
+              }
+            });
+
+          }}>
             <Delete />
           </IconButton>
         </TableCell>
       </TableRow>
 
       <TableRow>
-        <TableCell variant='footer' style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
+        <TableCell variant='footer' style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: 'column' }}>
@@ -79,7 +102,7 @@ function Row(props: { row: OrderWithRelations, mutate: () => void }) {
                     <TableBody>
                       <TableRow>
                         <TableCell>{row.maintenanceType}</TableCell>
-                        <TableCell>{row.maintenanceCenter.name}</TableCell>
+                        <TableCell>{row.maintenanceCenter?.name}</TableCell>
                         <TableCell>{row.destination}</TableCell>
                         <TableCell>{row.isCompleted ? 'Finalizado' : 'Em andamento'}</TableCell>
                       </TableRow>
@@ -113,24 +136,34 @@ export default function CollapsibleTable() {
   // Estado para linhas filtradas
   const [filteredRows, setFilteredRows] = useState<OrderWithRelations[]>([]);
 
-  const mutate = () => { }
+  // Estados para dados auxiliares e modal
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
+  const [users, setUsers] = useState<user[]>([]);
+  const [vehicles, setVehicles] = useState<vehicle[]>([]);
+  const [maintenanceCenter, setMaintenanceCenter] = useState<MaintenanceCenter[]>([]);
 
-  useEffect(() => {
-    const setup = async () => {
+  const [createModal, setCreateModal] = useState<boolean>(false);
+
+  const setup = async () => {
+    if(!filteredRows){
       setLoading(true);
-      try {
-        const orders = await getOrders();
-        if (orders) {
-          setRows(orders);
-          setFilteredRows(orders);
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setLoading(false);
+    }
+    try {
+      const data = await getOrders();
+      if (data) {
+        setRows(data.orders);
+        setUsers(data.users);
+        setVehicles(data.vehicles);
+        setMaintenanceCenter(data.maintenanceCenter);
+        setFilteredRows(data.orders);
       }
-    };
-
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     setup();
   }, []);
 
@@ -145,7 +178,8 @@ export default function CollapsibleTable() {
         result = result.filter(row =>
           (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
           (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
-          (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower)
+          (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower) ||
+          (row?.osNumber?.toLowerCase() || "").includes(searchLower)
         );
       }
 
@@ -213,6 +247,19 @@ export default function CollapsibleTable() {
     setPage(1);
   };
 
+  // Função para atualizar dados após edição
+  const handleEditSuccess = async () => {
+    try {
+      const data = await getOrders();
+      if (data) {
+        setRows(data.orders);
+        setFilteredRows(data.orders);
+      }
+    } catch (error) {
+      console.error('Error refreshing orders:', error);
+    }
+  };
+
   // Obter lista de responsáveis únicos para o filtro
   const responsaveis = Array.from(new Set(allRows.map(row => row.user.name))).filter(Boolean);
   const placas = Array.from(new Set(allRows.map(row => row.vehicle.plate))).filter(Boolean);
@@ -221,163 +268,195 @@ export default function CollapsibleTable() {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      {/* Barra de busca e filtros */}
-      <Toolbar sx={{ p: 2, width: "100%" }}>
-        <Grid container spacing={2} justifyContent={"end"}>
-          <Grid item xs={12} sm={8}>
-            <TextField
-              fullWidth
-              label="Buscar"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              placeholder="Pesquisar por responsável, Veículo..."
-              variant="outlined"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Stack sx={{ width: "100%" }} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth sx={{ minWidth: 140 }}>
-                <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
-                <Select fullWidth
-                  labelId="responsavel-filter-label"
-                  name="responsavel"
-                  value={filters.responsavel || ""}
-                  label="Responsável"
-                  onChange={handleFilterChange}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {responsaveis.map(resp => (
-                    <MenuItem key={resp} value={resp}>{resp}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth sx={{ minWidth: 120 }}>
-                <InputLabel id="placa-filter-label">Placa</InputLabel>
-                <Select
-                  labelId="placa-filter-label"
-                  name="placa"
-                  value={filters.placa || ""}
-                  label="Placa"
-                  onChange={handleFilterChange}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {placas.map(placa => (
-                    <MenuItem key={placa} value={placa}>{placa}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl sx={{ minWidth: 120 }}>
-                <InputLabel id="periodo-filter-label">Período</InputLabel>
-                <Select
-                  labelId="periodo-filter-label"
-                  name="periodo"
-                  value={filters.periodo || ""}
-                  label="Período"
-                  onChange={handleFilterChange}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="hoje">Hoje</MenuItem>
-                  <MenuItem value="semana">Últimos 7 dias</MenuItem>
-                  <MenuItem value="mes">Último mês</MenuItem>
-                </Select>
-              </FormControl>
-
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel id="status-filter-label">Status</InputLabel>
-                <Select
-                  labelId="status-filter-label"
-                  name="status"
-                  value={filters.status || ""}
-                  label="Status"
-                  onChange={handleFilterChange}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <FilterListIcon />
-                    </InputAdornment>
-                  }
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="true">FINALIZADO</MenuItem>
-                  <MenuItem value="false">EM MANUTENÇÃO</MenuItem>
-                </Select>
-              </FormControl>
-
-              <Button
+      <Box boxShadow={'0 0 2px gray'} p={2}>
+        <Typography variant='h4'>Ordem de Serviços</Typography>
+        {/* Barra de busca e filtros */}
+        <Toolbar sx={{ p: 2, width: "100%" }}>
+          <Grid container spacing={2} justifyContent={"end"}>
+            <Grid item xs={12} sm={4}>
+              <TextField
                 fullWidth
-                sx={{ minWidth: 90 }}
-                size='small'
-                variant='contained'
-                color='primary'
-                onClick={() => console.log(filteredRows)}
-              >
-                Exportar
-              </Button>
-            </Stack>
+                label="Buscar"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder="Pesquisar por responsável, veículo, OS..."
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={8}>
+              <Stack sx={{ width: "100%" }} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl fullWidth sx={{ minWidth: 140 }}>
+                  <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
+                  <Select fullWidth
+                    labelId="responsavel-filter-label"
+                    name="responsavel"
+                    value={filters.responsavel || ""}
+                    label="Responsável"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {responsaveis.map(resp => (
+                      <MenuItem key={resp} value={resp}>{resp}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth sx={{ minWidth: 120 }}>
+                  <InputLabel id="placa-filter-label">Placa</InputLabel>
+                  <Select
+                    labelId="placa-filter-label"
+                    name="placa"
+                    value={filters.placa || ""}
+                    label="Placa"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {placas.map(placa => (
+                      <MenuItem key={placa} value={placa}>{placa}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 120 }}>
+                  <InputLabel id="periodo-filter-label">Período</InputLabel>
+                  <Select
+                    labelId="periodo-filter-label"
+                    name="periodo"
+                    value={filters.periodo || ""}
+                    label="Período"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="hoje">Hoje</MenuItem>
+                    <MenuItem value="semana">Últimos 7 dias</MenuItem>
+                    <MenuItem value="mes">Último mês</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel id="status-filter-label">Status</InputLabel>
+                  <Select
+                    labelId="status-filter-label"
+                    name="status"
+                    value={filters.status || ""}
+                    label="Status"
+                    onChange={handleFilterChange}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <FilterListIcon />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="true">FINALIZADO</MenuItem>
+                    <MenuItem value="false">EM MANUTENÇÃO</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Button
+                  sx={{ minWidth: 90 }}
+                  size='small'
+                  variant='contained'
+                  color='primary'
+                  onClick={() =>{
+                    console.log('Exportar:', filteredRows);
+                    
+                  }}
+                >
+                  Exportar
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='primary'
+                  onClick={()=>setCreateModal(true)}
+                >
+                  <Add/>
+                </Button>
+              </Stack>
+            </Grid>
           </Grid>
-        </Grid>
-      </Toolbar>
+        </Toolbar>
 
-      {/* Tabela */}
-      <TableContainer>
-        <Table aria-label="collapsible table">
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>OS</TableCell>
-              <TableCell>Responsável</TableCell>
-              <TableCell>Veículo</TableCell>
-              <TableCell>Quilometragem</TableCell>
-              <TableCell align="right">Data INÍCIO</TableCell>
-              <TableCell align="right">Data FINAL</TableCell>
-              <TableCell align="right">Tempo Parado</TableCell>
-              <TableCell align="right">Status</TableCell>
-              <TableCell align="right">Opções</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedRows.length > 0 ? (
-              paginatedRows.map((row) => (
-                <Row key={row.id} row={row} mutate={mutate} />
-              ))
-            ) : (
+        {/* Tabela */}
+        <TableContainer>
+          <Table aria-label="collapsible table">
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={9} align="center">
-                  Nenhum registro encontrado
-                </TableCell>
+                <TableCell />
+                <TableCell>OS</TableCell>
+                <TableCell>Responsável</TableCell>
+                <TableCell>Veículo</TableCell>
+                <TableCell>Quilometragem</TableCell>
+                <TableCell align="right">Data INÍCIO</TableCell>
+                <TableCell align="right">Data FINAL</TableCell>
+                <TableCell align="right">Tempo Parado</TableCell>
+                <TableCell align="right">Status</TableCell>
+                <TableCell align="right">Opções</TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {paginatedRows.length > 0 ? (
+                paginatedRows.map((row) => (
+                  <Row key={row.id} row={row} onEdit={(row) => setSelectedOrder(row)} onDelete={setup}/>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} align="center">
+                    Nenhum registro encontrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      {/* Paginação */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={handleChangePage}
-          color="primary"
-          showFirstButton
-          showLastButton
-        />
+        {/* Paginação */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handleChangePage}
+            color="primary"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+
+        {/* Indicador de resultados */}
+        <Box sx={{ p: 2, borderTop: '1px solid rgba(224, 224, 224, 1)' }}>
+          <Typography variant="body2" color="text.secondary">
+            Mostrando {paginatedRows.length} de {filteredRows.length} registros
+            {searchTerm || filters.responsavel || filters.placa || filters.status ? ' (filtrados)' : ''}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Indicador de resultados */}
-      <Box sx={{ p: 2, borderTop: '1px solid rgba(224, 224, 224, 1)' }}>
-        <Typography variant="body2" color="text.secondary">
-          Mostrando {paginatedRows.length} de {filteredRows.length} registros
-          {searchTerm || filters.responsavel || filters.placa || filters.status ? ' (filtrados)' : ''}
-        </Typography>
-      </Box>
+      {/* Modal de Edição */}
+      <OrderEditModal
+        open={selectedOrder !== null}
+        onClose={() => setSelectedOrder(null)}
+        orderData={selectedOrder}
+        onSuccess={handleEditSuccess}
+      />
+
+      <OrderCreateModal
+        open={createModal}
+        onClose={()=>{
+          setCreateModal(false);
+          setup()
+        }}
+        users={users}
+        vehicles={vehicles}
+        centers={maintenanceCenter}
+      />
     </Paper>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import StatCard, { StatCardProps } from "@/components/Dashboard/chats/StatCard";
@@ -14,14 +14,16 @@ import ChartByUsers from "@/components/Dashboard/chats/byUsers";
 import InspectionsDashboard from "@/components/Dashboard/chats/InspectionsDadhboard";
 import InspectionBarChart from "@/components/Dashboard/chats/CustomBarChart";
 
+
 export default function DashboardContent() {
   const router = useRouter();
   const { data, isLoading, error, mutate } = useSWR("/api/v2/dashboard", fetcher);
   
   if (isLoading || !data) return <Loading />;
+  if(data.error) return <></>;
 
   const redirect = (url: string) => {
-    let redirectUrl = '#';
+    let redirectUrl = '';
     if (url === 'Usuários') { redirectUrl = '/dashboard/user'; }
     if (url === 'Viagens') { redirectUrl = '/dashboard/viagens'; }
     if (url === 'Inspeções') { redirectUrl = '/dashboard/inspecao'; }
@@ -31,20 +33,23 @@ export default function DashboardContent() {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <Box component="main" sx={() => ({ flexGrow: 1 })} >
-        <Stack spacing={2} sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}>
+      <Box component="main" sx={(theme: any) => ({ flexGrow: 1 })} >
+        <Stack
+          spacing={2}
+          sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}
+        >
           <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
             {/* cards */}
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>Visão geral</Typography>
 
-            <Grid container spacing={2} columns={12} sx={{ mb: 2 }}>
+            <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
               {data.cards && data.cards.map((card: StatCardProps, index: number) => (
-                <Grid key={index} item xs={12} sm={3} onClick={() => redirect(card.title)} sx={{ cursor: "pointer" }}>
+                <Grid key={index} size={{ xs: 6, sm: 3, lg: 3 }} onClick={() => redirect(card.title)} sx={{ cursor: "pointer" }}>
                   <StatCard {...card} />
                 </Grid>
               ))}
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <Box>
                   <React.Suspense fallback={
                     <Box sx={{ mt: 4 }}>
@@ -62,7 +67,7 @@ export default function DashboardContent() {
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <InspectionBarChart
                   title="Visão Geral - Últimos 12 Meses"
                   height={440}
@@ -75,7 +80,7 @@ export default function DashboardContent() {
                 />
               </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
               <ChartByUsers dataset={data.byUsers}/>
             </Grid>
           </Box>

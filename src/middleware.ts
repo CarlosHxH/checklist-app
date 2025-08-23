@@ -1,7 +1,7 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { decoded } from "@/webToken";
+import { decoded } from "./webToken";
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
   // Get NextAuth token for page routes
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  if (token && pathname.startsWith('/api')) {
+  if (token && pathname.startsWith('/api/v1')) {
     return NextResponse.next()
   }
 
@@ -39,8 +39,6 @@ export async function middleware(req: NextRequest) {
       }
       return NextResponse.next();
     } catch (error) {
-      console.log(error);
-      
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
   }
@@ -51,7 +49,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Allow other API routes to proceed (add specific protection if needed)
-  if (pathname.startsWith("/api")) {
+  if (pathname.startsWith("/api/v1")) {
     return NextResponse.next();
   }
 
@@ -75,6 +73,9 @@ export async function middleware(req: NextRequest) {
 
   // Admin-only routes
   const isAdmin = token.role === "ADMIN";
+  if (pathname.startsWith("/api/v2") && !isAdmin) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
   if (pathname.startsWith("/dashboard") && !isAdmin) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }

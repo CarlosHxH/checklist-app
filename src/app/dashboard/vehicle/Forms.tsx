@@ -122,7 +122,7 @@ export default function VehicleModal({ isOpen, onClose, data, onSubmit }: UserMo
                   onChange={({target}) => {
                     onChange(target.value.toUpperCase());
                   }}
-                  inputProps={{ htmlInput: { maxLength: 7 } }}
+                  slotProps={{ htmlInput: { maxLength: 7 } }}
                   fullWidth
                   label="Placa"
                   error={!!errors.plate}

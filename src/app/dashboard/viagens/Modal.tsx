@@ -274,7 +274,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
       ({ name, label, descricao }) => {
       if (!(data && data[name] === 'RUIM')) return null;
       return (
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} md={6}>
           <Controller name={name} control={control} render={({ field }) => (
             <ButtonLabel name={name} label={label} options={["BOM", "RUIM"]} control={control} />
           )}/>

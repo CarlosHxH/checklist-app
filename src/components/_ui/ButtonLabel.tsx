@@ -3,23 +3,17 @@ import React, { useState } from "react";
 import { ToggleButtonGroup, Box, Typography, ToggleButton, styled, InputLabel } from "@mui/material";
 import { useController, Control } from "react-hook-form";
 
-type CommonProps = {
+interface ButtonLabelProps {
   label: string;
-  options: string[];
-  disabled?: boolean;
-  error?: { message?: string } | string;
-};
-
-type ControlledProps = CommonProps & {
   name: string;
-  control: Control<any>;
-  rules?: Record<string, unknown>;
-};
-
-type UncontrolledProps = CommonProps & {
+  options: string[];
+  control?: Control<any>;
+  rules?: Record<string, any>;
+  disabled?: boolean;
   value?: string;
   onChange?: (value: string) => void;
-};
+  error?: { message?: string } | string;
+}
 
 const StyledToggleButton = styled(ToggleButton)({
   padding: "5px",
@@ -42,99 +36,62 @@ const StyledToggleButton = styled(ToggleButton)({
   },
 });
 
-function ControlledButtonLabel({ label, name, options, control, rules, disabled, error: propError }: ControlledProps) {
-  const { field, fieldState } = useController({ name, control, rules });
-  const error = fieldState.error ?? propError;
+export default function ButtonLabel({ label, name, options, control, rules, disabled, value: propValue, onChange: propOnChange, error: propError, ...props }: ButtonLabelProps) {
+  // Internal state for uncontrolled usage
+  const [internalValue, setInternalValue] = useState<string | null>(null);
 
+  // Use react-hook-form if control is provided
+  const hookFormData = control
+    ? useController({ name, control, rules })
+    : null;
+
+  // Determine which values to use based on whether we're using react-hook-form or direct props
+  const value = hookFormData ? hookFormData.field.value : propValue !== undefined ? propValue : internalValue;
+  const error = hookFormData ? hookFormData.fieldState.error : propError;
+
+  // Handle state change
   const handleChange = (_: React.MouseEvent<HTMLElement>, newValue: string | null) => {
     if (newValue === null) return;
-    field.onChange(newValue);
-  };
 
-  const errorMessage = error ? (typeof error === "string" ? error : error.message) : null;
-
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
-      <InputLabel>{label}</InputLabel>
-      <ToggleButtonGroup disabled={disabled} value={field.value} exclusive onChange={handleChange} aria-label={label}>
-        {options.map((option) => (
-          <StyledToggleButton className={!!error ? "error" : ""} disabled={disabled} key={option} value={option}>
-            {option}
-          </StyledToggleButton>
-        ))}
-      </ToggleButtonGroup>
-      {errorMessage && (
-        <Typography color="error" variant="caption">
-          {errorMessage}
-        </Typography>
-      )}
-    </Box>
-  );
-}
-
-function UncontrolledButtonLabel({ label, options, disabled, value: propValue, onChange: propOnChange, error: propError }: UncontrolledProps) {
-  const [internalValue, setInternalValue] = useState<string | null>(propValue ?? null);
-  const value = propValue !== undefined ? propValue : internalValue;
-  const error = propError;
-
-  const handleChange = (_: React.MouseEvent<HTMLElement>, newValue: string | null) => {
-    if (newValue === null) return;
-    if (propOnChange) {
+    // Handle different update scenarios
+    if (hookFormData) {
+      hookFormData.field.onChange(newValue);
+    } else if (propOnChange) {
       propOnChange(newValue);
     } else {
       setInternalValue(newValue);
     }
   };
 
-  const errorMessage = error ? (typeof error === "string" ? error : error.message) : null;
+  // Format error message correctly
+  const errorMessage = error
+    ? typeof error === 'string'
+      ? error
+      : error.message
+    : null;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }} {...props}>
       <InputLabel>{label}</InputLabel>
-      <ToggleButtonGroup disabled={disabled} value={value} exclusive onChange={handleChange} aria-label={label}>
-        {options.map((option) => (
-          <StyledToggleButton className={!!error ? "error" : ""} disabled={disabled} key={option} value={option}>
+      <ToggleButtonGroup
+        disabled={disabled}
+        value={value}
+        exclusive
+        onChange={handleChange}
+        aria-label={label}
+      >
+        {options.map(option => (
+          <StyledToggleButton
+            className={!!error ? "error" : ""}
+            disabled={disabled}
+            key={option}
+            value={option}
+          >
             {option}
           </StyledToggleButton>
         ))}
       </ToggleButtonGroup>
-      {errorMessage && (
-        <Typography color="error" variant="caption">
-          {errorMessage}
-        </Typography>
-      )}
+      {errorMessage && <Typography color="error" variant="caption">{errorMessage}</Typography>}
     </Box>
-  );
-}
-
-export default function ButtonLabel(props: ControlledProps | UncontrolledProps) {
-  const isControlled = (p: ControlledProps | UncontrolledProps): p is ControlledProps =>
-    (p as ControlledProps).control !== undefined && (p as ControlledProps).name !== undefined;
-
-  if (isControlled(props)) {
-    const { control, name, label, options, rules, disabled, error } = props;
-    return (
-      <ControlledButtonLabel
-        control={control}
-        name={name}
-        label={label}
-        options={options}
-        rules={rules}
-        disabled={disabled}
-        error={error}
-      />
-    );
-  }
-
-  const { label, options, disabled, value, onChange, error } = props as UncontrolledProps;
-  return (
-    <UncontrolledButtonLabel
-      label={label}
-      options={options}
-      disabled={disabled}
-      value={value}
-      onChange={onChange}
-      error={error}
-    />
   );
 }

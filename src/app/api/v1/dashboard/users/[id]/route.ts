@@ -10,7 +10,7 @@ export async function DELETE(
     await prisma.user.delete({ where: { id } });
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({message: "Erro, Usuário vinculado a um registro!", error}, {
+    return NextResponse.json("Erro, Usuário vinculado a um registro!", {
       status: 500,
     });
   } finally {

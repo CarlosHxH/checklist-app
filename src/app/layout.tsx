@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import SessionProvider from "@/provider/SessionProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { ThemeProvider } from "@mui/material";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,7 +49,6 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR" data-toolpad-color-scheme="light">
       <head>
-      <meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no, viewport-fit=cover'/>
         <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -56,12 +56,12 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Checklist 5s" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes"/>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        <ThemeProvider theme={{}}>
+          <SessionProvider session={session}>{children}</SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET all keys
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const [users, vehicles, vehicleKeys] = await prisma.$transaction([
       prisma.user.findMany({

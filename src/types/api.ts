@@ -18,7 +18,7 @@ export interface InspectionUpdateRequest {
   section: "start" | "end";
   data: InspectionUpdateData;
 }
-/*
+
 export interface InspectionUpdateResponse {
   message: string;
   data: any;
@@ -32,7 +32,7 @@ export interface InspectionUpdateResponse {
     createdAt: string;
   };
 }
-*/
+
 // Error response
 export interface ErrorResponse {
   error: string;

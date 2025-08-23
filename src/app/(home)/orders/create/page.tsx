@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import GroupRadio from '@/components/_ui/GroupRadio';
-import FreeSoloCreateOption from './FreeSoloCreateOption';
+import FreeSoloCreateOption from '@/components/FreeSoloCreateOption';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { formattedDate } from '@/lib/formatDate';

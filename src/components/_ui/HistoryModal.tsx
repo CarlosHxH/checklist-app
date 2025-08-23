@@ -5,12 +5,7 @@ import {
   DialogTitle,
   Typography,
   Box,
-  Paper,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider
+  Paper
 } from '@mui/material';
 import { 
   Close, 
@@ -18,6 +13,13 @@ import {
   Person,
   AccessTime
 } from '@mui/icons-material';
+
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
 
 interface User {
   id: string
@@ -80,84 +82,59 @@ const HistoryModal = ({
       </DialogTitle>
       
       <DialogContent>
-        <List sx={{ position: 'relative', left: -30 }}>
+        <Timeline sx={{position:'relative',left:-30}}>
           {sortedKeys.map((key, index) => (
-            <React.Fragment key={key.id}>
-              <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
-                <Box display="flex" alignItems="center" width="100%">
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: index === 0 ? 'primary.main' : 'grey.300',
-                        color: index === 0 ? 'white' : 'text.secondary'
-                      }}
+            <TimelineItem key={key.id}>
+              <TimelineSeparator>
+                <TimelineDot color={index === 0 ? 'primary' : 'grey'}>
+                  {index === 0 ? <CarRental /> : <Person />}
+                </TimelineDot>
+                {index < sortedKeys.length - 1 && <TimelineConnector />}
+              </TimelineSeparator>
+              
+              <TimelineContent>
+                <Paper 
+                  elevation={index === 0 ? 3 : 1}
+                  sx={{ 
+                    p: 2, 
+                    borderLeft: `4px solid ${index === 0 ? 'primary.main' : 'grey.500'}` 
+                  }}
+                >
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="subtitle1" 
+                      color={index === 0 ? 'primary.main' : 'text.secondary'}
                     >
-                      {index === 0 ? <CarRental /> : <Person />}
-                    </Box>
-                  </ListItemIcon>
-                  
-                  <Box sx={{ flexGrow: 1, ml: 2 }}>
-                    <Paper 
-                      elevation={index === 0 ? 3 : 1}
-                      sx={{ 
-                        p: 2, 
-                        borderLeft: `4px solid ${index === 0 ? 'primary.main' : 'grey.500'}` 
-                      }}
-                    >
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Typography 
-                          variant="subtitle1" 
-                          color={index === 0 ? 'primary.main' : 'text.secondary'}
-                        >
-                          {index === 0 ? 'Transferência Atual' : `Transferência ${index + 1}`}
-                        </Typography>
-                        
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <AccessTime fontSize="small" />
-                          <Typography variant="body2">
-                            {new Date(key.createdAt).toLocaleString()}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      
-                      <Typography variant="body1" sx={{ mt: 1 }}>
-                        Responsável: {key.user.name}
+                      {index === 0 ? 'Transferência Atual' : `Transferência ${index + 1}`}
+                    </Typography>
+                    
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <AccessTime fontSize="small" />
+                      <Typography variant="body2">
+                        {new Date(key.createdAt).toLocaleString()}
                       </Typography>
-                      
-                      <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                        <Typography variant="body2">
-                          <strong>Placa:</strong> {key.vehicle.plate}...
-                        </Typography>
-                        {key.status && (
-                          <Typography variant="body2">
-                            <strong>Status:</strong> {key.status}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Paper>
+                    </Box>
                   </Box>
-                </Box>
-              </ListItem>
-              {index < sortedKeys.length - 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
-                  <Box
-                    sx={{
-                      width: 2,
-                      height: 20,
-                      bgcolor: 'grey.300'
-                    }}
-                  />
-                </Box>
-              )}
-            </React.Fragment>
+                  
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    Responsável: {key.user.name}
+                  </Typography>
+                  
+                  <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                    <Typography variant="body2">
+                      <strong>Placa:</strong> {key.vehicle.plate}...
+                    </Typography>
+                    {key.status && (
+                      <Typography variant="body2">
+                        <strong>Status:</strong> {key.status}
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </TimelineContent>
+            </TimelineItem>
           ))}
-        </List>
+        </Timeline>
       </DialogContent>
     </Dialog>
   );

@@ -10,13 +10,8 @@ import Loading from '@/components/Loading';
 import { useSession } from 'next-auth/react';
 
 export default function ServicePage() {
-<<<<<<< HEAD
   const { data: session } = useSession();
-  const { data: orders, isLoading } = useSWR(session?.user.id, getOrders);
-=======
-  const { data:session } = useSession();
-  const { data: orders, error } = useSWR(session?.user.id||"", getOrders);
->>>>>>> 750916173b17141a71a5ec38c96a3c6dd21b47f2
+  const { data: orders, isLoading } = useSWR(session?.user.id||"", getOrders);
 
   if(isLoading) return <Loading/>
 

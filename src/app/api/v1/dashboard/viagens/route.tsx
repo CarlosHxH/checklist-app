@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma"
-import { inspection } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-async function createInspectionWithTransaction({ data, id }: { data: inspection, id?: string }) {
+async function createInspectionWithTransaction({ data, id }: { data: any, id?: string }) {
   try {
     const result = await prisma.$transaction(async (tx) => {
       // Crie o registro de inspeção

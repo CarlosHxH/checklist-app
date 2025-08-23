@@ -1,10 +1,21 @@
 "use client"
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, Typography, Collapse, Grid, Chip, Box } from '@mui/material';
+import { Card, CardContent, CardHeader, Typography, Collapse, IconButton, Grid, Chip, Box } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { styled } from '@mui/material/styles';
 import { VehicleInspection } from '@/types/VehicleInspection';
-import ExpandMore from '@/components/_ui/ExpandMore';
 
+// Expanda o ícone de expansão para girar quando expandido
+const ExpandMore = styled((props: { expanded: boolean } & React.ComponentProps<typeof IconButton>) => {
+  const { expanded, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expanded }) => ({
+  transform: !expanded ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  })
+}));
 
 const CardList: React.FC<{ inspection: VehicleInspection }> = ({ inspection }) => {
   const [expanded, setExpanded] = useState(false);

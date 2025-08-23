@@ -70,7 +70,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ name, label, onChange, mu
         <Grid item xs={12}>
           <Grid container spacing={2}>
             {photos.map((photo, index) => (
-              <Grid item xs={12} key={index}>
+              <Grid item key={index} xs={12}>
                 <Container>
                   <img
                     src={URL.createObjectURL(photo)}

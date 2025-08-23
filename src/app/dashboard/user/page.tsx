@@ -26,7 +26,7 @@ const UserDataGrid: React.FC = () => {
     if (users) {
       if (confirm(`Temcerteza que deseja deletar o usuário: ${users.filter(user => user.id === id)[0]?.name}`)) {
         axios.delete(`/api/v1/dashboard/users/${id}`)
-          .then(function () {
+          .then(function (res) {
             mutate();
           })
           .catch(function (error) {

@@ -40,6 +40,7 @@ const Page: React.FC = () => {
     control,
     setValue,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting }
   } = useForm<InspectionFormData>({
     defaultValues: {
@@ -104,14 +105,14 @@ const Page: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 10000, // 10 second timeout
       });
 
       if (response.data.success) {
         setSubmitSuccess(true);
         setTimeout(() => {
           router.replace('/');
-        }, 2000);
+        }, 300);
       } else {
         throw new Error(response.data.error || 'Erro ao salvar VIAGEM');
       }
@@ -225,7 +226,7 @@ const Page: React.FC = () => {
           </Grid>
 
           {/* Vehicle Selection */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               size="small"
@@ -238,7 +239,7 @@ const Page: React.FC = () => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               type="number"
               {...register("kilometer", {
@@ -260,7 +261,7 @@ const Page: React.FC = () => {
             </Divider>
           </Grid>
 
-          <Grid item xs={12} sm={selectedVehicle?.tacografo ? 6 : 12}>
+          <Grid item xs={12} md={selectedVehicle?.tacografo ? 6 : 12}>
             <ButtonLabel
               label="CRLV em dia?"
               name="crlvEmDia"
@@ -271,7 +272,7 @@ const Page: React.FC = () => {
           </Grid>
 
           {selectedVehicle?.tacografo && (
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <ButtonLabel
                 label="Certificado Tacógrafo em Dia?"
                 name="certificadoTacografoEmDia"
@@ -289,7 +290,7 @@ const Page: React.FC = () => {
             </Divider>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <ButtonLabel
               label="Nível de Água"
               name="nivelAgua"
@@ -299,7 +300,7 @@ const Page: React.FC = () => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <ButtonLabel
               label="Nível de Óleo"
               name="nivelOleo"
@@ -371,7 +372,7 @@ const Page: React.FC = () => {
             </Divider>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <ButtonLabel
               label="Avarias na Cabine"
               name="avariasCabine"
@@ -395,7 +396,7 @@ const Page: React.FC = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <ButtonLabel
               label="Avarias no Baú"
               name="bauPossuiAvarias"
@@ -420,7 +421,7 @@ const Page: React.FC = () => {
           </Grid>
 
           {/* Electrical Section */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <Divider>
               <Typography variant="subtitle1">Sistema Elétrico</Typography>
             </Divider>
@@ -448,7 +449,7 @@ const Page: React.FC = () => {
           </Grid>
 
           {/* Fire Extinguisher Section */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <Divider>
               <Typography variant="subtitle1">Extintor</Typography>
             </Divider>

@@ -33,6 +33,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(inspection);
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno do servidor", errors:error },{ status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" },{ status: 500 });
   }
 }

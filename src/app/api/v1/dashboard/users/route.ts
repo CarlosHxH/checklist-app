@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
 
   try {
     const users = await prisma.user.findMany({
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: 'Internal Server Error',errors:error }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 

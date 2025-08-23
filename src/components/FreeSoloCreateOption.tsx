@@ -49,6 +49,7 @@ export default function FreeSoloCreateOption(props: FreeSoloCreateOptionProps) {
 
     return (
         <Autocomplete
+            sx={{ width: '100%', mt: 2 }}
             freeSolo
             fullWidth
             value={value}

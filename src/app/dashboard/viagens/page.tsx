@@ -1,7 +1,10 @@
+import { PageContainer } from "@toolpad/core/PageContainer";
 import CollapsibleTable from "./CollapsedTable";
 
 export default function InspecoesPage() {
   return (
-    <CollapsibleTable />
+    <PageContainer>
+      <CollapsibleTable />
+    </PageContainer>
   );
 }

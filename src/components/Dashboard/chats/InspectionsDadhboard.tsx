@@ -50,7 +50,7 @@ export default function InspectionsDashboard({
     return (
         <Grid container spacing={3}>
 
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={6} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
                         <Typography variant="subtitle1" fontWeight={"bold"} gutterBottom>
@@ -68,7 +68,7 @@ export default function InspectionsDashboard({
                 </Card>
             </Grid>
 
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={6} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
                         <Typography variant="subtitle1" fontWeight={"bold"} gutterBottom>
@@ -86,7 +86,7 @@ export default function InspectionsDashboard({
                 </Card>
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
                         <Typography variant="h5" gutterBottom>
@@ -104,7 +104,7 @@ export default function InspectionsDashboard({
                 </Card>
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
                 <Card style={{ height: 180 }}>
                     <CardContent>
                         <Typography variant="h5" gutterBottom>

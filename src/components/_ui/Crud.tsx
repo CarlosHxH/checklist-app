@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -24,7 +24,7 @@ interface FieldDefinition {
   label: string;
   type: FieldType;
   required?: boolean;
-  validation?: (value: string) => boolean;
+  validation?: (value: any) => boolean;
 }
 
 // Methods Interface

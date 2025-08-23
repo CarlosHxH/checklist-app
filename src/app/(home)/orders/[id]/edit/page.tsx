@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { useEffect } from 'react';
-import FreeSoloCreateOption from '../../create/FreeSoloCreateOption';
+import FreeSoloCreateOption from '../../../../../components/FreeSoloCreateOption';
 import { useParams, useRouter } from 'next/navigation';
 import { EditType, getOrders } from './action';
 import Loading from '@/components/Loading';
@@ -69,6 +69,7 @@ export default function OrderEditPage() {
   if (orderLoading) return <Loading />;
   if (errors) return <Typography color="error">Failed to load order data</Typography>;
   if (!data || !order || !centers) return <Typography>Order not found</Typography>;
+
   const maintenanceOptions = [
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },
     { value: 'CORRETIVA', label: 'CORRETIVA' }
