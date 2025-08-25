@@ -7,6 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 import {
   GridRowsProp,
   GridRowModesModel,
@@ -19,11 +20,24 @@ import {
   GridRowModel,
   GridRowEditStopReasons,
   GridSlotProps,
+  ColumnsPanelTrigger,
+  FilterPanelTrigger,
+  GridFilterListIcon,
+  ToolbarButton,
+  Toolbar,
+  GridViewColumnIcon,
+  ExportCsv,
+  QuickFilter,
+  QuickFilterTrigger,
+  QuickFilterControl,
+  QuickFilterClear
 } from '@mui/x-data-grid';
-import { IconButton, Toolbar } from '@mui/material';
-import { getOrders, OrderWithRelations, typesReturnsOrders } from './actions';
+import { getOrders, MaintenanceCenter, OrderWithRelations, typesReturnsOrders } from './actions';
 import { user, vehicle } from '@prisma/client';
 import { dateDiff } from '@/lib/ultils';
+import { InputAdornment, styled, TextField, Typography } from '@mui/material';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import SearchIcon from '@mui/icons-material/Search';
 
 declare module '@mui/x-data-grid' {
   interface ToolbarPropsOverrides {
@@ -38,22 +52,126 @@ function EditToolbar(props: GridSlotProps['toolbar']) {
   const { setRows, setRowModesModel } = props;
 
   const handleClick = () => {
-    const id = Date.now();
-    setRows((oldRows) => [...oldRows]);
-    setRowModesModel((oldModel) => ({
+    //const id = Date.now();
+    //setRows((oldRows) => [...oldRows]);
+    
+    /*setRowModesModel((oldModel) => ({
       ...oldModel,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
-    }));
+    }));*/
   };
 
+  const StyledQuickFilter = styled(QuickFilter)({
+    display: 'grid',
+    alignItems: 'center',
+  });
+
+  type OwnerState = {
+    expanded: boolean;
+  };
+  
+  const StyledToolbarButton = styled(ToolbarButton)<{ ownerState: OwnerState }>(
+    ({ theme, ownerState }) => ({
+      gridArea: '1 / 1',
+      width: 'min-content',
+      height: 'min-content',
+      zIndex: 1,
+      opacity: ownerState.expanded ? 0 : 1,
+      pointerEvents: ownerState.expanded ? 'none' : 'auto',
+      transition: theme.transitions.create(['opacity']),
+    }),
+  );
+  
+  const StyledTextField = styled(TextField)<{
+    ownerState: OwnerState;
+  }>(({ theme, ownerState }) => ({
+    gridArea: '1 / 1',
+    overflowX: 'clip',
+    width: ownerState.expanded ? 260 : 'var(--trigger-width)',
+    opacity: ownerState.expanded ? 1 : 0,
+    transition: theme.transitions.create(['width', 'opacity']),
+  }));
+
   return (
-    <Toolbar>
-      <Tooltip title="Add record">
-        <IconButton onClick={handleClick}>
-          <AddIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
-    </Toolbar>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1 }}>
+      <Typography fontSize={28} fontWeight={"bold"}>Ordem de Serviços</Typography>
+      <Box sx={{ flexGrow: 1 }} />
+      <Toolbar>
+        <Tooltip title="Add record">
+          <IconButton onClick={handleClick}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Columns">
+          <ColumnsPanelTrigger render={<ToolbarButton />}>
+            <GridViewColumnIcon fontSize="small" />
+          </ColumnsPanelTrigger>
+        </Tooltip>
+        <Tooltip title="Filters">
+          <FilterPanelTrigger render={<ToolbarButton />}>
+            <GridFilterListIcon fontSize="small" />
+          </FilterPanelTrigger>
+        </Tooltip>
+        <Tooltip title="Export">
+          <ExportCsv render={<ToolbarButton />}>
+            <FileDownloadIcon fontSize="small" />
+          </ExportCsv>
+        </Tooltip>
+
+        <StyledQuickFilter>
+        <QuickFilterTrigger
+          render={(triggerProps, state) => (
+            <Tooltip title="Search" enterDelay={0}>
+              <StyledToolbarButton
+                {...triggerProps}
+                ownerState={{ expanded: state.expanded }}
+                color="default"
+                aria-disabled={state.expanded}
+              >
+                <SearchIcon fontSize="small" />
+              </StyledToolbarButton>
+            </Tooltip>
+          )}
+        />
+        <QuickFilterControl
+          render={({ ref, ...controlProps }, state) => (
+            <StyledTextField
+              {...controlProps}
+              ownerState={{ expanded: state.expanded }}
+              inputRef={ref}
+              aria-label="Search"
+              placeholder="Search..."
+              size="small"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: state.value ? (
+                    <InputAdornment position="end">
+                      <QuickFilterClear
+                        edge="end"
+                        size="small"
+                        aria-label="Clear search"
+                        material={{ sx: { marginRight: -0.75 } }}
+                      >
+                        <CancelIcon fontSize="small" />
+                      </QuickFilterClear>
+                    </InputAdornment>
+                  ) : null,
+                  ...controlProps.slotProps?.input,
+                },
+                ...controlProps.slotProps,
+              }}
+            />
+          )}
+        />
+      </StyledQuickFilter>
+
+      </Toolbar>
+    </Box>
   );
 }
 
@@ -62,11 +180,12 @@ export default function FullFeaturedCrudGrid() {
   const [rows, setRows] = React.useState<OrderWithRelations[]>();
   const [users, setUsers] = React.useState<user[]>();
   const [vehicle, setVehicles] = React.useState<vehicle[]>();
+  const [maintenanceCenter, setMaintenanceCenter] = React.useState<MaintenanceCenter[]>();
   const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>();
   const [loading, setLoading] = React.useState(false);
 
   const setup = async () => {
-    if(!rows){
+    if (!rows) {
       setLoading(true);
     }
     try {
@@ -76,7 +195,7 @@ export default function FullFeaturedCrudGrid() {
         setRows(dataApi.orders);
         setUsers(dataApi.users);
         setVehicles(dataApi.vehicles);
-        //setMaintenanceCenter(dataApi.maintenanceCenter);
+        setMaintenanceCenter(dataApi.maintenanceCenter);
         //setFilteredRows(dataApi.orders);
       }
     } catch (error) {
@@ -104,7 +223,7 @@ export default function FullFeaturedCrudGrid() {
   };
 
   const handleDeleteClick = (id: GridRowId) => () => {
-    if(!rows) return;
+    if (!rows) return;
     setRows(rows.filter((row) => row.id !== id));
   };
 
@@ -126,8 +245,7 @@ export default function FullFeaturedCrudGrid() {
 
   const processRowUpdate = (newRow: GridRowModel) => {
     if (!rows) return newRow;
-    
-    const updatedRow = { ...newRow, isNew: false };
+    const updatedRow = { ...newRow };
     //setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
     return updatedRow;
   };
@@ -137,16 +255,16 @@ export default function FullFeaturedCrudGrid() {
   };
 
   const columns: GridColDef[] = [
-    { 
-      field: 'id', 
-      headerName: 'ID', 
-      width: 80, 
-      valueFormatter: (v: number) => "#"+String(v).padStart(5, '0')
+    {
+      field: 'id',
+      headerName: 'OS',
+      width: 80,
+      valueFormatter: (v: number) => "#" + String(v).padStart(5, '0')
     },
-    { 
+    {
       field: 'usuario',
-      headerName: 'Nome', 
-      width: 120, 
+      headerName: 'Nome',
+      width: 120,
       type: 'singleSelect',
       valueOptions: (v) => {
         if (!users) return [v.row.user.name]
@@ -162,17 +280,15 @@ export default function FullFeaturedCrudGrid() {
       width: 90,
       headerAlign: 'left',
       type: 'singleSelect',
-      valueOptions: (v) => {
-        if (!vehicle) return [v.row.vehicle.name]
-        const userNames = vehicle.map(u => u.plate);
-        return [...new Set([...userNames])];
-      },
+      valueOptions: vehicle?.map(e => e.plate),
       editable: true,
     },
     {
       field: 'centroManutencao',
       headerName: 'Centro da manutenção',
       width: 170,
+      type: 'singleSelect',
+      valueOptions: maintenanceCenter?.map(e => e.name),
       editable: true,
     },
     {
@@ -204,16 +320,15 @@ export default function FullFeaturedCrudGrid() {
     {
       field: '',
       headerName: 'Tempo parado',
-      valueFormatter: (_,e)=>{
+      valueFormatter: (_, e) => {
         return dateDiff(e.entryDate, e.completionDate)
       },
       width: 140,
-      editable: true,
     },
     {
       field: 'serviceDescriptions',
       headerName: 'Descrição',
-      flex:1,
+      flex: 1,
       editable: true,
     },
     {
@@ -224,7 +339,7 @@ export default function FullFeaturedCrudGrid() {
       cellClassName: 'actions',
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel?.[String(id)]?.mode === GridRowModes.Edit;
-        
+
         if (isInEditMode) {
           return [
             <GridActionsCellItem
@@ -277,15 +392,17 @@ export default function FullFeaturedCrudGrid() {
       <DataGrid
         rows={rows}
         columns={columns}
+        loading={loading}
         editMode="row"
         rowModesModel={rowModesModel}
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
         slots={{ toolbar: EditToolbar }}
-        /*slotProps={{
+        showToolbar
+        slotProps={{
           toolbar: { setRows, setRowModesModel },
-        }}*/
+        }}
       />
     </Box>
   );
