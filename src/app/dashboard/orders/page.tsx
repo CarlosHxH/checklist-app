@@ -1,202 +1,162 @@
-"use client"
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Tooltip from '@mui/material/Tooltip';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Close';
-import IconButton from '@mui/material/IconButton';
+'use client';
+import React, { useState, useEffect } from 'react';
 import {
-  GridRowsProp,
-  GridRowModesModel,
-  GridRowModes,
-  DataGrid,
-  GridColDef,
-  GridActionsCellItem,
-  GridEventListener,
-  GridRowId,
-  GridRowModel,
-  GridRowEditStopReasons,
-  GridSlotProps,
-  ColumnsPanelTrigger,
-  FilterPanelTrigger,
-  GridFilterListIcon,
-  ToolbarButton,
-  Toolbar,
-  GridViewColumnIcon,
-  ExportCsv,
-  QuickFilter,
-  QuickFilterTrigger,
-  QuickFilterControl,
-  QuickFilterClear
-} from '@mui/x-data-grid';
-import { getOrders, MaintenanceCenter, OrderWithRelations, typesReturnsOrders } from './actions';
-import { user, vehicle } from '@prisma/client';
-import { dateDiff } from '@/lib/ultils';
-import { InputAdornment, styled, TextField, Typography } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+  Box, Grid, Collapse, IconButton, Table, TableBody, Paper,
+  TableCell, TableContainer, TableHead, TableRow, Typography,
+  TextField, MenuItem, FormControl, InputLabel, Toolbar,
+  Select, Stack, Pagination, InputAdornment, SelectChangeEvent,
+  Button,
+} from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SearchIcon from '@mui/icons-material/Search';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import Loading from '@/components/Loading';
+import { Add, Delete, Edit } from '@mui/icons-material';
+import { getOrders, OrderWithRelations, MaintenanceCenter, deleteOrder } from './actions';
+import formatDate from '@/lib/formatDate';
+import { dateDiff, today } from '@/lib/ultils';
+import { user, vehicle } from '@prisma/client';
+import OrderEditModal from './OrderEditModal';
+import Swal from 'sweetalert2';
+import OrderCreateModal from './OrderCreateModal';
+import CsvDownloadButton from 'react-json-to-csv'
 
-declare module '@mui/x-data-grid' {
-  interface ToolbarPropsOverrides {
-    setRows: (newRows: (oldRows: GridRowsProp) => GridRowsProp) => void;
-    setRowModesModel: (
-      newModel: (oldModel: GridRowModesModel) => GridRowModesModel,
-    ) => void;
-  }
+// Define proper filter interface
+interface Filters {
+  responsavel?: string;
+  placa?: string;
+  periodo?: string;
+  status?: string;
 }
 
-function EditToolbar(props: GridSlotProps['toolbar']) {
-  const { setRows, setRowModesModel } = props;
-
-  const handleClick = () => {
-    //const id = Date.now();
-    //setRows((oldRows) => [...oldRows]);
-    
-    /*setRowModesModel((oldModel) => ({
-      ...oldModel,
-      [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
-    }));*/
-  };
-
-  const StyledQuickFilter = styled(QuickFilter)({
-    display: 'grid',
-    alignItems: 'center',
-  });
-
-  type OwnerState = {
-    expanded: boolean;
-  };
-  
-  const StyledToolbarButton = styled(ToolbarButton)<{ ownerState: OwnerState }>(
-    ({ theme, ownerState }) => ({
-      gridArea: '1 / 1',
-      width: 'min-content',
-      height: 'min-content',
-      zIndex: 1,
-      opacity: ownerState.expanded ? 0 : 1,
-      pointerEvents: ownerState.expanded ? 'none' : 'auto',
-      transition: theme.transitions.create(['opacity']),
-    }),
-  );
-  
-  const StyledTextField = styled(TextField)<{
-    ownerState: OwnerState;
-  }>(({ theme, ownerState }) => ({
-    gridArea: '1 / 1',
-    overflowX: 'clip',
-    width: ownerState.expanded ? 260 : 'var(--trigger-width)',
-    opacity: ownerState.expanded ? 1 : 0,
-    transition: theme.transitions.create(['width', 'opacity']),
-  }));
+function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>void,onEdit: (row: OrderWithRelations) => void }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1 }}>
-      <Typography fontSize={28} fontWeight={"bold"}>Ordem de Serviços</Typography>
-      <Box sx={{ flexGrow: 1 }} />
-      <Toolbar>
-        <Tooltip title="Add record">
-          <IconButton onClick={handleClick}>
-            <AddIcon fontSize="small" />
+    <React.Fragment>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' }, backgroundColor: 'inherit' }}>
+        <TableCell>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
-        </Tooltip>
-        <Tooltip title="Columns">
-          <ColumnsPanelTrigger render={<ToolbarButton />}>
-            <GridViewColumnIcon fontSize="small" />
-          </ColumnsPanelTrigger>
-        </Tooltip>
-        <Tooltip title="Filters">
-          <FilterPanelTrigger render={<ToolbarButton />}>
-            <GridFilterListIcon fontSize="small" />
-          </FilterPanelTrigger>
-        </Tooltip>
-        <Tooltip title="Export">
-          <ExportCsv render={<ToolbarButton />}>
-            <FileDownloadIcon fontSize="small" />
-          </ExportCsv>
-        </Tooltip>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          #{String(row.id).padStart(5, '0')}
+        </TableCell>
+        <TableCell>{row.user.name}</TableCell>
+        <TableCell>{row.vehicle.plate} - {row.vehicle.model}</TableCell>
+        <TableCell align="right">{row.kilometer}</TableCell>
+        <TableCell align="right">{formatDate(row.entryDate)}</TableCell>
+        <TableCell align="right">{row?.completionDate ? formatDate(row?.completionDate) : "N/A"}</TableCell>
+        <TableCell align="right">{dateDiff(row.entryDate, row.completionDate)}</TableCell>
+        <TableCell align="right">{row.isCompleted ? "FINALIZADO" : "EM MANUTENÇÃO"}</TableCell>
+        <TableCell align="right">
+          <IconButton size="small" onClick={() => onEdit(row)}>
+            <Edit />
+          </IconButton>
+          <IconButton size="small" color='error' onClick={async () => {
+            Swal.fire({
+              title: "Tem certeza?",
+              text: "Você não será capaz de reverter isso!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Sim, exclua!"
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                await deleteOrder(row.osNumber)
+                Swal.fire({
+                  title: "Excluída!",
+                  text: "Excluido com sucesso!",
+                  icon: "success"
+                });
+                setTimeout(onDelete, 1000);
+              }
+            });
 
-        <StyledQuickFilter>
-        <QuickFilterTrigger
-          render={(triggerProps, state) => (
-            <Tooltip title="Search" enterDelay={0}>
-              <StyledToolbarButton
-                {...triggerProps}
-                ownerState={{ expanded: state.expanded }}
-                color="default"
-                aria-disabled={state.expanded}
-              >
-                <SearchIcon fontSize="small" />
-              </StyledToolbarButton>
-            </Tooltip>
-          )}
-        />
-        <QuickFilterControl
-          render={({ ref, ...controlProps }, state) => (
-            <StyledTextField
-              {...controlProps}
-              ownerState={{ expanded: state.expanded }}
-              inputRef={ref}
-              aria-label="Search"
-              placeholder="Search..."
-              size="small"
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: state.value ? (
-                    <InputAdornment position="end">
-                      <QuickFilterClear
-                        edge="end"
-                        size="small"
-                        aria-label="Clear search"
-                        material={{ sx: { marginRight: -0.75 } }}
-                      >
-                        <CancelIcon fontSize="small" />
-                      </QuickFilterClear>
-                    </InputAdornment>
-                  ) : null,
-                  ...controlProps.slotProps?.input,
-                },
-                ...controlProps.slotProps,
-              }}
-            />
-          )}
-        />
-      </StyledQuickFilter>
+          }}>
+            <Delete />
+          </IconButton>
+        </TableCell>
+      </TableRow>
 
-      </Toolbar>
-    </Box>
+      <TableRow>
+        <TableCell variant='footer' style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: 'column' }}>
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Detalhes da ordem de serviço
+                  </Typography>
+                  <Table size="small" aria-label="inspection-start">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Tipo de manutenção</TableCell>
+                        <TableCell>Centro de manutenção</TableCell>
+                        <TableCell>Oficina</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>{row.maintenanceType}</TableCell>
+                        <TableCell>{row.maintenanceCenter?.name}</TableCell>
+                        <TableCell>{row.destination}</TableCell>
+                        <TableCell>{row.isCompleted ? 'Finalizado' : 'Em andamento'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography>Descrição do serviço:</Typography>
+                          <Typography variant='subtitle1'>{row.serviceDescriptions}</Typography>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </Box>
+              </Box>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
   );
 }
 
-export default function FullFeaturedCrudGrid() {
-  const [data, setData] = React.useState<typesReturnsOrders>();
-  const [rows, setRows] = React.useState<OrderWithRelations[]>();
-  const [users, setUsers] = React.useState<user[]>();
-  const [vehicle, setVehicles] = React.useState<vehicle[]>();
-  const [maintenanceCenter, setMaintenanceCenter] = React.useState<MaintenanceCenter[]>();
-  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>();
-  const [loading, setLoading] = React.useState(false);
+// Componente principal da tabela
+export default function CollapsibleTable() {
+  const [allRows, setRows] = useState<OrderWithRelations[]>([]);
+  const [isLoading, setLoading] = useState(true);
+  // Estados para paginação, busca e filtros
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<Filters>({});
+  // Estado para linhas filtradas
+  const [filteredRows, setFilteredRows] = useState<OrderWithRelations[]>([]);
+
+  // Estados para dados auxiliares e modal
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithRelations | null>(null);
+  const [users, setUsers] = useState<user[]>([]);
+  const [vehicles, setVehicles] = useState<vehicle[]>([]);
+  const [maintenanceCenter, setMaintenanceCenter] = useState<MaintenanceCenter[]>([]);
+
+  const [createModal, setCreateModal] = useState<boolean>(false);
 
   const setup = async () => {
-    if (!rows) {
+    if(!filteredRows){
       setLoading(true);
     }
     try {
-      const dataApi = await getOrders();
-      if (dataApi) {
-        setData(dataApi);
-        setRows(dataApi.orders);
-        setUsers(dataApi.users);
-        setVehicles(dataApi.vehicles);
-        setMaintenanceCenter(dataApi.maintenanceCenter);
-        //setFilteredRows(dataApi.orders);
+      const data = await getOrders();
+      if (data) {
+        setRows(data.orders);
+        setUsers(data.users);
+        setVehicles(data.vehicles);
+        setMaintenanceCenter(data.maintenanceCenter);
+        setFilteredRows(data.orders);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -204,206 +164,310 @@ export default function FullFeaturedCrudGrid() {
       setLoading(false);
     }
   };
-  React.useEffect(() => {
+  useEffect(() => {
     setup();
   }, []);
 
-  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-      event.defaultMuiPrevented = true;
-    }
-  };
+  // Função para aplicar filtros e busca
+  useEffect(() => {
+    if (allRows.length > 0) {
+      let result = [...allRows];
 
-  const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-  };
+      // Aplicar busca
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        result = result.filter(row =>
+          (row.user?.name?.toLowerCase() || "").includes(searchLower) ||
+          (row?.vehicle?.model?.toLowerCase() || "").includes(searchLower) ||
+          (row?.vehicle?.plate?.toLowerCase() || "").includes(searchLower) ||
+          (row?.osNumber?.toLowerCase() || "").includes(searchLower)
+        );
+      }
 
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-  };
+      // Aplicar filtros
+      if (filters.placa) {
+        result = result.filter(row => row.vehicle.plate === filters.placa);
+      }
 
-  const handleDeleteClick = (id: GridRowId) => () => {
-    if (!rows) return;
-    setRows(rows.filter((row) => row.id !== id));
-  };
+      if (filters.responsavel) {
+        result = result.filter(row => row.user.name === filters.responsavel);
+      }
 
-  const handleCancelClick = (id: GridRowId) => () => {
-    setRowModesModel({
-      ...rowModesModel,
-      [id]: { mode: GridRowModes.View, ignoreModifications: true },
-    });
+      if (filters.periodo) {
+        const today = new Date();
+        const filterDate = new Date();
 
-    if (!rows) return;
-
-    const editedRow = rows.find((row) => row.id === id);
-    if (!editedRow) return;
-
-    if ('isNew' in editedRow && editedRow.isNew) {
-      setRows(rows.filter((row) => row.id !== id));
-    }
-  };
-
-  const processRowUpdate = (newRow: GridRowModel) => {
-    if (!rows) return newRow;
-    const updatedRow = { ...newRow };
-    //setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
-    return updatedRow;
-  };
-
-  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
-    setRowModesModel(newRowModesModel);
-  };
-
-  const columns: GridColDef[] = [
-    {
-      field: 'id',
-      headerName: 'OS',
-      width: 80,
-      valueFormatter: (v: number) => "#" + String(v).padStart(5, '0')
-    },
-    {
-      field: 'usuario',
-      headerName: 'Nome',
-      width: 120,
-      type: 'singleSelect',
-      valueOptions: (v) => {
-        if (!users) return [v.row.user.name]
-        const userNames = users.map(u => u.name);
-        return [...new Set([...userNames])];
-      },
-      editable: true
-    },
-    {
-      field: 'veiculo',
-      headerName: 'Veículo',
-      align: 'left',
-      width: 90,
-      headerAlign: 'left',
-      type: 'singleSelect',
-      valueOptions: vehicle?.map(e => e.plate),
-      editable: true,
-    },
-    {
-      field: 'centroManutencao',
-      headerName: 'Centro da manutenção',
-      width: 170,
-      type: 'singleSelect',
-      valueOptions: maintenanceCenter?.map(e => e.name),
-      editable: true,
-    },
-    {
-      field: 'entryDate',
-      headerName: 'Data de Entrada',
-      width: 140,
-      editable: true,
-    },
-    {
-      field: 'completionDate',
-      headerName: 'Data de Saida',
-      width: 140,
-      editable: true,
-    },
-    {
-      field: 'maintenanceType',
-      headerName: 'Tipo manutenção',
-      width: 160,
-      editable: true,
-      type: 'singleSelect',
-      valueOptions: ['PREVENTIVA', 'CORETIVA'],
-    },
-    {
-      field: 'destination',
-      headerName: 'Oficina',
-      width: 140,
-      editable: true,
-    },
-    {
-      field: '',
-      headerName: 'Tempo parado',
-      valueFormatter: (_, e) => {
-        return dateDiff(e.entryDate, e.completionDate)
-      },
-      width: 140,
-    },
-    {
-      field: 'serviceDescriptions',
-      headerName: 'Descrição',
-      flex: 1,
-      editable: true,
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id }) => {
-        const isInEditMode = rowModesModel?.[String(id)]?.mode === GridRowModes.Edit;
-
-        if (isInEditMode) {
-          return [
-            <GridActionsCellItem
-              icon={<SaveIcon />}
-              label="Save"
-              onClick={handleSaveClick(id)}
-            />,
-            <GridActionsCellItem
-              icon={<CancelIcon />}
-              label="Cancel"
-              className="textPrimary"
-              onClick={handleCancelClick(id)}
-              color="inherit"
-            />,
-          ];
+        switch (filters.periodo) {
+          case 'hoje':
+            result = result.filter(row => new Date(row.createdAt).toDateString() === today.toDateString());
+            break;
+          case 'semana':
+            filterDate.setDate(today.getDate() - 7);
+            result = result.filter(row => new Date(row.createdAt) >= filterDate);
+            break;
+          case 'mes':
+            filterDate.setMonth(today.getMonth() - 1);
+            result = result.filter(row => new Date(row.createdAt) >= filterDate);
+            break;
+          default:
+            break;
         }
+      }
 
-        return [
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            className="textPrimary"
-            onClick={handleEditClick(id)}
-            color="inherit"
-          />,
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
-        ];
-      },
-    },
-  ];
+      if (filters.status) {
+        const isCompleted = filters.status === 'true';
+        result = result.filter(row => row.isCompleted === isCompleted);
+      }
+
+      setFilteredRows(result);
+    }
+  }, [searchTerm, filters, allRows]);
+
+  // Calcular total de páginas
+  const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+
+  // Obter linhas da página atual
+  const paginatedRows = filteredRows.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  // Manipuladores de eventos
+  const handleChangePage = (_event: React.ChangeEvent<unknown>, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(1); // Resetar para primeira página após busca
+  };
+
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value === '' ? undefined : value
+    }));
+    setPage(1);
+  };
+
+  // Função para atualizar dados após edição
+  const handleEditSuccess = async () => {
+    try {
+      const data = await getOrders();
+      if (data) {
+        setRows(data.orders);
+        setFilteredRows(data.orders);
+      }
+    } catch (error) {
+      console.error('Error refreshing orders:', error);
+    }
+  };
+
+  // Obter lista de responsáveis únicos para o filtro
+  const responsaveis = Array.from(new Set(allRows.map(row => row.user.name))).filter(Boolean);
+  const placas = Array.from(new Set(allRows.map(row => row.vehicle.plate))).filter(Boolean);
+
+  if (isLoading) return <Loading />;
 
   return (
-    <Box
-      sx={{
-        height: 500,
-        width: '100%',
-        '& .actions': {
-          color: 'text.secondary',
-        },
-        '& .textPrimary': {
-          color: 'text.primary',
-        },
-      }}
-    >
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        loading={loading}
-        editMode="row"
-        rowModesModel={rowModesModel}
-        onRowModesModelChange={handleRowModesModelChange}
-        onRowEditStop={handleRowEditStop}
-        processRowUpdate={processRowUpdate}
-        slots={{ toolbar: EditToolbar }}
-        showToolbar
-        slotProps={{
-          toolbar: { setRows, setRowModesModel },
-        }}
+    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      <Box boxShadow={'0 0 2px gray'} p={2}>
+        <Typography variant='h4'>Ordem de Serviços</Typography>
+        {/* Barra de busca e filtros */}
+        <Toolbar sx={{ p: 2, width: "100%" }}>
+          <Grid container spacing={2} justifyContent={"end"}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Buscar"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder="Pesquisar por responsável, veículo, OS..."
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={8}>
+              <Stack sx={{ width: "100%" }} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl fullWidth sx={{ minWidth: 140 }}>
+                  <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
+                  <Select fullWidth
+                    labelId="responsavel-filter-label"
+                    name="responsavel"
+                    value={filters.responsavel || ""}
+                    label="Responsável"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {responsaveis.map(resp => (
+                      <MenuItem key={resp} value={resp}>{resp}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth sx={{ minWidth: 120 }}>
+                  <InputLabel id="placa-filter-label">Placa</InputLabel>
+                  <Select
+                    labelId="placa-filter-label"
+                    name="placa"
+                    value={filters.placa || ""}
+                    label="Placa"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {placas.map(placa => (
+                      <MenuItem key={placa} value={placa}>{placa}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 120 }}>
+                  <InputLabel id="periodo-filter-label">Período</InputLabel>
+                  <Select
+                    labelId="periodo-filter-label"
+                    name="periodo"
+                    value={filters.periodo || ""}
+                    label="Período"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="hoje">Hoje</MenuItem>
+                    <MenuItem value="semana">Últimos 7 dias</MenuItem>
+                    <MenuItem value="mes">Último mês</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: 180 }}>
+                  <InputLabel id="status-filter-label">Status</InputLabel>
+                  <Select
+                    labelId="status-filter-label"
+                    name="status"
+                    value={filters.status || ""}
+                    label="Status"
+                    onChange={handleFilterChange}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <FilterListIcon />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="true">FINALIZADO</MenuItem>
+                    <MenuItem value="false">EM MANUTENÇÃO</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <CsvDownloadButton
+                  style={{borderRadius:5,borderWidth:1}}
+                  data={filteredRows.map((fields)=>({
+                    "Número OS": "#"+String(fields.id).padStart(5, '0'),
+                    "Usuario": fields.user.name,
+                    "Veiculo Placa": fields.vehicle.plate,
+                    "Veiculo Modelo": fields.vehicle.model,
+                    "Quilometragem": fields.kilometer,
+                    "Tipo de manutenção": fields.maintenanceType,
+                    "Centro Manutenção": fields.maintenanceCenter?.name,
+                    "Destino/Oficina": fields.destination,
+                    "Data de Inicio": fields.entryDate.replace("T"," "),
+                    "Data de Finalização": fields.completionDate?.replace("T"," "),
+                    "Tempo parado":dateDiff(fields.entryDate, fields.completionDate),
+                    "Finalizado": fields.isCompleted?"SIM":"NÃO",
+                    "Descrição do serviço": fields.serviceDescriptions,
+                  }))}
+                  filename={"orders_"+today()+".csv"}
+                >
+                  Exportar
+                </CsvDownloadButton>
+
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='primary'
+                  onClick={()=>setCreateModal(true)}
+                >
+                  <Add/>
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Toolbar>
+
+        {/* Tabela */}
+        <TableContainer>
+          <Table aria-label="collapsible table">
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>OS</TableCell>
+                <TableCell>Responsável</TableCell>
+                <TableCell>Veículo</TableCell>
+                <TableCell>Quilometragem</TableCell>
+                <TableCell align="right">Data INÍCIO</TableCell>
+                <TableCell align="right">Data FINAL</TableCell>
+                <TableCell align="right">Tempo Parado</TableCell>
+                <TableCell align="right">Status</TableCell>
+                <TableCell align="right">Opções</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedRows.length > 0 ? (
+                paginatedRows.map((row) => (
+                  <Row key={row.id} row={row} onEdit={(row) => setSelectedOrder(row)} onDelete={setup}/>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} align="center">
+                    Nenhum registro encontrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Paginação */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handleChangePage}
+            color="primary"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+
+        {/* Indicador de resultados */}
+        <Box sx={{ p: 2, borderTop: '1px solid rgba(224, 224, 224, 1)' }}>
+          <Typography variant="body2" color="text.secondary">
+            Mostrando {paginatedRows.length} de {filteredRows.length} registros
+            {searchTerm || filters.responsavel || filters.placa || filters.status ? ' (filtrados)' : ''}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Modal de Edição */}
+      <OrderEditModal
+        open={selectedOrder !== null}
+        onClose={() => setSelectedOrder(null)}
+        orderData={selectedOrder}
+        onSuccess={handleEditSuccess}
       />
-    </Box>
+
+      <OrderCreateModal
+        open={createModal}
+        onClose={()=>{
+          setCreateModal(false);
+          setup()
+        }}
+        users={users}
+        vehicles={vehicles}
+        centers={maintenanceCenter}
+      />
+    </Paper>
   );
 }
