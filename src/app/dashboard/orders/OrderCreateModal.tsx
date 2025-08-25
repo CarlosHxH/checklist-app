@@ -26,7 +26,10 @@ import axios from 'axios';
 import GroupRadio from '@/components/_ui/GroupRadio';
 import { MaintenanceCenter } from './actions';
 import { user, vehicle } from '@prisma/client';
-
+import Swal from 'sweetalert2';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+/*
 interface FormData {
   userId: string;
   vehicleId: string;
@@ -39,6 +42,19 @@ interface FormData {
   serviceDescriptions: string;
   osNumber?: string;
 }
+*/
+const formSchema = z.object({
+  userId: z.string(),
+  vehicleId: z.string().min(1),
+  kilometer: z.number().min(2),
+  destination: z.string().min(3),
+  entryDate: z.string().min(16),
+  completionDate: z.string().optional().nullable(),
+  maintenanceType: z.string().min(3),
+  maintenanceCenter: z.string().min(3),
+  serviceDescriptions: z.string().min(3),
+})
+type FormData = z.infer<typeof formSchema>;
 
 interface OrderCreateModalProps {
   open: boolean;
@@ -60,29 +76,9 @@ export default function OrderCreateModal({
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    control,
-    setValue,
-    handleSubmit,
-    register,
-    reset,
-    watch,
-    formState: { errors }
-  } = useForm<FormData>({
-    defaultValues: {
-      userId: session?.user?.id || '',
-      entryDate: formattedDate,
-      kilometer: 0,
-      destination: '',
-      maintenanceType: '',
-      maintenanceCenter: '',
-      serviceDescriptions: '',
-      osNumber: ''
-    }
+  const { control, setValue, handleSubmit, register, reset, formState: { errors }} = useForm<FormData>({
+    resolver: zodResolver(formSchema)
   });
-
-  // Watch para atualizar dados quando necessário
-  const watchedVehicleId = watch('vehicleId');
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -95,12 +91,11 @@ export default function OrderCreateModal({
       reset({
         userId: session?.user?.id || '',
         entryDate: formattedDate,
-        kilometer: 0,
+        kilometer: undefined,
         destination: '',
         maintenanceType: '',
         maintenanceCenter: '',
         serviceDescriptions: '',
-        osNumber: '',
         vehicleId: ''
       });
     }
@@ -113,13 +108,17 @@ export default function OrderCreateModal({
         ...formData,
         isCompleted: !!formData.completionDate
       });
-
-      console.log('Ordem criada:', response.data);
       onSuccess?.();
       handleClose();
     } catch (error) {
       console.error('Erro ao criar ordem:', error);
       // Aqui você pode adicionar um toast/snackbar para mostrar o erro
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Algo deu errado!",
+        footer: `<em>${error instanceof Error ? error.message : "Internal error!"}</em>`
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -134,22 +133,6 @@ export default function OrderCreateModal({
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },
     { value: 'CORRETIVA', label: 'CORRETIVA' }
   ];
-
-  // Gerar número da OS automaticamente
-  const generateOSNumber = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const time = String(now.getTime()).slice(-4);
-    return `OS${year}${month}${day}${time}`;
-  };
-
-  useEffect(() => {
-    if (open) {
-      setValue('osNumber', generateOSNumber());
-    }
-  }, [open, setValue]);
 
   return (
     <Dialog
@@ -191,7 +174,9 @@ export default function OrderCreateModal({
                     type='datetime-local'
                     {...register('entryDate', { required: 'Data de entrada é obrigatória' })}
                     label="DATA DE ENTRADA"
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel:{shrink: true}
+                    }}
                     error={!!errors.entryDate}
                     helperText={errors.entryDate?.message}
                   />
@@ -202,7 +187,7 @@ export default function OrderCreateModal({
                     fullWidth
                     type='datetime-local'
                     {...register('completionDate')}
-                    label="DATA DE SAIDA"
+                    label="DATA DE FINALIZAÇÃO"
                     InputLabelProps={{ shrink: true }}
                     error={!!errors.completionDate}
                     helperText={errors.completionDate?.message}

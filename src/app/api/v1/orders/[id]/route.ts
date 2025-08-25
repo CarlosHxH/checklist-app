@@ -57,10 +57,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             kilometer: z.number().min(2),
             destination: z.string().min(3),
             entryDate: z.string().min(3).optional(),
-            completionDate: z.string().min(3).optional(),
+            completionDate: z.string().optional().nullable(),
             maintenanceType: z.string().min(3),
             maintenanceCenter: z.string().min(3),
             serviceDescriptions: z.string().min(3),
+            isCompleted: z.boolean().optional()
         })
         const validatedData = EventSchema.parse(formData);
         if(!validatedData) {
@@ -79,7 +80,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             data: {
                 ...data,
                 maintenanceCenterId: centers.id,
-                isCompleted: true
+                isCompleted: !!data.completionDate
             }
         });
         return NextResponse.json(orders);

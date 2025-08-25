@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { useEffect } from 'react';
-import FreeSoloCreateOption from '../../../../../components/FreeSoloCreateOption';
+import FreeSoloCreateOption from '@/components/FreeSoloCreateOption';
 import { useParams, useRouter } from 'next/navigation';
 import { EditType, getOrders } from './action';
 import Loading from '@/components/Loading';
@@ -44,7 +44,7 @@ export default function OrderEditPage() {
         vehicleId: order.vehicleId,
         kilometer: order.kilometer,
         destination: order.destination,
-        completionDate: order.completionDate || formattedDate,
+        completionDate: order.completionDate||'',
         maintenanceType: order.maintenanceType || '',
         maintenanceCenter: order.maintenanceCenter?.name || '',
         serviceDescriptions: order.serviceDescriptions || ''
@@ -120,6 +120,7 @@ export default function OrderEditPage() {
                   fullWidth
                   sx={{ width: { xs: '100%', sm: '365px' } }}
                   type='datetime-local'
+                  value={formattedDate}
                   {...register('completionDate', { required: 'Completion date is required' })}
                   label="FINALIZAÇÃO"
                   InputLabelProps={{ shrink: true }}

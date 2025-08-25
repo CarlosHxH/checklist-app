@@ -13,7 +13,6 @@ import {
   IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import FreeSoloCreateOption from '@/components/FreeSoloCreateOption';
@@ -24,7 +23,10 @@ import GroupRadio from '@/components/_ui/GroupRadio';
 import { OrderWithRelations } from './actions';
 import useSWR from 'swr';
 import { getOrdersById } from './actions';
-
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Swal from 'sweetalert2';
+/*
 interface FormData {
   userId: string;
   vehicleId: string;
@@ -35,7 +37,19 @@ interface FormData {
   maintenanceType: string;
   maintenanceCenter: string;
   serviceDescriptions: string;
-}
+}*/
+const formSchema = z.object({
+  userId: z.string(),
+  vehicleId: z.string().min(1),
+  kilometer: z.number().min(2),
+  destination: z.string().min(3),
+  entryDate: z.string().min(16),
+  completionDate: z.string().optional().nullable(),
+  maintenanceType: z.string().min(3),
+  maintenanceCenter: z.string().min(3),
+  serviceDescriptions: z.string().min(3),
+})
+type FormData = z.infer<typeof formSchema>;
 
 interface OrderEditModalProps {
   open: boolean;
@@ -45,7 +59,6 @@ interface OrderEditModalProps {
 }
 
 export default function OrderEditModal({ open, onClose, orderData, onSuccess }: OrderEditModalProps) {
-  const { data: session } = useSession();
   
   // Buscar dados completos da ordem quando o modal abrir
   const { data, isLoading, error } = useSWR(
@@ -57,7 +70,9 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
     }
   );
 
-  const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>();
+  const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
 
   const centers = data?.centers || [];
   const order = data?.orders || orderData;
@@ -70,7 +85,7 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
         kilometer: order.kilometer,
         destination: order.destination,
         entryDate: order.entryDate,
-        completionDate: order.completionDate || formattedDate,
+        completionDate: order.completionDate,// || formattedDate,
         maintenanceType: order.maintenanceType || '',
         maintenanceCenter: order.maintenanceCenter?.name || '',
         serviceDescriptions: order.serviceDescriptions || ''
@@ -90,6 +105,12 @@ export default function OrderEditModal({ open, onClose, orderData, onSuccess }: 
       })
       .catch(error => {
         console.error('Error:', error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Algo deu errado!",
+          footer: `<em>${error instanceof Error ? error.message : "Internal error!"}</em>`
+        });
       });
   };
 
