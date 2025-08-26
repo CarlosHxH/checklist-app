@@ -1,7 +1,7 @@
 // Actions
 "use server";
 import { prisma } from '@/lib/prisma';
-import { Order, user, vehicle } from '@prisma/client';
+import { Oficina, Order, user, vehicle } from '@prisma/client';
 
 export interface MaintenanceCenter {
     id: number;
@@ -15,7 +15,10 @@ interface User {
 }
 
 export type OrderWithRelations = Order & {
-    user: User;
+    user: {
+        id: string;
+        name: string;
+    };
     vehicle: {
         id: string;
         plate: string;
@@ -24,7 +27,11 @@ export type OrderWithRelations = Order & {
     maintenanceCenter: {
         id: number;
         name: string;
-    } | null;
+    };
+    oficina: {
+        id: number;
+        name: string;
+    }
 };
 
 export interface typesReturnsOrders {
@@ -32,26 +39,19 @@ export interface typesReturnsOrders {
     users: user[];
     vehicles: vehicle[];
     maintenanceCenter: MaintenanceCenter[];
+    oficina: Oficina[];
 }
-export const getOrders = async (): Promise<{
-    orders: OrderWithRelations[];
-    users: user[];
-    vehicles: vehicle[];
-    maintenanceCenter: MaintenanceCenter[];
-}> => {
+export const getOrders = async (): Promise<typesReturnsOrders> => {
     try {
         const maintenanceCenter = await prisma.maintenanceCenter.findMany();
         const users = await prisma.user.findMany();
         const vehicles = await prisma.vehicle.findMany();
+        const oficina = await prisma.oficina.findMany();
 
         const orders = await prisma.order.findMany({
             include: {
                 user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                    }
+                    select: {id:true,name:true}
                 },
                 vehicle: {
                     select: {
@@ -61,10 +61,10 @@ export const getOrders = async (): Promise<{
                     }
                 },
                 maintenanceCenter: {
-                    select: {
-                        id: true,
-                        name: true,
-                    }
+                    select: {id:true,name:true},
+                },
+                oficina: {
+                    select: {id:true,name:true}
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -75,16 +75,17 @@ export const getOrders = async (): Promise<{
             centroManutencao: item.maintenanceCenter.name,
             ...item
         }))
-        return { orders: newOrders, users, vehicles, maintenanceCenter };
+        return { orders: newOrders, users, vehicles, maintenanceCenter, oficina };
     } catch (error) {
         console.error('Error fetching orders:', error);
-        return { orders: [], users: [], vehicles: [], maintenanceCenter: [] };
+        return { orders: [], users: [], vehicles: [], maintenanceCenter: [], oficina: [] };
     }
 };
 
 export interface EditType {
     orders: OrderWithRelations | null;
     centers: MaintenanceCenter[];
+    oficinas: Oficina[];
 }
 
 export async function deleteOrder(os:string) {
@@ -105,21 +106,16 @@ export async function deleteOrder(os:string) {
 export const getOrdersById = async (osNumber: string): Promise<EditType> => {
     try {
         const centers = await prisma.maintenanceCenter.findMany({
-            select: {
-                id: true,
-                name: true,
-            }
+            select: {id:true,name:true}
         });
+
+        const oficinas = await prisma.oficina.findMany();
 
         const orders = await prisma.order.findUnique({
             where: { osNumber: osNumber },
             include: {
                 user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                    }
+                    select: {id:true, name:true}
                 },
                 vehicle: {
                     select: {
@@ -129,17 +125,14 @@ export const getOrdersById = async (osNumber: string): Promise<EditType> => {
                     }
                 },
                 maintenanceCenter: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                }
+                    select: {id:true,name:true}
+                },
+                oficina: {select: {id:true,name:true}}
             }
         });
-
-        return { orders, centers };
+        return { orders, centers, oficinas };
     } catch (error) {
         console.error('Error fetching order by ID:', error);
-        return { orders: null, centers: [] };
+        return { orders: null, centers: [], oficinas: [] };
     }
 };

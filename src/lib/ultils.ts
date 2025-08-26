@@ -13,7 +13,7 @@ export const calcularDiferenca = (inicio: string, fim?: string|null) => {
   };
 }
 
-export function dateDiff(dataInicial: string, dataFinal: string|null) {
+export function dateDiff(dataInicial: string, dataFinal?: string|null) {
   const diff = calcularDiferenca(dataInicial, dataFinal);
   if (diff.dias > 0) {
     const horasRestantes = diff.horas % 24;

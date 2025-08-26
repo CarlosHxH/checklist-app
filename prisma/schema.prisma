@@ -251,6 +251,14 @@ model MaintenanceCenter {
   updatedAt DateTime  @updatedAt
 }
 
+model Oficina {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  orders    Order[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Order {
   id                  Int                   @id @default(autoincrement())
   osNumber            String                @unique @default(uuid())
@@ -259,14 +267,15 @@ model Order {
   vehicle             vehicle               @relation(fields: [vehicleId], references: [id])
   vehicleId           String
   kilometer           Int
-  destination         String
-  entryDate           String
+  oficinaId           Int
+  oficina             Oficina               @relation(fields: [oficinaId], references: [id])
   maintenanceType     String?
   maintenanceCenter   MaintenanceCenter     @relation(fields: [maintenanceCenterId], references: [id])
   maintenanceCenterId Int
   serviceDescriptions String?               @db.LongText
   isCompleted         Boolean               @default(false)
-  completionDate      String?
+  startedData         DateTime              @default(now())
+  finishedData        DateTime?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 }

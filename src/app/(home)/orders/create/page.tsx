@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { formattedDate } from '@/lib/formatDate';
 import { z } from 'zod';
 import Swal from 'sweetalert2';
+import { Oficina } from '@prisma/client';
 
 interface VehicleLabel {
   name: string;
@@ -22,6 +23,7 @@ interface VehicleLabel {
 interface ApiData {
   vehicles: VehicleLabel[];
   centers: VehicleLabel[];
+  oficina: Oficina[];
 }
 
 interface FormData {
@@ -29,8 +31,8 @@ interface FormData {
   osNumber: string;
   vehicleId: string;
   kilometer: number;
-  destination: string;
-  entryDate: string;
+  oficina: string;
+  startedData: string;
   maintenanceType: string;
   maintenanceCenter: string;
   serviceDescriptions: string;
@@ -46,8 +48,8 @@ export default function OrderPage() {
       userId: session?.user?.id,
       vehicleId: '',
       kilometer: undefined,
-      destination: '',
-      entryDate: formattedDate,
+      oficina: '',
+      startedData: formattedDate,
       maintenanceType: '',
       maintenanceCenter: '',
       serviceDescriptions: ''
@@ -60,21 +62,22 @@ export default function OrderPage() {
         userId: z.string().min(3),
         vehicleId: z.string().min(1),
         kilometer: z.number().min(2),
-        destination: z.string().min(3),
-        entryDate: z.string().min(3),
+        oficina: z.string().min(3),
+        startedData: z.string().min(3),
         maintenanceType: z.string().min(3),
         maintenanceCenter: z.string().min(3),
         serviceDescriptions: z.string().min(3),
       })
       const validatedData = EventSchema.parse(data);
-
+      console.log(validatedData);
+      
       axios.post('/api/v1/orders', validatedData)
-        .then(response => {
-          console.log(response.data);
+        .then(res => {
+          console.log(res.data);
           router.push('/');
         })
         .catch(error => {
-          console.error('Error:', error);
+          console.error('Error:', error.message);
         });
     } catch (error) {
       Swal.fire({
@@ -105,6 +108,7 @@ export default function OrderPage() {
 
   const vehicles = data?.vehicles || [];
   const centers = data?.centers || [];
+  const oficinas = data?.oficina || [];
 
   const maintenanceOptions = [
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },
@@ -159,25 +163,26 @@ export default function OrderPage() {
                 />
               </Grid>
 
-              <Grid item xs={6} sm={12}>
-                <TextField
-                  fullWidth
-                  {...register('destination')}
-                  sx={{ width: { xs: '100%', sm: '365px' } }}
-                  label="Local"
+              <Grid item xs={6} sm={6}>
+                <FreeSoloCreateOption
                   required
-                />
+                  label="OFICINA"
+                  options={oficinas}
+                  onChange={(item) => {
+                    const value = typeof item === 'string' ? item : item?.name || '';
+                    setValue('oficina', value.toUpperCase());
+                  }} />
               </Grid>
 
-              <Grid item xs={6} sm={12}>
+              <Grid item xs={6} sm={6}>
                 <TextField
                   fullWidth
-                  sx={{ width: { xs: '100%', sm: '365px' } }}
                   type='datetime-local'
-                  {...register('entryDate')}
+                  {...register('startedData')}
                   label="ENTRADA"
                   required
-                  InputLabelProps={{ shrink: true }}
+
+                  slotProps={{inputLabel:{ shrink: true }}}
                 />
               </Grid>
 

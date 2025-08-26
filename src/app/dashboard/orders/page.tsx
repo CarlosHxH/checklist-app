@@ -14,13 +14,21 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import Loading from '@/components/Loading';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import { getOrders, OrderWithRelations, MaintenanceCenter, deleteOrder } from './actions';
-import formatDate from '@/lib/formatDate';
 import { dateDiff, today } from '@/lib/ultils';
-import { user, vehicle } from '@prisma/client';
+import { Oficina, user, vehicle } from '@prisma/client';
 import OrderEditModal from './OrderEditModal';
 import Swal from 'sweetalert2';
 import OrderCreateModal from './OrderCreateModal';
 import CsvDownloadButton from 'react-json-to-csv'
+
+function newDate(dataString: string) {
+  const data = new Date(dataString);
+  const options = {
+    timeZone: 'America/Cuiaba'
+  };
+  const dataFormatada = data.toLocaleString('pt-BR', options);
+  return dataFormatada;
+}
 
 // Define proper filter interface
 interface Filters {
@@ -30,7 +38,7 @@ interface Filters {
   status?: string;
 }
 
-function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>void,onEdit: (row: OrderWithRelations) => void }) {
+function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete: () => void, onEdit: (row: OrderWithRelations) => void }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -47,9 +55,11 @@ function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>
         <TableCell>{row.user.name}</TableCell>
         <TableCell>{row.vehicle.plate} - {row.vehicle.model}</TableCell>
         <TableCell align="right">{row.kilometer}</TableCell>
-        <TableCell align="right">{formatDate(row.entryDate)}</TableCell>
-        <TableCell align="right">{row?.completionDate ? formatDate(row?.completionDate) : "N/A"}</TableCell>
-        <TableCell align="right">{dateDiff(row.entryDate, row.completionDate)}</TableCell>
+        <TableCell align="right">{row.startedData ? newDate(row.startedData.toString()) : "N/A"}</TableCell>
+        <TableCell align="right">{row.finishedData ? newDate(row.finishedData.toString()) : "N/A"}</TableCell>
+        <TableCell align="right">
+          {dateDiff(row.startedData.toString(), row?.finishedData?.toString())}
+        </TableCell>
         <TableCell align="right">{row.isCompleted ? "FINALIZADO" : "EM MANUTENÇÃO"}</TableCell>
         <TableCell align="right">
           <IconButton size="small" onClick={() => onEdit(row)}>
@@ -71,8 +81,7 @@ function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>
                   title: "Excluída!",
                   text: "Excluido com sucesso!",
                   icon: "success"
-                });
-                setTimeout(onDelete, 1000);
+                }).then(()=>onDelete());
               }
             });
 
@@ -104,7 +113,7 @@ function Row({ row, onEdit, onDelete }: { row: OrderWithRelations, onDelete:()=>
                       <TableRow>
                         <TableCell>{row.maintenanceType}</TableCell>
                         <TableCell>{row.maintenanceCenter?.name}</TableCell>
-                        <TableCell>{row.destination}</TableCell>
+                        <TableCell>{row.oficinaId}</TableCell>
                         <TableCell>{row.isCompleted ? 'Finalizado' : 'Em andamento'}</TableCell>
                       </TableRow>
                       <TableRow>
@@ -142,13 +151,11 @@ export default function CollapsibleTable() {
   const [users, setUsers] = useState<user[]>([]);
   const [vehicles, setVehicles] = useState<vehicle[]>([]);
   const [maintenanceCenter, setMaintenanceCenter] = useState<MaintenanceCenter[]>([]);
-
+  const [oficinas, setOficinas] = useState<Oficina[]>([]);
   const [createModal, setCreateModal] = useState<boolean>(false);
 
   const setup = async () => {
-    if(!filteredRows){
-      setLoading(true);
-    }
+    if (!filteredRows) setLoading(true);
     try {
       const data = await getOrders();
       if (data) {
@@ -157,6 +164,7 @@ export default function CollapsibleTable() {
         setVehicles(data.vehicles);
         setMaintenanceCenter(data.maintenanceCenter);
         setFilteredRows(data.orders);
+        setOficinas(data.oficina);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -362,23 +370,23 @@ export default function CollapsibleTable() {
                 </FormControl>
 
                 <CsvDownloadButton
-                  style={{borderRadius:5,borderWidth:1}}
-                  data={filteredRows.map((fields)=>({
-                    "Número OS": "#"+String(fields.id).padStart(5, '0'),
+                  style={{ borderRadius: 5, borderWidth: 1 }}
+                  data={filteredRows.map((fields) => ({
+                    "Número OS": "#" + String(fields.id).padStart(5, '0'),
                     "Usuario": fields.user.name,
                     "Veiculo Placa": fields.vehicle.plate,
                     "Veiculo Modelo": fields.vehicle.model,
                     "Quilometragem": fields.kilometer,
                     "Tipo de manutenção": fields.maintenanceType,
                     "Centro Manutenção": fields.maintenanceCenter?.name,
-                    "Destino/Oficina": fields.destination,
-                    "Data de Inicio": fields.entryDate.replace("T"," "),
-                    "Data de Finalização": fields.completionDate?.replace("T"," "),
-                    "Tempo parado":dateDiff(fields.entryDate, fields.completionDate),
-                    "Finalizado": fields.isCompleted?"SIM":"NÃO",
+                    "Destino/Oficina": fields.oficina.name,
+                    "Data de Inicio": fields.startedData,
+                    "Data de Finalização": fields.finishedData,
+                    "Tempo parado": dateDiff(fields.startedData.toString(), fields?.finishedData?.toString()),
+                    "Finalizado": fields.isCompleted ? "SIM" : "NÃO",
                     "Descrição do serviço": fields.serviceDescriptions,
                   }))}
-                  filename={"orders_"+today()+".csv"}
+                  filename={"orders_" + today() + ".csv"}
                 >
                   Exportar
                 </CsvDownloadButton>
@@ -387,9 +395,9 @@ export default function CollapsibleTable() {
                   size='small'
                   variant='contained'
                   color='primary'
-                  onClick={()=>setCreateModal(true)}
+                  onClick={() => setCreateModal(true)}
                 >
-                  <Add/>
+                  <Add />
                 </Button>
               </Stack>
             </Grid>
@@ -416,7 +424,7 @@ export default function CollapsibleTable() {
             <TableBody>
               {paginatedRows.length > 0 ? (
                 paginatedRows.map((row) => (
-                  <Row key={row.id} row={row} onEdit={(row) => setSelectedOrder(row)} onDelete={setup}/>
+                  <Row key={row.id} row={row} onEdit={(row) => setSelectedOrder(row)} onDelete={setup} />
                 ))
               ) : (
                 <TableRow>
@@ -460,10 +468,11 @@ export default function CollapsibleTable() {
 
       <OrderCreateModal
         open={createModal}
-        onClose={()=>{
+        onClose={() => {
           setCreateModal(false);
           setup()
         }}
+        oficinas={oficinas}
         users={users}
         vehicles={vehicles}
         centers={maintenanceCenter}

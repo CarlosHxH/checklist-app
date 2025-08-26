@@ -71,7 +71,7 @@ export default function OrderPage() {
 
           <Box>
             <Typography variant="subtitle2">Data de Entrada</Typography>
-            <Typography>{formatDate(order.entryDate)}</Typography>
+            <Typography>{order?.startedData.toLocaleString()}</Typography>
           </Box>
 
           <Box>
@@ -83,10 +83,10 @@ export default function OrderPage() {
             />
           </Box>
 
-          {order.isCompleted && order.completionDate && (
+          {order.isCompleted && order.finishedData && (
             <Box>
               <Typography variant="subtitle2">Data de Conclusão</Typography>
-              <Typography>{formatDate(order.completionDate)}</Typography>
+              <Typography>{order?.finishedData.toLocaleString()}</Typography>
             </Box>
           )}
         </Box>
@@ -116,7 +116,7 @@ export default function OrderPage() {
 
           <Box>
             <Typography variant="subtitle2">Local</Typography>
-            <Typography>{order.destination}</Typography>
+            <Typography>{order.oficinaId}</Typography>
           </Box>
         </Box>
       </Paper>

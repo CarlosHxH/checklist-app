@@ -17,7 +17,6 @@ interface OptionType {
     inputValue?: string;
     name: string;
     id?: string | number | undefined;
-    //[key: string]: string;
 }
 
 
@@ -49,7 +48,7 @@ export default function FreeSoloCreateOption(props: FreeSoloCreateOptionProps) {
 
     return (
         <Autocomplete
-            sx={{ width: '100%', mt: 2 }}
+            sx={{ width: '100%'}}
             freeSolo
             fullWidth
             value={value}
@@ -57,13 +56,13 @@ export default function FreeSoloCreateOption(props: FreeSoloCreateOptionProps) {
             filterOptions={(options, params) => {
                 const filtered = filter(options, params);
                 const { inputValue } = params;
-                
+                const newInputValue = inputValue.toUpperCase();
                 // Suggest creation of a new value
-                const isExisting = options.some(option => inputValue === option.name);
-                if (inputValue !== '' && !isExisting) {
+                const isExisting = options.some(option => newInputValue === option.name);
+                if (newInputValue !== '' && !isExisting) {
                     filtered.push({
-                        inputValue,
-                        name: `Add "${inputValue}"`,
+                        inputValue: newInputValue,
+                        name: `Add "${newInputValue}"`,
                     });
                 }
                 return filtered;

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ThemeProvider } from "@mui/material";
 import "./globals.css";
+import MyDatePicker from "@/components/MyDatePicker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +61,9 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider theme={{}}>
-          <SessionProvider session={session}>{children}</SessionProvider>
+          <MyDatePicker>
+            <SessionProvider session={session}>{children}</SessionProvider>
+          </MyDatePicker>
         </ThemeProvider>
       </body>
     </html>

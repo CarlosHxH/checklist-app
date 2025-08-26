@@ -25,31 +25,18 @@ import { formattedDate } from '@/lib/formatDate';
 import axios from 'axios';
 import GroupRadio from '@/components/_ui/GroupRadio';
 import { MaintenanceCenter } from './actions';
-import { user, vehicle } from '@prisma/client';
+import { Oficina, user, vehicle } from '@prisma/client';
 import Swal from 'sweetalert2';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-/*
-interface FormData {
-  userId: string;
-  vehicleId: string;
-  kilometer: number;
-  destination: string;
-  entryDate: string;
-  completionDate: string;
-  maintenanceType: string;
-  maintenanceCenter: string;
-  serviceDescriptions: string;
-  osNumber?: string;
-}
-*/
+
 const formSchema = z.object({
   userId: z.string(),
   vehicleId: z.string().min(1),
   kilometer: z.number().min(2),
-  destination: z.string().min(3),
-  entryDate: z.string().min(16),
-  completionDate: z.string().optional().nullable(),
+  oficina: z.string().min(3),
+  startedData: z.string().min(16),
+  finishedData: z.string().optional().nullable(),
   maintenanceType: z.string().min(3),
   maintenanceCenter: z.string().min(3),
   serviceDescriptions: z.string().min(3),
@@ -62,6 +49,7 @@ interface OrderCreateModalProps {
   users: user[];
   vehicles: vehicle[];
   centers: MaintenanceCenter[];
+  oficinas: Oficina[];
   onSuccess?: () => void;
 }
 
@@ -71,12 +59,13 @@ export default function OrderCreateModal({
   users = [],
   vehicles = [],
   centers = [],
+  oficinas = [],
   onSuccess
 }: OrderCreateModalProps) {
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { control, setValue, handleSubmit, register, reset, formState: { errors }} = useForm<FormData>({
+  const { control, setValue, handleSubmit, register, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema)
   });
 
@@ -90,9 +79,9 @@ export default function OrderCreateModal({
     if (open) {
       reset({
         userId: session?.user?.id || '',
-        entryDate: formattedDate,
+        startedData: formattedDate,
         kilometer: undefined,
-        destination: '',
+        oficina: '',
         maintenanceType: '',
         maintenanceCenter: '',
         serviceDescriptions: '',
@@ -104,10 +93,7 @@ export default function OrderCreateModal({
   const onSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post('/api/v1/orders', {
-        ...formData,
-        isCompleted: !!formData.completionDate
-      });
+      const response = await axios.post('/api/v1/orders', { ...formData, isCompleted: !!formData.finishedData });
       onSuccess?.();
       handleClose();
     } catch (error) {
@@ -172,13 +158,11 @@ export default function OrderCreateModal({
                   <TextField
                     fullWidth
                     type='datetime-local'
-                    {...register('entryDate', { required: 'Data de entrada é obrigatória' })}
+                    {...register('startedData', { required: 'Data de entrada é obrigatória' })}
                     label="DATA DE ENTRADA"
-                    slotProps={{
-                      inputLabel:{shrink: true}
-                    }}
-                    error={!!errors.entryDate}
-                    helperText={errors.entryDate?.message}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    error={!!errors.startedData}
+                    helperText={errors.startedData?.message}
                   />
                 </Grid>
 
@@ -186,11 +170,11 @@ export default function OrderCreateModal({
                   <TextField
                     fullWidth
                     type='datetime-local'
-                    {...register('completionDate')}
+                    {...register('finishedData')}
                     label="DATA DE FINALIZAÇÃO"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.completionDate}
-                    helperText={errors.completionDate?.message}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    error={!!errors.finishedData}
+                    helperText={errors.finishedData?.message}
                   />
                 </Grid>
 
@@ -267,12 +251,13 @@ export default function OrderCreateModal({
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    {...register('destination', { required: 'Destino é obrigatório' })}
-                    label="DESTINO/OFICINA"
-                    error={!!errors.destination}
-                    helperText={errors.destination?.message}
+                  <FreeSoloCreateOption
+                    label="OFICINA"
+                    options={oficinas}
+                    onChange={(item) => {
+                      const value = typeof item === 'string' ? item : item?.name || '';
+                      setValue('oficina', value.toUpperCase());
+                    }}
                   />
                 </Grid>
 
