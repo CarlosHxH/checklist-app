@@ -1,133 +1,141 @@
 "use client"
 import React from 'react';
-import {
-  DataGrid, GridColDef, GridToolbar,
-  GridRowParams, GridToolbarQuickFilter, GridToolbarContainer,
-  GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarExport
-} from '@mui/x-data-grid';
-import { Box, Button,  Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { DataGrid, GridActionsCellItem, GridColDef, GridEventListener, GridRowEditStopReasons, GridRowId, GridRowModesModel } from '@mui/x-data-grid';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/ultils';
 import UserModal, { UserFormData } from './Forms';
 import axios from 'axios';
-import VerticalActions from '@/components/_ui/VerticalActions';
+import CustomToolbar from '@/components/CustomToolbar';
+import { PageContainer } from '@toolpad/core/PageContainer';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import Swal from 'sweetalert2';
 
 const UserDataGrid: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { data: users, isLoading, mutate } = useSWR<UserFormData[]>('/api/v1/dashboard/users', fetcher);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState(null);
-  const [paginationModel, setPaginationModel] = React.useState({ pageSize: 10, page: 0 });
+  const [selectedUser, setSelectedUser] = React.useState<UserFormData|null>(null);
+  const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
+  const { data: rows, isLoading, mutate } = useSWR<UserFormData[]>('/api/v1/dashboard/users', fetcher);
 
-  const handleDelete = (id: string) => {
-    if (users) {
-      if (confirm(`Temcerteza que deseja deletar o usuário: ${users.filter(user => user.id === id)[0]?.name}`)) {
-        axios.delete(`/api/v1/dashboard/users/${id}`)
-          .then(function (res) {
-            mutate();
-          })
-          .catch(function (error) {
-            alert(error.response.data);
-          });
-      }
-    }
-  };
 
-  const role = {
-    ADMIN: 'ADMIN',
-    USER: 'USUARIO',
-    DRIVER: 'MOTORISTA'
-  }
   // Column definitions
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'NOME', flex: isMobile ? 2 : 3, minWidth: 90, valueFormatter: (v) => (v as string).toUpperCase() },
-    { field: 'username', headerName: 'USUARIO', flex: isMobile ? 1 : 0.8, minWidth: 100 },
-    { field: 'role', headerName: 'PERFIL', flex: 1, minWidth: 80, valueFormatter: (v) => role[v]},
-    { field: 'isActive', headerName: 'STATUS', flex: isMobile ? 1 : 2, type: 'singleSelect', valueOptions: ['active', 'inactive'],
-      renderCell: (params) => <>{params.value ? <CheckIcon color='success' /> : <CloseIcon color='error' />}</>,
+    {field: 'name',headerName: 'NOME',flex: isMobile ? 2 : 3,minWidth: 90},
+    {field: 'username',headerName: 'USUÁRIO',flex: isMobile ? 1 : 0.8,minWidth: 100},
+    {field: 'role',headerName: 'PERFIL',flex: 1,minWidth: 80,
+      renderCell: ({ value }) => (
+        <Box>{value==="ADMIN"?"ADMIN":value==="USER"?"USUÁRIO":"MOTORISTA"}</Box>
+      )
     },
-    { field: 'actions', type: 'actions', headerName: 'AÇÕES', flex: 1, minWidth: 70,
-      getActions: ({ row }: GridRowParams) => [
-        <VerticalActions key={row.id as string}
-          isMobile={isMobile}
-          params={row}
-          handleEdit={() => {
-            setSelectedUser(row);
-            setIsModalOpen(true);
-          }}
-          handleDelete={handleDelete} />
-      ]
+    {field: 'password',headerName: 'Senha',flex: 0.8,minWidth: 100,
+      renderCell: ({ value }) => (<Box>{"********"}</Box>)},
+    {field: 'isActive',headerName: 'STATUS',flex: isMobile ? 1 : 2, type: 'boolean',
+      renderCell: ({value}) => (
+        <Box>{value ? (<CheckIcon color='success' />) : (<CloseIcon color='error' />)}</Box>
+      )
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'AÇÕES',
+      flex: 1,
+      minWidth: 70,
+      getActions: ({ id, row }) => {
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id,row)}
+            color="inherit"
+          />,
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />,
+        ];
+      },
     }
   ];
 
-  function CustomToolbar() {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarExport printOptions={{disableToolbarButton:true}} csvOptions={{ allColumns: true }} slotProps={{ tooltip: { title: '', sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
-        <Box sx={{ flexGrow: 1 }} />
-        <Stack direction="row" spacing={2} alignItems={'center'}>
-          <GridToolbarQuickFilter variant="outlined" size="small" />
-          <Button onClick={() => setIsModalOpen(true)} variant="contained" size='large' color="primary">Novo</Button>
-        </Stack>
-      </GridToolbarContainer>
-    );
-  }
 
-  const xs = isMobile ? { year: false, eixo: false, model: false } : null
+  const handleEditClick = (id: GridRowId, row: UserFormData) => () => {
+    setSelectedUser(row)
+    setIsModalOpen(true)
+  };
+  const handleDeleteClick = (id: GridRowId) => () => {
+    const user = rows?.find((row)=>row.id === id)
+    Swal.fire({
+      title: "Tem certeza?",
+      text: "Você não será capaz de reverter isso!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sim, exclua!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        axios.delete(`/api/v1/dashboard/users/${id}`)
+          .then(function (res) {
+            Swal.fire({title: "Excluída!",text: "Excluido com sucesso!",icon: "success"});
+          }).catch(function (error) {alert(error.response.data)});
+      }
+    });
+  };
+  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
+    setRowModesModel(newRowModesModel);
+  };
+  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
+    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+      event.defaultMuiPrevented = true;
+    }
+  };
+
   return (
-    <Box sx={{ height: 'auto', width: '100%', p:4 }}>
-      <Typography variant='h5' mb={2}>Painel de Usuários</Typography>
-      <DataGrid
-        rows={users}
-        columns={columns}
-        loading={isLoading}
-        pagination
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        disableRowSelectionOnClick
-        slots={{ toolbar: CustomToolbar || GridToolbar }}
-        localeText={{
-          toolbarColumns: "",
-          toolbarFilters: "",
-          toolbarExport: "",
-          toolbarDensity: "",
-        }}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 10 },
-          },
-          columns: {
-            columnVisibilityModel: { ...xs },
-          },
-        }}
-        density="standard"
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            quickFilterProps: { debounceMs: 500 },
-          },
-        }}
-        sx={{
-          '& .status-active': { color: 'green', fontWeight: 'bold' },
-          '& .status-inactive': { color: 'red', fontWeight: 'bold' }
-        }}
-      />
+    <PageContainer title='Usuários'>
+      <Box sx={{ height: '70vh', width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          disableRowSelectionOnClick
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          loading={isLoading}
+          slots={{ toolbar: CustomToolbar }}
+          slotProps={{
+            toolbar: {
+              title:"Usuários",
+              onClick: () => {
+                setIsModalOpen(true)
+              }
+            },
+          }}
+          showToolbar
+        />
 
-      <UserModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedUser(null);
-        }}
-        user={selectedUser}
-        onSubmit={async () => { await mutate() }}
-      />
-    </Box>
+        <UserModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+          onSubmit={async () => {
+            await mutate();
+            setIsModalOpen(false);
+            setSelectedUser(null);
+          }}
+        />
+      </Box>
+    </PageContainer>
   );
 };
 

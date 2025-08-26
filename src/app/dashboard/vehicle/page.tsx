@@ -11,6 +11,8 @@ import { fetcher } from '@/lib/ultils';
 import axios from 'axios';
 import VehicleModal, { vehicleFormData } from './Forms';
 import VerticalActions from '@/components/_ui/VerticalActions';
+import CustomToolbar from '@/components/CustomToolbar';
+import { PageContainer } from '@toolpad/core/PageContainer';
 
 // Vechicle interface definition
 const VechicleDataGrid: React.FC = () => {
@@ -42,42 +44,33 @@ const VechicleDataGrid: React.FC = () => {
     { field: 'plate', headerName: 'PLACA', flex: isMobile ? 1 : 2, minWidth: 80 },
     { field: 'model', headerName: 'MODELO', flex: isMobile ? 1 : 0.8, maxWidth: 100 },
     { field: 'year', headerName: 'ANO', flex: isMobile ? 1 : 0.8, maxWidth: 60 },
-    { field: 'eixo', headerName: 'EIXOS', flex: isMobile ? 1 : 0.8, maxWidth: 80, valueFormatter: (v) => isMobile ? v : ['DIANTEIRA', 'TRAÇÃO', 'TRUCK', '4° Eixo'][--v] },
-    { field: 'tacografo', headerName: 'TACOGRAFO', flex: isMobile ? 1 : 0.8, maxWidth: 120, valueFormatter: (v) => v ? "SIM" : "NÃO" },
-    { field: 'cidadeBase', headerName: 'BASE', flex: 1, maxWidth: 180 },
     {
-      field: 'actions', type: 'actions', headerName: 'Ações', flex: 1, maxWidth: 70,
+      field: 'eixo', headerName: 'EIXOS', flex: isMobile ? 1 : 0.8, maxWidth: 80,
+      renderCell: ({ value }) => (
+        <Box>{value == 1 ? 'DIANTEIRA' : value == 2 ? 'TRAÇÃO' : value == 3 ? 'TRUCK' : '4° Eixo'}</Box>
+      )
+    },
+    { field: 'tacografo', headerName: 'TACOGRAFO', flex: isMobile ? 1 : 0.8, maxWidth: 120, type: 'boolean' },
+    { field: 'cidadeBase', headerName: 'BASE', flex: 1, maxWidth: 180,
+      renderCell: ({ value }) => (
+        <Box>{value || "NÃO"}</Box>
+      )
+     },
+    {
+      field: 'actions', headerName: 'Ações', type: 'actions', flex: 1, maxWidth: 70,
       getActions: ({ row }: GridRowParams) => [
         <VerticalActions key={row.id as string}
           isMobile={isMobile}
           params={row}
-          handleEdit={() => {
-            setSelected(row);
-            setIsModalOpen(true);
-          }}
+          handleEdit={() => { setSelected(row); setIsModalOpen(true) }}
           handleDelete={handleDelete} />
       ]
     }
   ];
 
-  function CustomToolbar() {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarExport slotProps={{ tooltip: { sx: { width: 100 } }, button: { sx: { width: 50 } } }} />
-        <Box sx={{ flexGrow: 1 }} />
-        <Stack direction="row" spacing={2} alignItems={'center'}>
-          <GridToolbarQuickFilter variant="outlined" size="small" />
-          <Button onClick={() => setIsModalOpen(true)} variant="contained" size='large' color="primary">Novo</Button>
-        </Stack>
-      </GridToolbarContainer>
-    );
-  }
-
-  const xs = isMobile ? { year: false, eixo: false, model: false } : null
   return (
-    <Box sx={{ height: 'auto', width: '100%' }}>
+    <PageContainer>
+    <Box sx={{ height: '70vh', width: '100%','.booleanCellTrueIcon': {color:"red"}, }}>
       <DataGrid
         rows={vehicles}
         columns={columns}
@@ -87,28 +80,20 @@ const VechicleDataGrid: React.FC = () => {
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         disableRowSelectionOnClick
-        slots={{ toolbar: CustomToolbar || GridToolbar }}
-        localeText={{
-          toolbarColumns: "",
-          toolbarFilters: "",
-          toolbarExport: "",
-          toolbarDensity: ""
-        }}
-        autoHeight
-        density="standard"
+        slots={{ toolbar: CustomToolbar }}
         slotProps={{
           toolbar: {
+            title: "Veiculos",
             showQuickFilter: true,
             quickFilterProps: { debounceMs: 500 },
+            onClick: () => setIsModalOpen(true)
           },
         }}
+        showToolbar
         initialState={{
           pagination: {
             paginationModel: { pageSize: 10 },
-          },
-          columns: {
-            columnVisibilityModel: { ...xs },
-          },
+          }
         }}
       />
 
@@ -123,6 +108,7 @@ const VechicleDataGrid: React.FC = () => {
       />
 
     </Box>
+    </PageContainer>
   );
 };
 

@@ -58,7 +58,6 @@ export default function OrderEditPage() {
   const onSubmit = (formData: FormData) => {
     axios.put(`/api/v1/orders/${id}`, formData)
       .then(response => {
-        console.log(response.data);
         router.push('/');
       })
       .catch(error => {
@@ -120,7 +119,6 @@ export default function OrderEditPage() {
                   fullWidth
                   sx={{ width: { xs: '100%', sm: '365px' } }}
                   type='datetime-local'
-                  value={formattedDate}
                   {...register('completionDate', { required: 'Completion date is required' })}
                   label="FINALIZAÇÃO"
                   InputLabelProps={{ shrink: true }}
