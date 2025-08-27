@@ -37,7 +37,7 @@ export const getOrders = async (id: string): Promise<OrderWithRelations[]> => {
             veiculo: item.vehicle.plate+item.vehicle.plate,
             oficinas: item.vehicle.plate,
             center: item.maintenanceCenter.name,
-            veiculos: `${item.vehicle.plate+item.vehicle.plate}`,
+            veiculos: `${item.vehicle.plate+" - "+item.vehicle.model}`,
             ...item,
         }))
         return newOrders as unknown as OrderWithRelations[];

@@ -53,7 +53,7 @@ const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
         <Grid container spacing={2} textAlign={"center"}>
           <Grid item xs={12} display={'flex'} justifyContent={'space-between'}>
             <Typography variant="body2">
-              {/*formatDate(order.startedData)} - {formatDate(order?.finishedData||'')*/}
+              {order.startedData.toLocaleString()} - { order?.finishedData?.toLocaleString()}
             </Typography>
 
           </Grid>

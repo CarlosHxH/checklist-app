@@ -1,12 +1,7 @@
 // Actions
 "use server";
 import { prisma } from '@/lib/prisma';
-import { Oficina, Order, user, vehicle } from '@prisma/client';
-
-export interface MaintenanceCenter {
-    id: number;
-    name: string;
-}
+import { MaintenanceCenter, Oficina, Order, user, vehicle } from '@prisma/client';
 
 interface User {
     id: string;
@@ -105,12 +100,8 @@ export async function deleteOrder(os:string) {
 
 export const getOrdersById = async (osNumber: string): Promise<EditType> => {
     try {
-        const centers = await prisma.maintenanceCenter.findMany({
-            select: {id:true,name:true}
-        });
-
+        const centers = await prisma.maintenanceCenter.findMany();
         const oficinas = await prisma.oficina.findMany();
-
         const orders = await prisma.order.findUnique({
             where: { osNumber: osNumber },
             include: {
@@ -124,9 +115,7 @@ export const getOrdersById = async (osNumber: string): Promise<EditType> => {
                         model: true
                     }
                 },
-                maintenanceCenter: {
-                    select: {id:true,name:true}
-                },
+                maintenanceCenter: true,
                 oficina: {select: {id:true,name:true}}
             }
         });

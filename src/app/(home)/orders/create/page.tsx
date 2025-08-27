@@ -74,7 +74,7 @@ export default function OrderPage() {
       axios.post('/api/v1/orders', validatedData)
         .then(res => {
           console.log(res.data);
-          router.push('/');
+          router.push('/orders');
         })
         .catch(error => {
           console.error('Error:', error.message);

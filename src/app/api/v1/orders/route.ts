@@ -50,13 +50,6 @@ export async function POST(request: NextRequest) {
             update: {}
         });
         
-        console.log({
-            ...data,
-            oficinaId: oficinaRecord.id,
-            maintenanceCenterId: maintenanceCenterRecord.id,
-            startedData: dateObject
-        });
-        
         const datas = await prisma.order.create({
             data: {
                 ...data,

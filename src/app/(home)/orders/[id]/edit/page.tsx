@@ -2,7 +2,6 @@
 import Box from '@mui/material/Box';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
 import { Button, Card, Container, Divider, Grid, TextField, Typography } from '@mui/material';
-import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { useEffect } from 'react';
@@ -64,7 +63,6 @@ export default function OrderEditPage() {
   const { data, isLoading, error: errors } = useSWR<OrderData>(`/api/v1/orders/${id}`, fetcher);
   const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>();
 
-
   useEffect(() => {
     if (data) {
       reset({
@@ -81,12 +79,16 @@ export default function OrderEditPage() {
   }, [data, reset, setValue]);
 
   const onSubmit = (formData: FormData) => {
-    axios.put(`/api/v1/orders/${id}`, formData).then(() => router.push('/')).catch(error => {
+    axios.put(`/api/v1/orders/${id}`, formData).then(() => router.push('/orders')).catch(error => {
         console.error('Error updating order:', error);
     });
   };
 
   if (isLoading) return <Loading />;
+  if(data?.finishedData){
+    router.replace("/orders");
+    return <></>
+  }
 
   const maintenanceOptions = [
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },

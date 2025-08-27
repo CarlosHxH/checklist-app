@@ -60,7 +60,7 @@ const StyledTextField = styled(TextField)<{
     transition: theme.transitions.create(['width', 'opacity']),
 }));
 
-export default function CustomToolbar(props: GridSlotProps['toolbar']) {
+export default function Custombar(props: GridSlotProps['toolbar']) {
     const { onClick } = props;
     const apiRef = useGridApiContext();
     const newPanelTriggerRef = React.useRef<HTMLButtonElement>(null);

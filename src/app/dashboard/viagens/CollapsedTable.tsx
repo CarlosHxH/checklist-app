@@ -15,7 +15,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import useSWR from 'swr';
 import { fetcher, formatDate } from '@/lib/ultils';
 import Loading from '@/components/Loading';
-import { Delete, Visibility } from '@mui/icons-material';
+import { Delete, FileDownload, Visibility } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import StatusUpdateModal from './Modal';
 import { useInspectionUpdate } from '@/hooks/useInspectionUpdate';
@@ -517,6 +517,7 @@ export default function CollapsibleTable() {
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
+              size='small'
               label="Buscar"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -533,7 +534,7 @@ export default function CollapsibleTable() {
           </Grid>
           <Grid item xs={12} md={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl sx={{ minWidth: 140 }}>
+              <FormControl size='small' sx={{ flex:1 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
                 <Select
                   labelId="responsavel-filter-label"
@@ -549,7 +550,7 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
 
-              <FormControl sx={{ minWidth: 120 }}>
+              <FormControl size='small' sx={{ minWidth: 120 }}>
                 <InputLabel id="responsavel-filter-label">Placa</InputLabel>
                 <Select
                   labelId="responsavel-filter-label"
@@ -565,7 +566,7 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
 
-              <FormControl sx={{ minWidth: 120 }}>
+              <FormControl size='small' sx={{ minWidth: 120 }}>
                 <InputLabel id="periodo-filter-label">Período</InputLabel>
                 <Select
                   labelId="periodo-filter-label"
@@ -581,7 +582,7 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
 
-              <FormControl sx={{ minWidth: 100 }}>
+              <FormControl size='small' sx={{ minWidth: 100 }}>
                 <InputLabel id="status-filter-label">Status</InputLabel>
                 <Select
                   labelId="status-filter-label"
@@ -600,8 +601,8 @@ export default function CollapsibleTable() {
                   <MenuItem value="problemas">Com problemas</MenuItem>
                 </Select>
               </FormControl>
-              <Button fullWidth sx={{ minWidth: 90 }} variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
-                Exportar
+              <Button variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
+                <FileDownload/>
               </Button>
             </Stack>
           </Grid>
