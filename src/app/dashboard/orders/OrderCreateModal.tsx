@@ -244,7 +244,7 @@ export default function OrderCreateModal({
                     fullWidth
                     type='number'
                     label="QUILOMETRAGEM ATUAL"
-                    inputProps={{ min: 0 }}
+                    inputProps={{ min: 0, max:999999999 }}
                     error={!!errors.kilometer}
                     helperText={errors.kilometer?.message}
                   />

@@ -16,10 +16,10 @@ import { Add, Delete, Edit } from '@mui/icons-material';
 import { getOrders, OrderWithRelations, MaintenanceCenter, deleteOrder } from './actions';
 import { dateDiff, today } from '@/lib/ultils';
 import { Oficina, user, vehicle } from '@prisma/client';
-import OrderEditModal from './OrderEditModal';
 import Swal from 'sweetalert2';
 import OrderCreateModal from './OrderCreateModal';
 import CsvDownloadButton from 'react-json-to-csv'
+import OrderEditModal from './OrderEditModal';
 
 function newDate(dataString: string) {
   const data = new Date(dataString);
@@ -459,11 +459,26 @@ export default function CollapsibleTable() {
       </Box>
 
       {/* Modal de Edição */}
-      <OrderEditModal
+      {/*<OrderEditModal
         open={selectedOrder !== null}
         onClose={() => setSelectedOrder(null)}
-        orderData={selectedOrder}
         onSuccess={handleEditSuccess}
+        orderData={selectedOrder}
+        oficinas={oficinas}
+        vehicles={vehicles}
+        centers={maintenanceCenter}
+      />*/}
+      <OrderEditModal
+        open={selectedOrder !== null}
+        onClose={() =>{
+          setSelectedOrder(null)
+          setup();
+        }}
+        orderData={selectedOrder}
+        users={users}
+        oficinas={oficinas}
+        vehicles={vehicles}
+        centers={maintenanceCenter}
       />
 
       <OrderCreateModal
@@ -472,8 +487,8 @@ export default function CollapsibleTable() {
           setCreateModal(false);
           setup()
         }}
-        oficinas={oficinas}
         users={users}
+        oficinas={oficinas}
         vehicles={vehicles}
         centers={maintenanceCenter}
       />

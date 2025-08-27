@@ -111,7 +111,7 @@ const Page: React.FC = () => {
       if (response.data.success) {
         setSubmitSuccess(true);
         setTimeout(() => {
-          router.replace('/');
+          router.replace('/viagem');
         }, 300);
       } else {
         throw new Error(response.data.error || 'Erro ao salvar VIAGEM');

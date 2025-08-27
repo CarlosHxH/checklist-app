@@ -27,6 +27,25 @@ export function dateDiff(dataInicial: string, dataFinal?: string|null) {
   }
 }
 
+// Helper function to format date for datetime-local input
+export const formatDateForInput = (date: Date | string | null): string => {
+  if (!date) return '';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return '';
+  
+  // Format to YYYY-MM-DDTHH:MM (required for datetime-local)
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const fakeArray = (value: number) =>
   Array.from({ length: value }, (_, i) => i + 1);

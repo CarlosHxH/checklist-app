@@ -96,7 +96,7 @@ const InspectionForm: React.FC = () => {
         throw new Error('Falha ao criar inspeção');
       }
       //const result = await response.json();
-      router.replace('/');
+      router.replace('/inspecao');
     } catch (error) {
       console.error('Erro ao enviar os dados:', error);
       alert('Erro ao criar a inspeção!');

@@ -1,63 +1,35 @@
 "use client";
 import Box from '@mui/material/Box';
-import { 
-  Button, 
-  Card, 
+import {
+  Button,
+  Card,
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider, 
-  Grid, 
-  TextField, 
+  Divider,
+  Grid,
+  TextField,
   Typography,
   IconButton,
-  Skeleton
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useForm } from 'react-hook-form';
-import { useEffect, memo, useCallback, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
+import { useForm, Controller } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import FreeSoloCreateOption from '@/components/FreeSoloCreateOption';
+import { formattedDate } from '@/lib/formatDate';
 import axios from 'axios';
 import GroupRadio from '@/components/_ui/GroupRadio';
-import { OrderWithRelations } from './actions';
-import useSWR from 'swr';
+import { MaintenanceCenter, OrderWithRelations } from './actions';
+import { Oficina, user, vehicle } from '@prisma/client';
+import Swal from 'sweetalert2';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Swal from 'sweetalert2';
-import { fetcher } from '@/lib/ultils';
-
-
-
-interface Vehicle {
-  id: string;
-  plate: string;
-  model: string;
-}
-
-interface MaintenanceCenter {
-  id: number;
-  name: string;
-}
-
-interface Oficina {
-  id: number;
-  name: string;
-}
-
-interface OrderData {
-  id: number;
-  userId: string;
-  vehicleId: string;
-  kilometer: number;
-  oficinaId: number;
-  finishedData: string | null;
-  maintenanceType: string;
-  maintenanceCenterId: number;
-  serviceDescriptions: string;
-  vehicle: Vehicle;
-  oficina: Oficina;
-  maintenanceCenter: MaintenanceCenter;
-}
+import { formatDateForInput } from '@/lib/ultils';
 
 const formSchema = z.object({
   userId: z.string(),
@@ -69,172 +41,94 @@ const formSchema = z.object({
   maintenanceType: z.string().min(3),
   maintenanceCenter: z.string().min(3),
   serviceDescriptions: z.string().min(3),
-});
-
+})
 type FormData = z.infer<typeof formSchema>;
 
 interface OrderEditModalProps {
-  id: string;
   open: boolean;
   onClose: () => void;
   orderData: OrderWithRelations | null;
+  users: user[];
+  vehicles: vehicle[];
+  centers: MaintenanceCenter[];
+  oficinas: Oficina[];
   onSuccess?: () => void;
 }
 
-// Helper function otimizada para formato de data
-const formatDateForInput = (date: Date | string | null): string => {
-  if (!date) return '';
-  
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
-    if (isNaN(dateObj.getTime())) return '';
-    
-    return dateObj.toISOString().slice(0, 16);
-  } catch {
-    return '';
-  }
-};
+export default function OrderEditModal({
+  open,
+  onClose,
+  orderData,
+  users = [],
+  vehicles = [],
+  centers = [],
+  oficinas = [],
+  onSuccess
+}: OrderEditModalProps) {
+  const { data: session } = useSession();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-// Componente de loading do modal
-const ModalSkeleton = memo(() => (
-  <DialogContent dividers>
-    <Grid container spacing={2}>
-      {Array.from({ length: 8 }).map((_, index) => (
-        <Grid item xs={12} sm={index < 2 ? 6 : 12} key={index}>
-          <Skeleton variant="rectangular" height={56} />
-        </Grid>
-      ))}
-    </Grid>
-  </DialogContent>
-));
-
-ModalSkeleton.displayName = 'ModalSkeleton';
-
-function OrderEditModal({ open, onClose, orderData, onSuccess, id }: OrderEditModalProps) {
-
-  const { data, isLoading, mutate, error } = useSWR<OrderData>(`/api/v1/orders/${id}`, fetcher);
-  console.log(data);
-  
-/*
-  // SWR com configurações otimizadas
-  const { data, isLoading, error, mutate } = useSWR(
-    orderData && open ? orderData.osNumber : null, 
-    getOrdersById,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // 1 minuto
-      errorRetryCount: 1,
-    }
-  );*/
-
-  // Form com resolver otimizado
-  const { 
-    control, 
-    setValue, 
-    handleSubmit, 
-    register, 
-    reset, 
-    formState: { isSubmitting, errors: formErrors } 
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    mode: 'onChange',
+  const { control, setValue, handleSubmit, register, reset, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(formSchema)
   });
 
-  // Dados memoizados
-  const { centers, order, oficinas } = useMemo(() => ({
-    centers: data?.centers || [],
-    order: data?.orders || orderData,
-    oficinas: data?.oficinas || []
-  }), [data, orderData]);
-
-  const maintenanceOptions = useMemo(() => [
-    { value: 'PREVENTIVA', label: 'PREVENTIVA' },
-    { value: 'CORRETIVA', label: 'CORRETIVA' }
-  ], []);
-
-  // Efeito otimizado para reset do form
   useEffect(() => {
-    if (!order || !open) return;
+    if (session?.user?.id) {
+      setValue('userId', session.user.id);
+    }
+  }, [session, setValue]);
 
-    const formData = {
-      userId: order.userId,
-      vehicleId: order.vehicleId,
-      kilometer: order.kilometer,
-      oficina: order.oficina?.name || '',
-      startedData: formatDateForInput(order.startedData),
-      finishedData: formatDateForInput(order.finishedData),
-      maintenanceType: order.maintenanceType || '',
-      maintenanceCenter: order.maintenanceCenter?.name || '',
-      serviceDescriptions: order.serviceDescriptions || ''
-    };
-    
-    reset(formData);
-  }, [order, open, reset]);
-
-  // Callback otimizado para submit
-  const onSubmit = useCallback(async (formData: FormData) => {
-    if (!order?.osNumber) return;
-    
-    try {
-      const submitData = {
-        ...formData,
-        finishedData: formData.finishedData || null
-      };
-      
-      await axios.put(`/api/v1/orders/${order.osNumber}`, submitData);
-      
-      // Revalidar dados
-      mutate();
-      
-      await Swal.fire({
-        icon: "success",
-        title: "Sucesso!",
-        text: "Ordem de serviço atualizada com sucesso!",
-        timer: 1500,
-        showConfirmButton: false
-      });
-      
-      onSuccess?.();
-      onClose();
-      reset();
-    } catch (error: any) {
-      console.error('Erro ao atualizar ordem:', error);
-      
-      await Swal.fire({
-        icon: "error",
-        title: "Erro!",
-        text: "Erro ao atualizar ordem de serviço",
-        footer: `<em>${error?.response?.data?.details || error?.message || "Erro interno!"}</em>`
+  useEffect(() => {
+    if (open) {
+      reset({
+        userId: orderData?.user?.id || '',
+        startedData: formatDateForInput(orderData?.startedData||"")||"",
+        finishedData: formatDateForInput(orderData?.finishedData||"")||"",
+        kilometer: orderData?.kilometer,
+        oficina: orderData?.oficina.name,
+        maintenanceType: orderData?.maintenanceType||"",
+        maintenanceCenter: orderData?.maintenanceCenter.name,
+        serviceDescriptions: orderData?.serviceDescriptions||"",
+        vehicleId: orderData?.vehicleId
       });
     }
-  }, [order?.osNumber, mutate, onSuccess, onClose, reset]);
+  }, [open, orderData, reset]);
 
-  // Callback otimizado para fechar
-  const handleClose = useCallback(() => {
+  const onSubmit = async (formData: FormData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await axios.put(`/api/v1/orders/${orderData?.osNumber}`, { ...formData, isCompleted: !!formData.finishedData });
+      onSuccess?.();
+      handleClose();
+    } catch (error) {
+      console.error('Erro ao criar ordem:', error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Algo deu errado!",
+        footer: `<em>${error instanceof Error ? error.message : "Internal error!"}</em>`
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
     reset();
     onClose();
-  }, [reset, onClose]);
+  };
 
-  // Callbacks otimizados para mudanças
-  const handleOficinaChange = useCallback((item: any) => {
-    const value = typeof item === 'string' ? item : item?.name || '';
-    setValue('oficina', value.toUpperCase(), { shouldValidate: true });
-  }, [setValue]);
-
-  const handleMaintenanceCenterChange = useCallback((item: any) => {
-    const value = typeof item === 'string' ? item : item?.name || '';
-    setValue('maintenanceCenter', value.toUpperCase(), { shouldValidate: true });
-  }, [setValue]);
+  const maintenanceOptions = [
+    { value: 'PREVENTIVA', label: 'PREVENTIVA' },
+    { value: 'CORRETIVA', label: 'CORRETIVA' }
+  ];
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={handleClose}
       maxWidth="md"
       fullWidth
-      keepMounted={false} // Não manter montado quando fechado
       PaperProps={{
         sx: {
           maxHeight: '90vh',
@@ -242,124 +136,143 @@ function OrderEditModal({ open, onClose, orderData, onSuccess, id }: OrderEditMo
         }
       }}
     >
-      <DialogTitle sx={{ 
-        m: 0, 
-        p: 2, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between' 
-      }}>
-        <Typography variant="h6">
-          Editar Ordem de Serviço
+      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography>
+          Nova Ordem de Serviço
         </Typography>
         <IconButton
           aria-label="close"
           onClick={handleClose}
-          sx={{ color: (theme) => theme.palette.grey[500] }}
+          sx={{
+            color: (theme) => theme.palette.grey[500],
+          }}
         >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      {isLoading && <ModalSkeleton />}
-      
-      {error && (
-        <DialogContent dividers>
-          <Typography color="error" sx={{ mb: 2 }}>
-            Falha ao carregar dados da ordem: {error?.message || 'Erro desconhecido'}
-          </Typography>
-        </DialogContent>
-      )}
-      
-      {!isLoading && !error && !order && (
-        <DialogContent dividers>
-          <Typography sx={{ mb: 2 }}>Ordem não encontrada</Typography>
-        </DialogContent>
-      )}
+      <DialogContent dividers>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box component="main">
+            <Card elevation={0} sx={{ p: 4 }}>
+              <Grid container spacing={2} sx={{ alignItems: 'center' }}>
 
-      {!isLoading && !error && order && (
-        <DialogContent dividers>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Card elevation={0} sx={{ p: 1 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Box display="flex" alignItems="center">
-                    <Typography variant="inherit" fontSize={18}>
-                      Ordem de Serviço 
-                    </Typography>
-                    <Typography ml={1} fontSize={22} variant="h6" fontWeight={600}>
-                      #{String(order.id).padStart(5, '0')}
-                      {order.user?.name && ` - ${order.user.name}`}
-                    </Typography>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={4}>
-                  <TextField 
-                    disabled 
-                    fullWidth 
-                    label="Veículos" 
-                    value={`${order.vehicle?.plate || 'N/A'} - ${order.vehicle?.model || 'N/A'}`} 
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    type='datetime-local'
+                    {...register('startedData', { required: 'Data de entrada é obrigatória' })}
+                    label="DATA DE ENTRADA"
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    error={!!errors.startedData}
+                    helperText={errors.startedData?.message}
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={8}>
-                  <TextField
-                    {...register('kilometer', { valueAsNumber: true })}
-                    fullWidth
-                    type="number"
-                    label="KM"
-                    inputProps={{ min: 0 }}
-                    error={!!formErrors.kilometer}
-                    helperText={formErrors.kilometer?.message}
-                  />
-                </Grid>
-
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    type="datetime-local"
-                    {...register('startedData')}
-                    label="INÍCIO"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!formErrors.startedData}
-                    helperText={formErrors.startedData?.message}
-                  />
-                </Grid>
-
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    type="datetime-local"
+                    type='datetime-local'
                     {...register('finishedData')}
-                    label="FINALIZAÇÃO"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!formErrors.finishedData}
-                    helperText={formErrors.finishedData?.message || 'Deixe em branco se não finalizada'}
+                    label="DATA DE FINALIZAÇÃO"
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    error={!!errors.finishedData}
+                    helperText={errors.finishedData?.message}
                   />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.userId}>
+                    <InputLabel>Responsável</InputLabel>
+                    <Controller
+                      name="userId"
+                      control={control}
+                      rules={{ required: 'Responsável é obrigatório' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          label="Responsável"
+                        >
+                          {users.map((user) => (
+                            <MenuItem key={user.id} value={user.id}>
+                              {user.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.userId && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {errors.userId.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.vehicleId}>
+                    <InputLabel>Veículo</InputLabel>
+                    <Controller
+                      name="vehicleId"
+                      control={control}
+                      rules={{ required: 'Veículo é obrigatório' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          label="Veículo"
+                        >
+                          {vehicles.map((vehicle) => (
+                            <MenuItem key={vehicle.id} value={vehicle.id}>
+                              {vehicle.plate} - {vehicle.model || 'N/A'}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.vehicleId && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {errors.vehicleId.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    {...register('kilometer', {
+                      valueAsNumber: true,
+                      required: 'Quilometragem é obrigatória',
+                      min: { value: 0, message: 'Deve ser um valor positivo' },
+                      maxLength: { value: 9, message: 'Deve ser um valor positivo' }
+                    })}
+                    fullWidth
+                    type='number'
+                    label="QUILOMETRAGEM ATUAL"
+                    inputProps={{ min: 0, max:999999999 }}
+                    error={!!errors.kilometer}
+                    helperText={errors.kilometer?.message}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
                   <FreeSoloCreateOption
                     label="OFICINA"
                     options={oficinas}
-                    defaultValue={order.oficina?.name || ''}
-                    onChange={handleOficinaChange}
+                    defaultValue={orderData?.oficina.name}
+                    onChange={(item) => {
+                      const value = typeof item === 'string' ? item : item?.name || '';
+                      setValue('oficina', value.toUpperCase());
+                    }}
                   />
-                  {formErrors.oficina && (
-                    <Typography color="error" variant="caption" sx={{ ml: 2 }}>
-                      {formErrors.oficina.message}
-                    </Typography>
-                  )}
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12}>
                   <GroupRadio
                     control={control}
                     name="maintenanceType"
                     label="Tipo de Manutenção"
                     options={maintenanceOptions}
-                    error={formErrors.maintenanceType}
+                    error={errors?.maintenanceType}
                     required
                   />
                 </Grid>
@@ -368,39 +281,38 @@ function OrderEditModal({ open, onClose, orderData, onSuccess, id }: OrderEditMo
                   <FreeSoloCreateOption
                     label="CENTRO DE MANUTENÇÃO"
                     options={centers}
-                    defaultValue={order.maintenanceCenter?.name || ''}
-                    onChange={handleMaintenanceCenterChange}
+                    defaultValue={orderData?.maintenanceCenter.name}
+                    onChange={(item) => {
+                      const value = typeof item === 'string' ? item : item?.name || '';
+                      setValue('maintenanceCenter', value.toUpperCase());
+                    }}
                   />
-                  {formErrors.maintenanceCenter && (
-                    <Typography color="error" variant="caption" sx={{ ml: 2 }}>
-                      {formErrors.maintenanceCenter.message}
-                    </Typography>
-                  )}
                 </Grid>
 
                 <Grid item xs={12}>
                   <TextField
-                    {...register('serviceDescriptions')}
-                    label="DESCRIÇÃO DO SERVIÇO:"
+                    {...register('serviceDescriptions', { required: 'Descrição do serviço é obrigatória' })}
+                    label="DESCRIÇÃO DO SERVIÇO/PROBLEMA:"
                     multiline
-                    rows={4}
+                    rows={5}
                     fullWidth
-                    error={!!formErrors.serviceDescriptions}
-                    helperText={formErrors.serviceDescriptions?.message}
+                    placeholder="Descreva detalhadamente o serviço a ser realizado ou o problema identificado..."
+                    error={!!errors.serviceDescriptions}
+                    helperText={errors.serviceDescriptions?.message}
                   />
                 </Grid>
               </Grid>
-              
+
               <Divider sx={{ my: 2 }} />
-              
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
+
+              <Box sx={{
+                display: 'flex',
+                gap: 2,
                 justifyContent: 'flex-end',
                 flexDirection: { xs: 'column', sm: 'row' }
               }}>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={handleClose}
                   sx={{ minWidth: 120 }}
                   disabled={isSubmitting}
@@ -408,21 +320,19 @@ function OrderEditModal({ open, onClose, orderData, onSuccess, id }: OrderEditMo
                   Cancelar
                 </Button>
                 <Button
-                  variant="contained"
-                  type="submit"
-                  color="success"
-                  disabled={isSubmitting || isLoading}
+                  variant='contained'
+                  type='submit'
+                  color='primary'
+                  disabled={isSubmitting}
                   sx={{ minWidth: 200 }}
                 >
-                  {isSubmitting ? 'Salvando...' : 'ATUALIZAR ORDEM'}
+                  {isSubmitting ? 'Salvando...' : 'SALVAR ORDEM DE SERVIÇO'}
                 </Button>
               </Box>
             </Card>
-          </form>
-        </DialogContent>
-      )}
+          </Box>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
-
-export default memo(OrderEditModal);

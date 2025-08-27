@@ -1,12 +1,26 @@
-import Box from '@mui/material/Box';
+"use client"
+import { Container } from '@mui/material';
+import { fetcher } from '@/lib/ultils';
+import { Suspense } from 'react';
+import CustomFab from '@/components/_ui/CustomFab';
+import useSWR from 'swr';
+import Loading from '@/components/Loading';
+import VehicleInspectionCard from './CardInspecaoList';
+import { useSession } from 'next-auth/react';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
-import InspectionForm from './InspectionForm';
 
-export default function InspectionPage() {
+export default function Inspecao() {
+  const { data: session } = useSession();
+  const { data, isLoading } = useSWR(session?`/api/v1/inspecao/user/${session?.user.id}` : null, fetcher)
+  if (isLoading) return <Loading />
+
   return (
-    <div>
-      <CustomAppBar showBackButton/>
-      <Box component="main" sx={{ flex: 1 }}><InspectionForm /></Box>
-    </div>
+    <Suspense>
+      <Container maxWidth="lg">
+        <CustomAppBar showBackButton/>
+        <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
+        <VehicleInspectionCard data={data} />
+      </Container>
+    </Suspense>
   );
 }

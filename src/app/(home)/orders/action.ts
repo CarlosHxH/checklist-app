@@ -13,7 +13,12 @@ export type OrderWithRelations = Order & {
     };
     maintenanceCenter: {
         name: string;
-    }
+    },
+    oficina: {
+        name: string;
+    },
+    oficinas: string;
+    veiculos: string;
 };
 
 export const getOrders = async (id: string): Promise<OrderWithRelations[]> => {
@@ -21,22 +26,21 @@ export const getOrders = async (id: string): Promise<OrderWithRelations[]> => {
         const orders = await prisma.order.findMany({
             where: { userId: id },
             include: {
-                user: {
-                    select: {
-                        name: true,
-                        username: true,
-                    }
-                },
-                vehicle: {
-                    select: {
-                        plate: true,
-                        model: true
-                    }
-                },
+                user: {select: {name: true,username: true}},
+                vehicle: {select: {plate: true, model: true}},
+                oficina: {select: { name: true}},
+                maintenanceCenter: {select: { name: true}},
             },
             orderBy: {createdAt: 'desc'}
         });
-        return orders as OrderWithRelations[];
+        const newOrders = orders.map(item=>({
+            veiculo: item.vehicle.plate+item.vehicle.plate,
+            oficinas: item.vehicle.plate,
+            center: item.maintenanceCenter.name,
+            veiculos: `${item.vehicle.plate+item.vehicle.plate}`,
+            ...item,
+        }))
+        return newOrders as unknown as OrderWithRelations[];
     } catch (error) {
         console.error('Error fetching orders:', error);
         return [];
