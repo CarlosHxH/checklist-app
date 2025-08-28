@@ -13,9 +13,7 @@ import { MaintenanceCenter, Oficina, user, vehicle } from '@prisma/client';
 // Função auxiliar para formatação de data
 function newDate(dataString: string) {
   const data = new Date(dataString);
-  const options = {
-    timeZone: 'America/Cuiaba'
-  };
+  const options = {timeZone: 'America/Cuiaba'};
   const dataFormatada = data.toLocaleString('pt-BR', options);
   return dataFormatada;
 }
@@ -71,29 +69,27 @@ export default function OrdersTableExample() {
     }
   }
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useEffect(() => {fetchOrders()}, []);
 
   // Configuração das colunas
   const columns: ColumnConfig<OrderWithRelations>[] = [
-    { key: 'id', label: 'OS', render: (row) => `#${String(row.id).padStart(5, '0')}`, width: 100},
-    { key: 'user.name', label: 'Responsável', width: 150 },
-    { key: 'vehicle', label: 'Veículo', render: (row) => `${row.vehicle.plate} - ${row.vehicle.model}`, width: 210 },
-    { key: 'oficina.name', label: 'Oficina', align: 'right', width: 150, render: (row) => (<Typography fontSize={12}>{row.oficina.name}</Typography>)},
-    { key: 'startedData', label: 'Data INÍCIO', align: 'right', width: 120, render: (row) => newDate(row.startedData.toString()) || "N/A" },
-    { key: 'finishedData', label: 'Data FINAL', align: 'right', width: 120, render: (row) => row.finishedData ? newDate(row.finishedData.toString()) : "N/A" },
-    { key: 'duration', label: 'Tempo Parado', align: 'right', width: 150, render: (row) => (
+    { key: 'id', label: 'OS', render: (row) => `#${String(row.id).padStart(5, '0')}`, width: 80},
+    { key: 'user.name', label: 'Responsável', width: 160, align: 'center' },
+    { key: 'vehicle.plate', label: 'Veículo', align: 'center', width: 80 },
+    { key: 'oficina.name', label: 'Oficina', align: 'center', width: 150, render: (row) => (<Typography fontSize={12}>{row.oficina.name}</Typography>)},
+    { key: 'startedData', label: 'Data INÍCIO', align: 'center', width: 120, render: (row) => newDate(row.startedData.toString()) || "N/A" },
+    { key: 'finishedData', label: 'Data FINAL', align: 'center', width: 120, render: (row) => row.finishedData ? newDate(row.finishedData.toString()) : "N/A" },
+    { key: 'duration', label: 'Tempo Parado', align: 'center', width: 150, render: (row) => (
       <Typography fontSize={12}>{dateDiff(row.startedData.toString(), row?.finishedData?.toString())}</Typography>
     )},
-    { key: 'isCompleted', label: 'Status', align: 'right', width: 160,
+    { key: 'isCompleted', label: 'Status', align: 'center', width: 160,
       render: (row) => (<Typography fontSize={12} color={row.isCompleted ? "success" : "error"}> {row.isCompleted ? "FINALIZADO" : "EM MANUTENÇÃO"} </Typography>),
     },
-    { key: 'osNumber', label: 'Ações', align: 'right', width: 140,
-      render: (row, onRefresh) => (<>
+    { key: 'osNumber', label: 'Ações', align: 'right', width: 100,
+      render: (row, onRefresh) => (<Box>
         <IconButton size="small" onClick={() => setSelectedOrder(row)}><Edit /></IconButton>
         <IconButton size="small" color='error' onClick={()=>{onDelete(row.osNumber,onRefresh)}}><Delete /></IconButton>
-      </>),
+      </Box>),
     }
   ];
 
@@ -108,6 +104,7 @@ export default function OrdersTableExample() {
     { key: 'user.name', label: 'Responsável', type: 'select', getOptionsFromData: true },
     { key: 'vehicle.plate', label: 'Placa', type: 'select', getOptionsFromData: true },
     { key: 'oficina.name', label: 'Oficina', type: 'select', getOptionsFromData: true },
+    { key: 'maintenanceCenter.name', label: 'Centro mnt', type: 'select', getOptionsFromData: true },
     { key: 'isCompleted', label: 'Status', type: 'select', options: [   { value: 'true', label: 'FINALIZADO' },   { value: 'false', label: 'EM MANUTENÇÃO' } ]}
   ];
 

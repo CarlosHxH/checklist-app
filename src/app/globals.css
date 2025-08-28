@@ -85,47 +85,23 @@ body {
 .zIndex{
   z-index: 9999 !important;;
 }
-/*
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+
+.flex-container {
+  display: flex; /* Establishes a flex container */
+  flex-wrap: wrap; /* Allows items to wrap onto multiple lines */
+  justify-content: flex-start; /* Aligns items to the start of the main axis (left by default) */
+  align-content: flex-start; /* Aligns lines to the start of the cross axis (top by default) */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.flex-item {
+  flex: 0 0 calc(20% - 20); /* Sets item size and allows it to fit content */
+  /*
+    - flex-grow: 0 (items will not grow beyond their base size)
+    - flex-shrink: 0 (items will not shrink below their base size)
+    - flex-basis: calc(20% - <margin-or-gap-space>) (sets the initial size to accommodate 5 items per row,
+      adjusting for any desired margin or gap between items)
+  */
+  width: fit-content; /* Ensures the item's width adjusts to its content */
+  height: fit-content; /* Ensures the item's height adjusts to its content */
+  /* Add any desired padding, margin, or other styling for the items */
 }
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-*/

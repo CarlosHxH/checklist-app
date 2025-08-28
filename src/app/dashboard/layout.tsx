@@ -14,6 +14,8 @@ import KeyIcon from '@mui/icons-material/Key';
 import MapIcon from '@mui/icons-material/Map';
 import RoomIcon from '@mui/icons-material/Room';
 import NoCrashIcon from '@mui/icons-material/NoCrash';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import PlumbingIcon from '@mui/icons-material/Plumbing';
 
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
@@ -24,7 +26,12 @@ const createNavigation = (): Navigation => [
   { kind: 'header', title: 'Inspeções' },
   { segment: 'dashboard/inspecao', title: 'Inspeções', icon: <RoomIcon />, pattern: 'dashboard/inspecao/:id' },
   { segment: 'dashboard/viagens', title: 'Viagens', icon: <MapIcon />, pattern: 'dashboard/viagens/:id'},
+  
+  { kind: 'header', title: 'Orders' },
   { segment: 'dashboard/orders', title: 'Ordem de Serviço', icon: <NoCrashIcon /> },
+  { segment: 'dashboard/orders/oficinas', title: 'Oficinas', icon: <EngineeringIcon />},
+  { segment: 'dashboard/orders/centromnt', title: 'Centro de mnt', icon: <PlumbingIcon />},
+  
   { kind: 'header', title: 'Outros' },
   { segment: 'dashboard/user', title: 'Usuários', icon: <GroupIcon />},
   { segment: 'dashboard/vehicle',title: 'Veiculos',icon: <LocalShippingIcon />,

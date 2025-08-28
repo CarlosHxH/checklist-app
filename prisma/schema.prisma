@@ -243,6 +243,7 @@ model correction {
   @@index([userId])
 }
 
+
 model MaintenanceCenter {
   id        Int       @id @default(autoincrement())
   name      String    @unique
@@ -278,4 +279,12 @@ model Order {
   finishedData        DateTime?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  
+  tempoParado         Int?                  @default(0) // em minutos
+  status              String?               @default("PENDENTE") // PENDENTE, EM_ANDAMENTO, FINALIZADA
+  motivoParada        String?               // Motivo da parada do veículo
+  
+  @@index([vehicleId])
+  @@index([startedData])
+  @@index([finishedData])
 }

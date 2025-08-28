@@ -9,27 +9,20 @@ import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
 import { useRouter } from "next/navigation";
-import { Skeleton } from "@mui/material";
+import { Card, CardContent, Skeleton } from "@mui/material";
 import ChartByUsers from "@/components/Dashboard/chats/byUsers";
 import InspectionsDashboard from "@/components/Dashboard/chats/InspectionsDadhboard";
 import InspectionBarChart from "@/components/Dashboard/chats/CustomBarChart";
+import InspectionChart from "@/components/Dashboard/chats/InspectionChart";
 
 
 export default function DashboardContent() {
   const router = useRouter();
   const { data, isLoading, error, mutate } = useSWR("/api/v2/dashboard", fetcher);
-  
-  if (isLoading || !data) return <Loading />;
-  if(data.error) return <></>;
 
-  const redirect = (url: string) => {
-    let redirectUrl = '';
-    if (url === 'Usuários') { redirectUrl = '/dashboard/user'; }
-    if (url === 'Viagens') { redirectUrl = '/dashboard/viagens'; }
-    if (url === 'Inspeções') { redirectUrl = '/dashboard/inspecao'; }
-    if (url === 'Veiculos') { redirectUrl = '/dashboard/vehicle'; }
-    router.push(redirectUrl);
-  }
+  if (isLoading || !data) return <Loading />;
+  if (data.error) return <></>;
+
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -44,10 +37,11 @@ export default function DashboardContent() {
 
             <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
               {data.cards && data.cards.map((card: StatCardProps, index: number) => (
-                <Grid key={index} size={{ xs: 6, sm: 3, lg: 3 }} onClick={() => redirect(card.title)} sx={{ cursor: "pointer" }}>
+                <Grid key={index} size={{ xs: 6, sm: 2.4 }} sx={{ cursor: "pointer" }}>
                   <StatCard {...card} />
                 </Grid>
               ))}
+
 
               <Grid size={{ xs: 12, md: 12 }}>
                 <Box>
@@ -61,16 +55,81 @@ export default function DashboardContent() {
                     </Box>
                   }>
                     <Box mt={4}>
-                      <InspectionsDashboard data={data} isLoading={isLoading} error={error} />
+                      <Typography>RELATÓRIO DE VIAGENS</Typography>
+                      <InspectionsDashboard
+                        data={[
+                          {
+                            value: data?.statusSummary?.finished,
+                            title: 'VIAGENS FINALIZADAS',
+                            subtitle: (data.statusSummary.finished || 0)+" "+(data.statusSummary.finished > 1 ? "FINALIZADAS" : "FINALIZADA"),
+                          },
+                          {
+                            value: data.statusSummary.unfinished,
+                            title: 'VIAGENS PENDENTES',
+                            subtitle: (data.statusSummary.unfinished || 0) +" "+(data.statusSummary.unfinished > 1 ? "PENDENTES" : "PENDENTE"),
+                          },
+                          {
+                            value: (data.statusSummary.finishedPercentage || 0),
+                            title: 'FINALIZADAS',
+                            subtitle: (data.statusSummary.finished || 0)+" "+(data.statusSummary.finished > 1 ? "VIAGENS FINALIZADAS" : "VIAGEM FINALIZADA"),
+                            percentage: true,
+                            pluralLabel: 'FINALIZADAS'
+                          },
+                          {
+                            value: (data.statusSummary.unfinishedPercentage || 0),
+                            title: 'NÃO FINALIZADAS',
+                            subtitle:(data.statusSummary.unfinished || 0)+" "+(data.statusSummary.unfinished > 1 ? "VIAGENS NÃO FINALIZADAS" : "VIAGEM NÃO FINALIZADA"),
+                            percentage: true
+                          }
+                        ]}
+                      />
+                    </Box>
+
+
+                    <Box mt={4}>
+                      <Typography>RELATÓRIO DAS ORDEM DE SERVIÇO</Typography>
+                      <InspectionsDashboard
+                        data={[
+                          {
+                            value: data?.ordens?.totalTempoParadoGeral,
+                            title: 'TOTAL TEMPO PARADO',
+                            subtitle: 'Todos os veiculos'
+                          },
+                          {
+                            value: data.ordens.totalOrdens,
+                            title: 'TOTAL DE ORDEM DE SERVIÇO'
+                          },
+                          {
+                            value: (data.ordens.ordensFinalizadas || 0),
+                            title: 'FINALIZADAS'
+                          },
+                          {
+                            value: (data.ordens.ordensPendentes || 0),
+                            title: 'NÃO FINALIZADAS'
+                          }
+                        ]}
+                      />
                     </Box>
                   </React.Suspense>
                 </Box>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 12 }}>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Últimos 30 Dias
+                    </Typography>
+                    <InspectionChart data={data.inspectionsByDate} />
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InspectionBarChart
                   title="Visão Geral - Últimos 12 Meses"
-                  height={440}
+                  height={265}
                   showAverage={true}
                   period="12months"
                   data={data.lastYears}
@@ -81,7 +140,7 @@ export default function DashboardContent() {
               </Grid>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
-              <ChartByUsers dataset={data.byUsers}/>
+              <ChartByUsers dataset={data.byUsers} />
             </Grid>
           </Box>
         </Stack>

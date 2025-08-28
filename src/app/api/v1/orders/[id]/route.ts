@@ -17,7 +17,7 @@ export type OrderWithRelations = Order & {
     }
 };
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET({ params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
         const orders = await prisma.order.findUnique({
@@ -45,6 +45,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             vehicleId: z.string().min(1),
             kilometer: z.number().min(2),
             oficina: z.string().min(3),
+            startedData: z.string().optional().nullable(),
             finishedData: z.string().optional().nullable(),
             maintenanceType: z.string().min(3),
             maintenanceCenter: z.string().min(3),
@@ -52,10 +53,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         })
 
         const validatedData = EventSchema.parse(formData);
-
-        const { maintenanceCenter, oficina, finishedData, ...data } = validatedData;
-
+        const { maintenanceCenter, oficina, startedData ,finishedData, ...data } = validatedData;
         // Convert finishedData to Date if provided
+        const startedDate = startedData ? new Date(startedData) : null;
         const finishedDate = finishedData ? new Date(finishedData) : null;
 
         // Upsert oficina
@@ -79,6 +79,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 ...data,
                 oficinaId: oficinaRecord.id,
                 maintenanceCenterId: maintenanceCenterRecord.id,
+                ...(startedDate!=null&&{startedData: startedDate}),
                 finishedData: finishedDate,
                 isCompleted: !!finishedDate
             }
@@ -97,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE({ params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
         

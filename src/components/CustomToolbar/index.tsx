@@ -11,7 +11,6 @@ import {
     QuickFilterControl,
     QuickFilterClear,
     QuickFilterTrigger,
-    useGridApiContext,
     GridSlotProps,
 } from '@mui/x-data-grid';
 import Tooltip from '@mui/material/Tooltip';
@@ -62,7 +61,6 @@ const StyledTextField = styled(TextField)<{
 
 export default function CustomToolbar(props: GridSlotProps['toolbar']) {
     const { onClick, title } = props;
-    const apiRef = useGridApiContext();
     const newPanelTriggerRef = React.useRef<HTMLButtonElement>(null);
     const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
     const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
@@ -72,7 +70,7 @@ export default function CustomToolbar(props: GridSlotProps['toolbar']) {
                 {title}
             </Typography>
 
-            <Tooltip title="Add new commodity">
+            {!!onClick&&(<Tooltip title="Add new commodity">
                 <ToolbarButton
                     ref={newPanelTriggerRef}
                     aria-describedby="new-panel"
@@ -80,7 +78,7 @@ export default function CustomToolbar(props: GridSlotProps['toolbar']) {
                 >
                     <AddIcon fontSize="small" />
                 </ToolbarButton>
-            </Tooltip>
+            </Tooltip>)}
 
             <Tooltip title="Columns">
                 <ColumnsPanelTrigger render={<ToolbarButton />}>

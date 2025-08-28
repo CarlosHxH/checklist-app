@@ -7,6 +7,8 @@ import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
 import { useRouter } from 'next/navigation';
 import { Visibility } from '@mui/icons-material';
+import CustomToolbar from '@/components/CustomToolbar';
+import { PageContainer } from '@toolpad/core/PageContainer';
 
 interface Vehicle {
   plate: string;
@@ -130,7 +132,7 @@ const InspectionDashboard: React.FC = () => {
   if (!inspections) return <Loading />;
 
   return (
-    <Box>
+    <PageContainer>
       <DataGrid
         rows={inspections}
         columns={columns}
@@ -139,19 +141,18 @@ const InspectionDashboard: React.FC = () => {
             paginationModel: { page: 0, pageSize: 10 }
           }
         }}
-        slots={{ toolbar: GridToolbar }}
-        localeText={{
-          toolbarColumns: "",
-          toolbarFilters: "",
-          toolbarExport: "",
-          toolbarDensity: ""
+        slotProps={{
+          toolbar: {
+            title: "INSPEÇÕES"
+          }
         }}
-        pageSizeOptions={[5, 10, 25, 50, 75, 100]}
+        slots={{ toolbar: CustomToolbar }}
+        pageSizeOptions={[10, 25, 50, 75, 100]}
         rowSelection={false}
         getRowHeight={() => 'auto'}
-        rowHeight={48}
+        showToolbar
       />
-    </Box>
+    </PageContainer>
   );
 };
 

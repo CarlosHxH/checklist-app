@@ -79,7 +79,7 @@ function ChartSkeleton({ height }: { height: number }) {
 // Componente principal
 export default function InspectionBarChart({
     title = 'Inspeções por Mês',
-    height = 400,
+    height = 300,
     showAverage = true,
     period = '12months',
     isLoading = false,
@@ -193,12 +193,7 @@ export default function InspectionBarChart({
                     series={chartConfig.series}
                     xAxis={chartConfig.xAxis}
                     height={height}
-                    margin={{
-                        top: 20,
-                        right: 20,
-                        bottom: 60,
-                        left: 80,
-                    }}
+                    margin={{top: 20,right: 20,bottom: 60,left: 80}}
                     slotProps={{
                         legend: {
                             hidden: true,
