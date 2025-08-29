@@ -20,22 +20,25 @@ import PlumbingIcon from '@mui/icons-material/Plumbing';
 // Move navigation configuration outside component to prevent recreation
 const createNavigation = (): Navigation => [
   { kind: 'header', title: "Menu" },
-  { segment: 'dashboard',title: 'Dashboard',icon: <DashboardIcon />,},
+  { segment: 'dashboard', title: 'Dashboard', icon: <DashboardIcon />, },
   { kind: 'header', title: 'Chaves' },
-  { segment: 'dashboard/keys', title: 'Chaves', icon: <KeyIcon />},
+  { segment: 'dashboard/keys', title: 'Chaves', icon: <KeyIcon /> },
   { kind: 'header', title: 'Inspeções' },
   { segment: 'dashboard/inspecao', title: 'Inspeções', icon: <RoomIcon />, pattern: 'dashboard/inspecao/:id' },
-  { segment: 'dashboard/viagens', title: 'Viagens', icon: <MapIcon />, pattern: 'dashboard/viagens/:id'},
-  
+  { segment: 'dashboard/viagens', title: 'Viagens', icon: <MapIcon />, pattern: 'dashboard/viagens/:id' },
+
   { kind: 'header', title: 'Orders' },
-  { segment: 'dashboard/orders', title: 'Ordem de Serviço', icon: <NoCrashIcon /> },
-  { segment: 'dashboard/orders/oficinas', title: 'Oficinas', icon: <EngineeringIcon />},
-  { segment: 'dashboard/orders/centromnt', title: 'Centro de mnt', icon: <PlumbingIcon />},
-  
+  {
+    segment: 'dashboard/orders', title: 'Ordem de Serviço', icon: <NoCrashIcon />,
+    children: [
+      { segment: '/', title: 'Ordem de Serviços', icon: <NoCrashIcon /> },
+      { segment: 'oficinas', title: 'Oficinas', icon: <EngineeringIcon /> },
+      { segment: 'centromnt', title: 'Centro de mnt', icon: <PlumbingIcon /> },
+    ]
+  },
+  { segment: 'dashboard/vehicle', title: 'Veiculos', icon: <LocalShippingIcon />},
   { kind: 'header', title: 'Outros' },
-  { segment: 'dashboard/user', title: 'Usuários', icon: <GroupIcon />},
-  { segment: 'dashboard/vehicle',title: 'Veiculos',icon: <LocalShippingIcon />,
-  }
+  { segment: 'dashboard/user', title: 'Usuários', icon: <GroupIcon /> },
 ];
 
 const BRANDING = {
@@ -55,11 +58,10 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
   // Retornar o estado nulo ou de carregamento durante a SSR
   if (!mounted || status === "loading") return null;
   if (!session || !["ADMIN", "USER"].some(role => session?.user.role?.includes(role))) redirect('/');
-  console.log();
-  
+
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>
-      <DashboardLayout>
+      <DashboardLayout defaultSidebarCollapsed>
         {children}
       </DashboardLayout>
     </AppProvider>

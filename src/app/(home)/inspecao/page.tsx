@@ -11,16 +11,16 @@ import CustomAppBar from '@/components/_ui/CustomAppBar';
 
 export default function Inspecao() {
   const { data: session } = useSession();
-  const { data, isLoading } = useSWR(session?`/api/v1/inspecao/user/${session?.user.id}` : null, fetcher)
+  const { data, isLoading } = useSWR(session ? `/api/v1/inspecao/user/${session?.user.id}` : null, fetcher)
   if (isLoading) return <Loading />
 
   return (
     <Suspense>
       <Container maxWidth="lg">
-        <CustomAppBar showBackButton/>
-        <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
+        <CustomAppBar href='/' />
         <VehicleInspectionCard data={data} />
       </Container>
+      <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
     </Suspense>
   );
 }

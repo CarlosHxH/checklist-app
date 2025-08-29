@@ -73,12 +73,8 @@ export async function POST(request: NextRequest) {
           userId,
           vehicleId,
           parentId,
-          status: "PENDING",
-        },
-        include: {
-          user: true,
-          vehicle: true,
-        },
+          status: "CONFIRMED",
+        }
       });
 
       return transfer;

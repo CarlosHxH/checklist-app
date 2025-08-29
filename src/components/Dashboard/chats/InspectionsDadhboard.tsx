@@ -1,13 +1,16 @@
 import { Box, Card, CardContent, Typography, Grid, CircularProgress } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 export type DashboardCardData = {
   value: number | string;
   title: string;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
+  render?: string | React.ReactNode;
   percentage?: boolean;
   unit?: string;
   pluralLabel?: string;
   singularLabel?: string;
+  href?: string;
 };
 
 export type DashboardProps = {
@@ -25,7 +28,7 @@ export default function Dashboard({
   error = null,
   cardHoverEffect = true,
   cardHeight = 180,
-  loadingHeight = '300px'
+  loadingHeight = '300px',
 }: DashboardProps) {
   const getCardSx = () => ({
     height: '100%',
@@ -76,11 +79,17 @@ export default function Dashboard({
       </Box>
     );
   }
+  const router = useRouter();
+
+  const asLink = (href?: string)=>{
+    if(!href) return;
+    return router.push(href)
+  }
 
   return (
     <Grid container spacing={3}>
       {data.map((item, index) => (
-        <Grid item xs={12} sm={6} md={3} key={index}>
+        <Grid item xs={12} sm={6} md={3} key={index} onClick={()=>asLink(item.href)}>
           <Card style={{ height: cardHeight }} sx={getCardSx()}>
             <CardContent>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -88,8 +97,9 @@ export default function Dashboard({
               </Typography>
               <Typography variant="h3">{formatValue(item)}</Typography>
               <Box sx={{ mt: 2 }}>
+                {item.render}
                 <Typography variant="subtitle1" fontSize={14} color="textSecondary">
-                  {item.subtitle /*|| `${item.value} ${getLabel(item)}`*/}
+                  {item.subtitle}{/* || `${item.value} ${getLabel(item)}`*/}
                 </Typography>
               </Box>
             </CardContent>

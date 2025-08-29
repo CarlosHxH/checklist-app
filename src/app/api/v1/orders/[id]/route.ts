@@ -18,17 +18,36 @@ export type OrderWithRelations = Order & {
 };
 
 export async function GET({ params }: { params: Promise<{ id: string }> }) {
+    
     try {
         const { id } = await params;
+        
+        if(!!id) {
         const orders = await prisma.order.findUnique({
             where: { osNumber: id },
             include: {
-                vehicle: true,
-                oficina: true,
-                maintenanceCenter: true
+                user: {
+                    select: {
+                        username: true,
+                        name: true
+                    }
+                },
+                vehicle: {
+                    select: {
+                        plate: true,
+                        model: true
+                    }
+                },
+                maintenanceCenter: {
+                    select: {
+                        name: true
+                    }
+                },
+                oficina: true
             }
         });
         return NextResponse.json(orders);
+    }
     } catch (error) {
         return NextResponse.json({ error, message: 'Erro interno no servidor' }, { status: 500 });
     }

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getInspectionsReport12Months } from "./inspectionServiceYears.ts";
+import { getInspectionsReport12Months, lastMonthOrders } from "./inspectionServiceYears.ts";
 import { Order } from "@prisma/client";
 
 const format = async (
@@ -71,12 +71,11 @@ async function getStatusLast30Days() {
 function calcularTempoParado(order: Order): number {
   const inicio = order.startedData;
   const fim = order.finishedData || new Date();
-  
   const diffMs = fim.getTime() - inicio.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  
   return diffMinutes;
 }
+
 function formatarTempo(minutos: number): string {
   if (minutos < 60) {
     return `${minutos} minutos`;
@@ -90,14 +89,10 @@ function formatarTempo(minutos: number): string {
       ? `${horas}h ${minutosRestantes}min` 
       : `${horas}h`;
   }
-  
   const dias = Math.floor(horas / 24);
   const horasRestantes = horas % 24;
-  
-  if (horasRestantes === 0) {
-    return `${dias} dias`;
-  }
-  
+
+  if (horasRestantes === 0) return `${dias} dias`;
   return `${dias}d ${horasRestantes}h`;
 }
 async function gerarRelatorioTempoParado(filters?: {
@@ -108,20 +103,10 @@ async function gerarRelatorioTempoParado(filters?: {
 }): Promise<any> {
   const orders = await prisma.order.findMany({
     include: {
-      vehicle: {
-        select: {
-          plate: true
-        }
-      },
-      user: {
-        select: {
-          name: true
-        }
-      }
+      vehicle: { select: { plate: true}},
+      user: { select: { name: true }}
     },
-    orderBy: {
-      startedData: 'desc'
-    }
+    orderBy: {startedData: 'desc'}
   });
   
   const ordersComTempo = orders.map(order => {
@@ -172,6 +157,8 @@ async function gerarRelatorioTempoParado(filters?: {
   };
 }
 
+
+
 export async function GET() {
   try {
     const inspections = await prisma.inspection.count({
@@ -182,13 +169,11 @@ export async function GET() {
     });
     const users = await prisma.user.count();
     const vehicles = await prisma.vehicle.count();
-    const orders = await prisma.order.count();
     // Buscando todos os usuários
     const inspection = await format("INSPEÇÕES","/dashboard/inspecao", "up", "Total", inspections);
     const viagen = await format("VIAGENS","/dashboard/viagens", "up", "Total", viagens);
     const user = await format("USUÁRIOS","/dashboard/user", "down", "Total", users);
     const vehicle = await format("VEICULOS","/dashboard/vehicle", "neutral", "Total", vehicles);
-    const order = await format("OS","/dashboard/orders", "neutral", "Total", orders);
     
     const byUsers = await processInspectionData();
     const lastYears = await getInspectionsReport12Months();
@@ -197,15 +182,17 @@ export async function GET() {
 
     //const orderTime = await tempoParado({});
     const ordens = await gerarRelatorioTempoParado();
+    const lastOrders = await lastMonthOrders();
     
     return NextResponse.json(
       {
-        cards: [user, viagen, inspection, vehicle,order],
+        cards: [user, viagen, inspection, vehicle],
         byUsers,
         lastYears,
         inspectionsByDate,
         statusSummary,
-        ordens
+        ordens,
+        lastOrders
       },
       { status: 200 }
     );

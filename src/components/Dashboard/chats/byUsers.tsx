@@ -5,16 +5,17 @@ import Stack from '@mui/material/Stack';
 import { Box, Typography } from '@mui/material';
 
 interface Props {
+  height?: number;
   dataset: {
     iniciadas: string;
     finalizada: string;
     motorista: string;
   }[] | any
 }
-export default function ChartByUsers({dataset}: Props) {
+export default function ChartByUsers({dataset, height}: Props) {
   if (!dataset) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={height||"300px"}>
         <Typography>Nenhum dado disponível</Typography>
       </Box>
     );
@@ -36,7 +37,7 @@ export default function ChartByUsers({dataset}: Props) {
             position: { vertical: 'bottom', horizontal: 'middle' },
           },
         }}
-        height={300}
+        height={height||300}
         xAxis={[{ scaleType: 'band', dataKey: 'motorista', }]}
         yAxis={undefined}
         borderRadius={5}

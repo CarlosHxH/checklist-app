@@ -14,6 +14,7 @@ import { formattedDate } from '@/lib/formatDate';
 import { z } from 'zod';
 import Swal from 'sweetalert2';
 import { Oficina } from '@prisma/client';
+import Loading from '@/components/Loading';
 
 interface VehicleLabel {
   name: string;
@@ -69,11 +70,9 @@ export default function OrderPage() {
         serviceDescriptions: z.string().min(3),
       })
       const validatedData = EventSchema.parse(data);
-      console.log(validatedData);
       
       axios.post('/api/v1/orders', validatedData)
         .then(res => {
-          console.log(res.data);
           router.push('/orders');
         })
         .catch(error => {
@@ -103,7 +102,7 @@ export default function OrderPage() {
     }
   };
 
-  if (isLoading) return <Typography>Loading vehicles...</Typography>;
+  if (isLoading) return <Loading/>
   if (errors) return <Typography color="error">Failed to load vehicles</Typography>;
 
   const vehicles = data?.vehicles || [];

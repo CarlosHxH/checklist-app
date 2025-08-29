@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { AppBar as App, IconButton, Toolbar, Typography, Container, Box, Chip, Avatar, useTheme, useMediaQuery } from "@mui/material";
-import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import { KeyboardArrowLeft } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { useSession } from "next-auth/react";
@@ -11,10 +11,11 @@ interface Props {
   title?: string;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  href?: string;
 }
 
 
-const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick }) => {
+const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackClick, href }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const router = useRouter();
@@ -27,10 +28,17 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
   };
 
   const handleBack = () => {
-    if (onBackClick) {
+    if (!!href){
+      router.push(href);
+      return;
+    }
+    if (!!onBackClick) {
       onBackClick();
-    } else {
+      return;
+    }
+    else {
       router.back();
+      return;
     }
   };
 
@@ -39,9 +47,9 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
       <App component="nav">
         <Container maxWidth="xl">
           <Toolbar>
-            {showBackButton && (
+            {(showBackButton || href) && (
               <IconButton color="inherit" aria-label="back" onClick={handleBack} edge="start" sx={{ mr: 2 }}>
-                <ArrowBackIcon />
+                <KeyboardArrowLeft fontSize="large"/>
               </IconButton>
             )}
             <Typography onClick={handleNext} variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }}>

@@ -78,7 +78,7 @@ export default function OrdersTableExample() {
     { key: 'vehicle.plate', label: 'Veículo', align: 'center', width: 80 },
     { key: 'oficina.name', label: 'Oficina', align: 'center', width: 150, render: (row) => (<Typography fontSize={12}>{row.oficina.name}</Typography>)},
     { key: 'startedData', label: 'Data INÍCIO', align: 'center', width: 120, render: (row) => newDate(row.startedData.toString()) || "N/A" },
-    { key: 'finishedData', label: 'Data FINAL', align: 'center', width: 120, render: (row) => row.finishedData ? newDate(row.finishedData.toString()) : "N/A" },
+    { key: 'finishedData', label: 'Data FINAL', align: 'center', width: 160, render: (row) => row.finishedData ? newDate(row.finishedData.toString()) : "N/A" },
     { key: 'duration', label: 'Tempo Parado', align: 'center', width: 150, render: (row) => (
       <Typography fontSize={12}>{dateDiff(row.startedData.toString(), row?.finishedData?.toString())}</Typography>
     )},

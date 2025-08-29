@@ -3,15 +3,14 @@ import Box from '@mui/material/Box';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
 import { Button, Card, Container, Divider, Grid, TextField, Typography } from '@mui/material';
 import { useForm } from 'react-hook-form';
-import useSWR from 'swr';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import FreeSoloCreateOption from '@/components/FreeSoloCreateOption';
 import { useParams, useRouter } from 'next/navigation';
 import Loading from '@/components/Loading';
 import axios from 'axios';
 import GroupRadio from '@/components/_ui/GroupRadio';
-import { fetcher } from '@/lib/ultils';
 import { formattedDate } from '@/lib/formatDate';
+import { getOrders, OrderWithRelations } from '../action';
 
 interface FormData {
   userId: string;
@@ -46,7 +45,7 @@ interface OrderData {
   vehicleId: string;
   kilometer: number;
   oficinaId: number;
-  finishedData: string | null;
+  finishedData: string | Date | null;
   maintenanceType: string;
   maintenanceCenterId: number;
   serviceDescriptions: string;
@@ -56,13 +55,42 @@ interface OrderData {
 }
 
 export default function OrderEditPage() {
-  const router = useRouter();
+
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  
-  const { data, isLoading, error: errors } = useSWR<OrderData>(`/api/v1/orders/${id}`, fetcher);
-  const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>();
+  const [data, setData] = React.useState<OrderWithRelations | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const fetchOrder = async () => {
+      if (!id) {
+        setError('Order ID not found');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const res = await getOrders(id);
+        setData(res);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching order:', err);
+        setError('Failed to load order');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [id]);
+
+
+  const { control, setValue, handleSubmit, register, reset, formState: { isSubmitting } } = useForm<FormData>();
+  
   useEffect(() => {
     if (data) {
       reset({
@@ -70,11 +98,12 @@ export default function OrderEditPage() {
         vehicleId: data.vehicleId,
         kilometer: data.kilometer,
         oficina: data.oficina?.name || '',
-        finishedData: data.finishedData || formattedDate,
+        finishedData: data.finishedData ? new Date(data.finishedData).toISOString() : formattedDate,
         maintenanceType: data.maintenanceType || '',
         maintenanceCenter: data.maintenanceCenter?.name || '',
         serviceDescriptions: data.serviceDescriptions || ''
       });
+      
     }
   }, [data, reset, setValue]);
 
@@ -94,6 +123,10 @@ export default function OrderEditPage() {
     { value: 'PREVENTIVA', label: 'PREVENTIVA' },
     { value: 'CORRETIVA', label: 'CORRETIVA' }
   ];
+
+  if(isLoading) {
+    return <Loading/>
+  }
 
   return (
     <Container>

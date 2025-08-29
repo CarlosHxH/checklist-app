@@ -71,8 +71,9 @@ export default function VehicleKeysPage() {
   const [resendConfirmDialogOpen, setResendConfirmDialogOpen] = useState(false)
   const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
   const [formData, setFormData] = useState<FormData>({ userId: '', vehicleId: '' })
-  const [resendingKey, setResendingKey] = useState<VehicleKey | null>(null)
-  
+
+  const [deleteKey, setDeleteKey] = useState<VehicleKey | null>(null)
+
   useEffect(() => {
     if (data && data.vehicleKeys.length > 0) {
       groupVehicleKeys()
@@ -119,27 +120,21 @@ export default function VehicleKeysPage() {
     setConfirmDialogOpen(true)
   }
 
-  const handleResendNotification = async (key: VehicleKey) => {
-    setResendingKey(key)
-    setResendConfirmDialogOpen(true)
+  const modalDelete = async (key: VehicleKey) => {
+    setDeleteKey(key)
   }
 
-  const handleConfirmResend = async () => {
-    if (!resendingKey) return
-    setResendConfirmDialogOpen(false)
+  const handleConfirmDelete = async () => {
+    if (deleteKey === null) return;
     try {
-      const response = await fetch(`/api/v1/keys/resend`, {
-        method: 'PUT',
-        body: JSON.stringify({ id: resendingKey.id })
-      })
-      if (!response.ok) throw new Error('Erro ao reenviar notificação')
-      mutate();
-      setSuccessMessage('Notificação reenviada com sucesso!')
+      const response = await fetch(`/api/v1/keys/reject/${deleteKey.id}`, { method: 'POST' })
+      if (!response.ok) throw new Error('Erro ao rejeitar transferência')
+      setSuccessMessage('Notificação deletada com sucesso!')
     } catch (error) {
-      console.error('Error resending notification:', error)
-      setError('Erro ao reenviar a notificação. Tente novamente.')
+      setError('Erro ao rejeitar transferência')
     } finally {
-      setResendingKey(null)
+      mutate();
+      setDeleteKey(null)
     }
   }
 
@@ -155,13 +150,12 @@ export default function VehicleKeysPage() {
         }),
       })
       if (!response.ok) throw new Error('Erro ao transferir chave')
-        mutate();
       setSuccessMessage('Chave transferida com sucesso!')
-      handleCloseModal()
     } catch (error) {
       console.error('Error creating vehicle key:', error)
       setError('Erro ao transferir a chave. Tente novamente.')
     } finally {
+      handleCloseModal()
       mutate()
     }
   }
@@ -176,11 +170,31 @@ export default function VehicleKeysPage() {
     return groupedVehicleKeys[vehicleId]?.latestKey?.user?.name || 'Nenhum'
   }
 
-  const getCurrentKeyStatusPending = (vehicleId: string)=>{
+  const getCurrentKeyStatusPending = (vehicleId: string) => {
     return (groupedVehicleKeys[vehicleId]?.latestKey?.status === "PENDING")
   }
 
-  if (isLoading) return <Loading/>;
+  if (isLoading) return <Loading />;
+/*
+// Rejeita a transferência
+const handleCancelNotification = async (latestKey: VehicleKey) => {
+  if (!latestKey) return
+  if (!confirm("Deseja cancelar a transferencia de chave?")) return;
+  try {
+    const response = await fetch(`/api/v1/keys/reject/${latestKey.id}`, { method: 'POST' })
+    if (!response.ok) throw new Error('Erro ao rejeitar transferência')
+  } catch (error) {
+    setError('Erro ao rejeitar transferência')
+  } finally {
+    mutate();
+  }
+}
+*/
+  const Toast = ()=>{
+    if(!error) return;
+    setTimeout(() => {setError(null)}, 2500);
+    return(<Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>)
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
@@ -188,18 +202,17 @@ export default function VehicleKeysPage() {
         <Typography variant="h5">Gestão de Chaves</Typography>
         <Button variant="contained" onClick={() => setOpen(true)}>Nova Transferência</Button>
       </Box>
-
-      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+      <Toast/>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              {!isMobile && <TableCell>Veículo</TableCell>}
+              <TableCell>Veículo</TableCell>
               <TableCell>Responsável Atual</TableCell>
               <TableCell>Placa</TableCell>
-              {!isMobile && <TableCell>Status</TableCell>}
-              {!isMobile && <TableCell>Última Transferência</TableCell>}
+              <TableCell>Status</TableCell>
+              <TableCell>Última Transferência</TableCell>
               <TableCell>Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -210,44 +223,29 @@ export default function VehicleKeysPage() {
               const title = status === 'CONFIRMED' ? 'CONFIRMADO' : status === 'REJECTED' ? 'REJEITADA' : 'PENDING';
               const color = status === 'CONFIRMED' ? 'green' : status === 'REJECTED' ? 'red' : 'orange';
 
-              // Rejeita a transferência
-              const handleCancelNotification = async (latestKey: VehicleKey) => {
-                if (!confirm("Deseja cancelar a transferencia de chave?")) return;
-                if (!latestKey) return
-                try {
-                  const response = await fetch(`/api/v1/keys/reject/${latestKey.id}`, {method: 'POST'})
-                  if (!response.ok) throw new Error('Erro ao rejeitar transferência')
-                } catch (error) {
-                  console.error('Error:', error)
-                  setError('Erro ao rejeitar transferência')
-                } finally {
-                  mutate();
-                }
-              }
-
               return (
                 <TableRow key={i}>
-                  {!isMobile && <TableCell>{group.vehicle.model}</TableCell>}
+                  <TableCell>{group.vehicle.model}</TableCell>
                   <TableCell>{group.latestKey.user.name}</TableCell>
                   <TableCell>{group.vehicle.plate}</TableCell>
-                  {!isMobile && <TableCell sx={{ color: color }}>{title}</TableCell>}
-                  {!isMobile && <TableCell>{new Date(group.latestKey.createdAt).toLocaleString('pt-BR')}</TableCell>}
+                  <TableCell sx={{ color: color }}>{title}</TableCell>
+                  <TableCell>{new Date(group.latestKey.createdAt).toLocaleString('pt-BR')}</TableCell>
                   <TableCell>
                     <Box display="flex" alignItems="center">
                       <IconButton onClick={() => { setSelectedVehicleKeys(group.latestKey); setHistoryModalOpen(true) }}>
                         <History fontSize="small" />
                         <Typography variant="body2" sx={{ ml: 1 }}>{group.keys.length}</Typography>
                       </IconButton>
-                      {status === 'REJECTED' && (
-                        <IconButton onClick={() => handleResendNotification(group.latestKey)} title="Reenviar notificação" sx={{ ml: 1 }}>
-                          <Refresh fontSize="small" color="primary" />
-                        </IconButton>
-                      )}
-                      {status === 'PENDING' && (
-                        <IconButton onClick={() => handleCancelNotification(group.latestKey)} title="Reenviar notificação" sx={{ ml: 1 }}>
+                      {status === 'CONFIRMED' && (
+                        <IconButton onClick={() => modalDelete(group.latestKey)} title="Reenviar notificação" sx={{ ml: 1 }}>
                           <CloseIcon fontSize="small" color='error' />
                         </IconButton>
                       )}
+                      {/*status === 'PENDING' && (
+                        <IconButton onClick={() => handleCancelNotification(group.latestKey)} title="Deletar notificação" sx={{ ml: 1 }}>
+                          <CloseIcon fontSize="small" color='error' />
+                        </IconButton>
+                      )*/}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -268,13 +266,14 @@ export default function VehicleKeysPage() {
             <InputLabel>Veículo</InputLabel>
             <Select value={formData.vehicleId} label="Veículo" onChange={(e) => { setError(null); setFormData({ ...formData, vehicleId: e.target.value }) }}>
               {data?.vehicles?.map((v) => {
-                if(getCurrentKeyStatusPending(v.id)) return;
+                if (getCurrentKeyStatusPending(v.id)) return;
                 return (
-                <MenuItem key={v.id} value={v.id}>
-                  {`${v.plate} - ${v.model}`}
-                  {formData.vehicleId === v.id && ` (Atual: ${getCurrentKeyHolder(v.id)})`}
-                </MenuItem>
-              )})}
+                  <MenuItem key={v.id} value={v.id}>
+                    {`${v.plate} - ${v.model}`}
+                    {formData.vehicleId === v.id && ` (Atual: ${getCurrentKeyHolder(v.id)})`}
+                  </MenuItem>
+                )
+              })}
             </Select>
           </FormControl>
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -308,16 +307,16 @@ export default function VehicleKeysPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={resendConfirmDialogOpen} onClose={() => setResendConfirmDialogOpen(false)}>
-        <DialogTitle>Confirmar Reenvio</DialogTitle>
+      <Dialog open={!!deleteKey} onClose={() => setDeleteKey(null)}>
+        <DialogTitle>Confirmar exclusão?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Deseja reenviar a notificação para {resendingKey?.user.name}?
+            Deseja excluir, a transferencia da chave de {deleteKey?.user.name || "user"} - {deleteKey?.vehicle.plate || "placa"}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResendConfirmDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleConfirmResend} variant="contained" autoFocus>Confirmar</Button>
+          <Button onClick={() => setDeleteKey(null)}>Cancelar</Button>
+          <Button onClick={handleConfirmDelete} color='error' variant="contained" autoFocus>Confirmar</Button>
         </DialogActions>
       </Dialog>
 

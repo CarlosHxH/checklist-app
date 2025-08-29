@@ -8,29 +8,30 @@ datasource db {
 }
 
 model user {
-  id             String       @id @default(cuid())
-  username       String       @unique(map: "User_username_key")
-  email          String?      @unique(map: "User_email_key")
-  email_verified DateTime?
-  password       String
-  name           String
-  role           String       @default("DRIVER")
-  image          String?
-  isActive       Boolean?     @default(true)
-  lastLogin      DateTime?
-  loginCount     Int?         @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime?
-  access         access[]
-  accounts       Account[]
-  inspection     inspection[]
-  sessions       Session[]
-  vehiclekey     VehicleKey[]
-  corrections    correction[]
+  id                String       @id @default(cuid())
+  username          String       @unique(map: "User_username_key")
+  email             String?      @unique(map: "User_email_key")
+  email_verified    DateTime?
+  password          String
+  name              String
+  role              String       @default("DRIVER")
+  image             String?
+  isActive          Boolean?     @default(true)
+  lastLogin         DateTime?
+  loginCount        Int?         @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime?
+  access            access[]
+  accounts          Account[]
+  inspection        inspection[]
+  sessions          Session[]
+  vehiclekey        VehicleKey[]
+  corrections       correction[]
   
-  Inspect Inspect[] @relation(map: "Access_userId_fkey")
-  logs  Log[]
-  Order Order[]
+  Inspect           Inspect[] @relation(map: "Access_userId_fkey")
+  logs              Log[]
+  Order             Order[]
+  records           Record[]
 }
 
 model Log {
@@ -287,4 +288,39 @@ model Order {
   @@index([vehicleId])
   @@index([startedData])
   @@index([finishedData])
+}
+
+// Adicione esta tabela ao seu schema.prisma
+
+model Record {
+  id          String      @id @default(cuid())
+  userId      String                          // ID do usuário que fez a modificação
+  entityType  String                          // Tipo da entidade (ex: "user", "inspection", "vehicle", etc)
+  entityId    String                          // ID da entidade modificada
+  operation   Operation                       // Tipo de operação (CREATE, UPDATE, DELETE)
+  tableName   String                          // Nome da tabela afetada
+  fieldName   String?                         // Campo específico alterado (para UPDATEs)
+  oldValue    String?     @db.LongText       // Valor anterior (para UPDATEs e DELETEs)
+  newValue    String?     @db.LongText       // Novo valor (para CREATEs e UPDATEs)
+  ipAddress   String?                         // IP do usuário
+  userAgent   String?     @db.Text           // User Agent do navegador
+  timestamp   DateTime    @default(now())    // Data e hora da operação
+  description String?     @db.Text           // Descrição adicional da operação
+  
+  // Relação com o usuário
+  user        user        @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([operation])
+  @@index([timestamp])
+  @@index([tableName])
+  @@map("records")
+}
+
+enum Operation {
+  CREATE
+  UPDATE
+  DELETE
 }

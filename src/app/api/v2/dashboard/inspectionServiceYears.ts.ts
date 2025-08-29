@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { endOfDay, subMonths, startOfDay, format, startOfMonth, endOfMonth, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -109,7 +110,7 @@ function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspec
     
     const daysInMonth = monthEnd.getDate();
     const count = monthInspections.length;
-    
+
     monthlyData.push({
       month: format(monthDate, 'MMMM yyyy', { locale: ptBR }),
       monthNumber: monthDate.getMonth() + 1,
@@ -121,6 +122,32 @@ function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspec
   
   return monthlyData;
 }
+
+/**
+ * Gera dados diários para o gráfico dos últimos 30 dias
+ */
+export async function lastMonthOrders(): Promise<{date: string;count: number;}[]> {
+  const orders = await prisma.order.findMany({
+    where: { createdAt: {gte: startOfDay(subDays(new Date(), 30)), lte: endOfDay(new Date())}},
+    orderBy: {createdAt: 'asc'},
+  });
+
+  // Agrupa por data
+  const itemsByDate = orders.reduce<Record<string, number>>((acc, item) => {
+    const key = format(item.createdAt, 'yyyy-MM-dd');
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Preenche todas as datas dos últimos 30 dias
+  const result = [];
+  for (let i = 0; i < 30; i++) {
+    const date = format(subDays(new Date(), 30 - i - 1), 'yyyy-MM-dd');
+    result.push({date,count: itemsByDate[date] || 0});
+  }
+  return result;
+}
+
 
 /**
  * Gera dados diários para o gráfico dos últimos 30 dias

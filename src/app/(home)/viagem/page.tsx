@@ -45,13 +45,11 @@ export default function Viagens() {
 
   return (
     <Container maxWidth="lg">
-      <CustomAppBar showBackButton />
-      
+      <CustomAppBar href='/'/>
+      <CardViagemList data={data || []} />
       {shouldShowFab() && (
         <CustomFab href="/viagem/create" variant="Plus" />
       )}
-      
-      <CardViagemList data={data || []} />
     </Container>
   );
 }

@@ -11,7 +11,7 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Collapse from '@mui/material/Collapse';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
@@ -25,7 +25,6 @@ import CustomAppBar from '@/components/_ui/CustomAppBar';
 
 const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
   const [expanded, setExpanded] = useState(false);
-
   const handleExpandClick = () => { setExpanded(!expanded) };
 
   return (
@@ -51,20 +50,20 @@ const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
       />
       <CardContent>
         <Grid container spacing={2} textAlign={"center"}>
-          <Grid item xs={12} display={'flex'} justifyContent={'space-between'}>
+          <Grid size={{ xs: 12 }} display={'flex'} justifyContent={'space-between'}>
             <Typography variant="body2">
-              {order.startedData.toLocaleString()} - { order?.finishedData?.toLocaleString()}
+              {order.startedData.toLocaleString()} - {order?.finishedData?.toLocaleString()}
             </Typography>
 
           </Grid>
-          <Grid item xs={8} textAlign={'start'}>
+          <Grid size={{ xs: 8 }} textAlign={'start'}>
             <Chip
               label={order.isCompleted ? 'Concluído' : 'Em Andamento'}
               color={order.isCompleted ? 'success' : 'warning'}
               icon={order.isCompleted ? <CheckCircle /> : undefined}
             />
           </Grid>
-          <Grid item xs={4} direction={'column'} textAlign={'end'}>
+          <Grid size={{ xs: 4 }} direction={'column'} textAlign={'end'}>
             {!order.isCompleted && <IconButton href={`/orders/${order.osNumber}/edit`} color='primary'><EditIcon /></IconButton>}
             <IconButton href={`/orders/${order.osNumber}`} color='inherit'><VisibilityIcon /></IconButton>
           </Grid>
@@ -73,9 +72,7 @@ const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
 
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
-          <Typography variant="h6" gutterBottom component="div">
-            Detalhes
-          </Typography>
+          <Typography variant="h6" gutterBottom component="div">Detalhes</Typography>
           <Typography variant="body2" sx={{ mt: 1 }} component="div">
             {order.serviceDescriptions}
           </Typography>
@@ -87,16 +84,16 @@ const CardList: React.FC<{ order: OrderWithRelations }> = ({ order }) => {
 export default function ServicePage() {
   const { data: session } = useSession();
   const { data: orders, isLoading } = useSWR<OrderWithRelations[]>(session?.user.id || "", getOrders);
-  
+
   if (isLoading) return <Loading />;
 
   return (
     <Container maxWidth="lg">
-      <CustomAppBar showBackButton/>
-      <Box sx={{ width: "100%", display: 'flex', flexDirection: 'column',mb:5}}>
+      <CustomAppBar href='/' />
+      <Box sx={{ width: "100%", display: 'flex', flexDirection: 'column', mb: 5 }}>
         {orders && orders.map((data) => (<CardList key={data.id} order={data} />))}
-        <CustomFab href="/orders/create" variant="Plus" />
       </Box>
+      <CustomFab href="/orders/create" variant="Plus" />
     </Container>
   );
 }

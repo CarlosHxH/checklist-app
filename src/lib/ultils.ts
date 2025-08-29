@@ -13,36 +13,51 @@ export const calcularDiferenca = (inicio: string, fim?: string|null) => {
   };
 }
 
+export function formatTimestamp(timestamp: string): string {
+  const date = new Date(timestamp);
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(date);
+}
+
+export function getRelativeTime(timestamp1: string, timestamp2?: string): string {
+  const date = new Date(timestamp1);
+  const now = timestamp2 ? new Date(timestamp2) : new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diffInSeconds < 60) return 'agora mesmo';
+  if (diffInSeconds < 3600) return `há ${Math.floor(diffInSeconds / 60)} minutos`;
+  if (diffInSeconds < 86400) return `há ${Math.floor(diffInSeconds / 3600)} horas`;
+  if (diffInSeconds < 604800) return `há ${Math.floor(diffInSeconds / 86400)} dias`;
+  return formatTimestamp(timestamp1);
+}
+
 export function dateDiff(dataInicial: string, dataFinal?: string|null) {
   const diff = calcularDiferenca(dataInicial, dataFinal);
-  if (diff.dias > 0) {
-    const horasRestantes = diff.horas % 24;
-    const minRest = diff.minutos % 60;
-    return `${diff.dias} dias, ${horasRestantes} horas ${minRest > 0 ? "e " + minRest + " minutos" : ""} `;
-  } else if (diff.horas > 0) {
-    const minRest = diff.minutos % 60;
-    return `${diff.horas} horas ${minRest > 0 ? "e " + minRest + " minutos" : ""}`;
-  } else {
-    return `${diff.minutos} minutos`;
-  }
+  const d = diff.dias;
+  const h = diff.horas % 24;
+  const m = diff.minutos % 60;
+  if (d > 0) return `${d} d, ${h} h ${m > 0 ? " e " + m + " m" : ""} `;
+  if (h > 0) return `${h} h ${m > 0 ? "e " + m + " m" : ""}`;
+  else return `${m} m`;
 }
 
 // Helper function to format date for datetime-local input
 export const formatDateForInput = (date: Date | string | null): string => {
   if (!date) return '';
-  
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
   // Check if date is valid
   if (isNaN(dateObj.getTime())) return '';
-  
   // Format to YYYY-MM-DDTHH:MM (required for datetime-local)
   const year = dateObj.getFullYear();
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
   const day = String(dateObj.getDate()).padStart(2, '0');
   const hours = String(dateObj.getHours()).padStart(2, '0');
   const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-  
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 

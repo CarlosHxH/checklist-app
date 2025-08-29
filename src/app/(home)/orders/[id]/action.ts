@@ -13,6 +13,9 @@ export type OrderWithRelations = Order & {
     };
     maintenanceCenter: {
         name: string;
+    },
+    oficina: {
+        name: string;
     }
 };
 
@@ -34,7 +37,8 @@ export const getOrders = async (os: string ): Promise<OrderWithRelations> => {
             },
             maintenanceCenter:{
                 select: { name: true }
-            }
+            },
+            oficina: {select: { name: true }}
         }
     });
     return orders as OrderWithRelations;

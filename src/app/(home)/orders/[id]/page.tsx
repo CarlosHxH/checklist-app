@@ -115,8 +115,8 @@ export default function OrderPage() {
           </Box>
 
           <Box>
-            <Typography variant="subtitle2">Local</Typography>
-            <Typography>{order.oficinaId}</Typography>
+            <Typography variant="subtitle2">OFICINA</Typography>
+            <Typography>{order.oficina.name}</Typography>
           </Box>
         </Box>
       </Paper>
