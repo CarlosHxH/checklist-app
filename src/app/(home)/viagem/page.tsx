@@ -1,18 +1,18 @@
 "use client"
 import { Container, Alert, Box } from '@mui/material';
 import CustomFab from '@/components/_ui/CustomFab';
-import useSWR from 'swr';
-import { fetcher } from '@/lib/ultils';
 import Loading from '@/components/Loading';
 import CardViagemList from './CardViagemList';
 import { useSession } from 'next-auth/react';
 import CustomAppBar from '@/components/_ui/CustomAppBar';
+import { fetcher } from '@/lib/ultils';
+import useSWR from 'swr';
 
 export default function Viagens() {
   const { data: session } = useSession();
-  
+
   const { data, error, isLoading } = useSWR(
-    session?.user.id ? `/api/v1/viagens/user/${session?.user.id}` : null, 
+    session?.user.id ? `/api/v1/viagens/user/${session?.user.id}` : null,
     fetcher
   );
 
@@ -38,18 +38,20 @@ export default function Viagens() {
   // Ocultar Fab se houver uma viagem ativa (tem startId, mas sem endid)
   const shouldShowFab = () => {
     if (!data || !Array.isArray(data) || data.length === 0) return true;
-    
+
     const activeTrip = data.find(trip => trip.startId && !trip.endId);
     return !activeTrip;
   };
 
   return (
-    <Container maxWidth="lg">
-      <CustomAppBar href='/'/>
-      <CardViagemList data={data || []} />
-      {shouldShowFab() && (
-        <CustomFab href="/viagem/create" variant="Plus" />
-      )}
-    </Container>
+    <Box>
+      <CustomAppBar href='/' />
+      <Container maxWidth="lg">
+        <CardViagemList data={data || []} />
+        {shouldShowFab() && (
+          <CustomFab href="/viagem/create" variant="Plus" />
+        )}
+      </Container>
+    </Box>
   );
 }

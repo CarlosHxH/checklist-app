@@ -4,53 +4,15 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, 
 import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
 import ButtonLabel from '@/components/_ui/ButtonLabel';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { Inspect, inspection, user, vehicle } from '@prisma/client';
 
-interface Vehicle {
-  id?: string;
-  plate?: string;
-  model?: string;
+
+type InspectionData = Inspect & {
+  start: inspection;
+  end: inspection;
+  vehicle: Partial<vehicle>;
+  user: user;
 }
-
-interface InspectionData {
-  start?: {
-    nivelAgua: string;
-    nivelOleo: string;
-    avariasCabine: string;
-    bauPossuiAvarias: string;
-    funcionamentoParteEletrica: string | null;
-    descricaoAvariasCabine: string | null;
-    descricaoAvariasBau?: string | null;
-    descricaoParteEletrica: string | null;
-    dianteira: string | null;
-    descricaoDianteira: string | null;
-    tracao: string | null;
-    descricaoTracao: string | null;
-    truck: string | null;
-    descricaoTruck: string | null;
-    quartoEixo: string | null;
-    descricaoQuartoEixo: string | null;
-  };
-  end?: {
-    nivelAgua: string;
-    nivelOleo: string;
-    avariasCabine: string;
-    bauPossuiAvarias: string;
-    funcionamentoParteEletrica: string | null;
-    descricaoAvariasCabine: string | null;
-    descricaoAvariasBau?: string | null;
-    descricaoParteEletrica: string | null;
-    dianteira: string | null;
-    descricaoDianteira: string | null;
-    tracao: string | null;
-    descricaoTracao: string | null;
-    truck: string | null;
-    descricaoTruck: string | null;
-    quartoEixo: string | null;
-    descricaoQuartoEixo: string | null;
-  };
-  vehicle?: Vehicle;
-}
-
 
 interface FormDataType {
   nivelAgua: string;

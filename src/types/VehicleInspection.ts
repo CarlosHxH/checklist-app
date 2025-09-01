@@ -1,6 +1,12 @@
+import { inspection } from "@prisma/client";
+
 // Type definition for the inspection data
 export interface VehicleInspection {
   id: string;
+  startId: string;
+  endId: string;
+  start: inspection;
+  end: inspection;
   vehicle: {
     make: string;
     model: string;

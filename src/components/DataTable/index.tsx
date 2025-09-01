@@ -17,7 +17,7 @@ export interface ColumnConfig<T> {
     key: keyof T | string;
     label: string;
     align?: 'left' | 'center' | 'right';
-    render?: (row: T, onRefresh: () => void) => ReactNode;
+    render?: (row: T, onRefresh: () => void, value: string) => ReactNode;
     sortable?: boolean;
     width?: number;
     flex?: number | string;
@@ -133,7 +133,7 @@ function CollapsibleRow<T>({
 
                 {columns.map((column, index) => (
                     <TableCell key={index} align={column.align || 'left'} style={{ width: column.width }}>
-                        {column.render ? column.render(row, onRefresh) : getNestedValue(row, column.key as string)}
+                        {column.render ? column.render(row, onRefresh, getNestedValue(row, column.key as string)) : getNestedValue(row, column.key as string)}
                     </TableCell>
                 ))}
 

@@ -5,9 +5,9 @@ import {
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Snackbar,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Typography, useMediaQuery, useTheme
+  Typography, useTheme
 } from '@mui/material'
-import { History, Refresh } from '@mui/icons-material'
+import { History } from '@mui/icons-material'
 import CloseIcon from '@mui/icons-material/Close';
 import HistoryModal from '@/components/_ui/HistoryModal'
 import useSWR from 'swr';
@@ -59,19 +59,16 @@ interface FormData {
 
 export default function VehicleKeysPage() {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { data, isLoading, mutate } = useSWR<DataType>('/api/v1/dashboard/keys', fetcher, { refreshInterval: 3000 })
-
+  
   const [groupedVehicleKeys, setGroupedVehicleKeys] = useState<GroupedVehicleKeys>({})
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [historyModalOpen, setHistoryModalOpen] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-  const [resendConfirmDialogOpen, setResendConfirmDialogOpen] = useState(false)
   const [selectedVehicleKeys, setSelectedVehicleKeys] = useState<VehicleKey | null>(null)
   const [formData, setFormData] = useState<FormData>({ userId: '', vehicleId: '' })
-
   const [deleteKey, setDeleteKey] = useState<VehicleKey | null>(null)
 
   useEffect(() => {

@@ -57,7 +57,7 @@ export default function DashboardPagesLayout({ children }: { children: React.Rea
   const navigation = React.useMemo(() => createNavigation(), []);
   // Retornar o estado nulo ou de carregamento durante a SSR
   if (!mounted || status === "loading") return null;
-  if (!session || !["ADMIN", "USER"].some(role => session?.user.role?.includes(role))) redirect('/');
+  if (!session || !["ADMIN"].some(role => session?.user.role?.includes(role))) redirect('/');
 
   return (
     <AppProvider session={session} authentication={authentication} branding={BRANDING} navigation={navigation}>

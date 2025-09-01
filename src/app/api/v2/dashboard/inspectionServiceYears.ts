@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { Prisma, PrismaClient } from '@prisma/client';
 import { endOfDay, subMonths, startOfDay, format, startOfMonth, endOfMonth, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -41,6 +40,26 @@ export type InspectionReport = {
   };
 };
 
+
+/**
+ * Gera dados diários para o gráfico dos últimos 30 dias
+ */
+export function lastMonth(items: { createdAt: Date }[]) {
+  // Agrupa por data
+  const inspectionsByDate = items.reduce<Record<string, number>>((acc, item) => {
+    const dateKey = format(item.createdAt, 'yyyy-MM-dd');
+    acc[dateKey] = (acc[dateKey] || 0) + 1;
+    return acc;
+  }, {});
+  // Preenche todas as datas dos últimos 30 dias
+  const result = [];
+  for (let i = 0; i < 30; i++) {
+    const date = format(subDays(new Date(), 30 - i - 1), 'yyyy-MM-dd');
+    result.push({date, count: inspectionsByDate[date] || 0});
+  }
+  return result;
+}
+
 /**
  * Gera um relatório completo das inspeções dos últimos 12 meses
  */
@@ -52,29 +71,21 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
 
   // Busca todas as inspeções dos últimos 12 meses
   const inspections = await prisma.inspection.findMany({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      }
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
+    where: {createdAt: {gte: startDate,lte: endDate}},
+    orderBy: {createdAt: 'asc'},
   });
-
   // Gera dados mensais
   const monthlyData = generateMonthlyData(inspections, startDate);
-  
+
   // Gera dados para gráfico (diários dos últimos 30 dias)
   const chartData = await generateDailyChartData();
-  
+
   // Calcula tendências
   const trends = calculateTrends(monthlyData);
-  
+
   // Calcula insights
   const insights = calculateInsights(monthlyData);
-  
+
   // Calcula totais e médias
   const totalInspections = inspections.length;
   const averagePerMonth = totalInspections / 12;
@@ -96,18 +107,18 @@ export async function getInspectionsReport12Months(): Promise<InspectionReport> 
  */
 function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspectionData[] {
   const monthlyData: MonthlyInspectionData[] = [];
-  
+
   // Cria array com todos os 12 meses
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(new Date(), 11 - i);
     const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthDate);
-    
+
     // Conta inspeções do mês
-    const monthInspections = inspections.filter(inspection => 
+    const monthInspections = inspections.filter(inspection =>
       inspection.createdAt >= monthStart && inspection.createdAt <= monthEnd
     );
-    
+
     const daysInMonth = monthEnd.getDate();
     const count = monthInspections.length;
 
@@ -119,72 +130,30 @@ function generateMonthlyData(inspections: any[], startDate: Date): MonthlyInspec
       averagePerDay: Math.round((count / daysInMonth) * 100) / 100,
     });
   }
-  
+
   return monthlyData;
 }
 
-/**
- * Gera dados diários para o gráfico dos últimos 30 dias
- */
-export async function lastMonthOrders(): Promise<{date: string;count: number;}[]> {
+export async function lastMonthOrders(): Promise<{ date: string; count: number; }[]> {
   const orders = await prisma.order.findMany({
-    where: { createdAt: {gte: startOfDay(subDays(new Date(), 30)), lte: endOfDay(new Date())}},
-    orderBy: {createdAt: 'asc'},
+    where: { createdAt: { gte: startOfDay(subDays(new Date(), 30)), lte: endOfDay(new Date()) } },
+    orderBy: { createdAt: 'asc' },
   });
-
-  // Agrupa por data
-  const itemsByDate = orders.reduce<Record<string, number>>((acc, item) => {
-    const key = format(item.createdAt, 'yyyy-MM-dd');
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Preenche todas as datas dos últimos 30 dias
-  const result = [];
-  for (let i = 0; i < 30; i++) {
-    const date = format(subDays(new Date(), 30 - i - 1), 'yyyy-MM-dd');
-    result.push({date,count: itemsByDate[date] || 0});
-  }
-  return result;
+  return lastMonth(orders)
 }
 
 
 /**
  * Gera dados diários para o gráfico dos últimos 30 dias
  */
-export async function generateDailyChartData(): Promise<InspectionChartData[]> {
+export async function generateDailyChartData(): Promise<{ date: string; count: number; }[]> {
   const thirtyDaysAgo = subDays(new Date(), 30);
-  
+
   const inspections = await prisma.inspection.findMany({
-    where: {
-      createdAt: {
-        gte: startOfDay(thirtyDaysAgo),
-        lte: endOfDay(new Date()),
-      },
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
+    where: {createdAt: {gte: startOfDay(thirtyDaysAgo),lte: endOfDay(new Date())}},
+    orderBy: { createdAt: 'asc'}
   });
-
-  // Agrupa por data
-  const inspectionsByDate = inspections.reduce<Record<string, number>>((acc, inspection) => {
-    const dateKey = format(inspection.createdAt, 'yyyy-MM-dd');
-    acc[dateKey] = (acc[dateKey] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Preenche todas as datas dos últimos 30 dias
-  const result: InspectionChartData[] = [];
-  for (let i = 0; i < 30; i++) {
-    const date = format(subDays(new Date(), 30 - i - 1), 'yyyy-MM-dd');
-    result.push({
-      date,
-      count: inspectionsByDate[date] || 0,
-    });
-  }
-
-  return result;
+  return lastMonth(inspections);
 }
 
 /**
@@ -197,7 +166,7 @@ export function calculateTrends(monthlyData: MonthlyInspectionData[]) {
     const quarterStart = i * 3;
     const quarterMonths = monthlyData.slice(quarterStart, quarterStart + 3);
     const quarterCount = quarterMonths.reduce((sum, month) => sum + month.count, 0);
-    
+
     let growth = 0;
     if (i > 0) {
       const prevQuarterStart = (i - 1) * 3;
@@ -205,7 +174,7 @@ export function calculateTrends(monthlyData: MonthlyInspectionData[]) {
       const prevQuarterCount = prevQuarterMonths.reduce((sum, month) => sum + month.count, 0);
       growth = prevQuarterCount > 0 ? ((quarterCount - prevQuarterCount) / prevQuarterCount) * 100 : 0;
     }
-    
+
     quarterly.push({
       period: `Q${i + 1} ${quarterMonths[0]?.year}`,
       count: quarterCount,
@@ -220,7 +189,7 @@ export function calculateTrends(monthlyData: MonthlyInspectionData[]) {
       const prevMonth = monthlyData.slice(-6)[index - 1];
       growth = prevMonth.count > 0 ? ((month.count - prevMonth.count) / prevMonth.count) * 100 : 0;
     }
-    
+
     return {
       period: month.month,
       count: month.count,
@@ -235,26 +204,26 @@ export function calculateTrends(monthlyData: MonthlyInspectionData[]) {
  * Calcula insights do relatório
  */
 function calculateInsights(monthlyData: MonthlyInspectionData[]) {
-  const bestMonth = monthlyData.reduce((best, current) => 
+  const bestMonth = monthlyData.reduce((best, current) =>
     current.count > best.count ? current : best
   );
-  
-  const worstMonth = monthlyData.reduce((worst, current) => 
+
+  const worstMonth = monthlyData.reduce((worst, current) =>
     current.count < worst.count ? current : worst
   );
-  
+
   // Taxa de crescimento médio mensal
   const growthRates = monthlyData.slice(1).map((month, index) => {
     const prevMonth = monthlyData[index];
     return prevMonth.count > 0 ? ((month.count - prevMonth.count) / prevMonth.count) * 100 : 0;
   });
-  
+
   const averageGrowthRate = growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length;
-  
+
   // Crescimento total (primeiro vs último mês)
   const firstMonth = monthlyData[0];
   const lastMonth = monthlyData[monthlyData.length - 1];
-  const totalGrowth = firstMonth.count > 0 ? 
+  const totalGrowth = firstMonth.count > 0 ?
     ((lastMonth.count - firstMonth.count) / firstMonth.count) * 100 : 0;
 
   return {
@@ -270,7 +239,7 @@ function calculateInsights(monthlyData: MonthlyInspectionData[]) {
  */
 export function generateTextReport(report: InspectionReport): string {
   const { totalInspections, averagePerMonth, averagePerDay, monthlyData, insights, trends } = report;
-  
+
   return `
 RELATÓRIO DE INSPEÇÕES - ÚLTIMOS 12 MESES
 ========================================
@@ -283,9 +252,9 @@ RESUMO EXECUTIVO
 
 PERFORMANCE MENSAL
 ------------------
-${monthlyData.map(month => 
-  `${month.month}: ${month.count} inspeções (${month.averagePerDay}/dia)`
-).join('\n')}
+${monthlyData.map(month =>
+    `${month.month}: ${month.count} inspeções (${month.averagePerDay}/dia)`
+  ).join('\n')}
 
 INSIGHTS PRINCIPAIS
 -------------------
@@ -296,15 +265,15 @@ INSIGHTS PRINCIPAIS
 
 TENDÊNCIAS TRIMESTRAIS
 ----------------------
-${trends.quarterly.map(quarter => 
-  `${quarter.period}: ${quarter.count} inspeções (${quarter.growth > 0 ? '+' : ''}${quarter.growth}%)`
-).join('\n')}
+${trends.quarterly.map(quarter =>
+    `${quarter.period}: ${quarter.count} inspeções (${quarter.growth > 0 ? '+' : ''}${quarter.growth}%)`
+  ).join('\n')}
 
 TENDÊNCIAS MENSAIS (Últimos 6 meses)
 ------------------------------------
-${trends.monthly.map(month => 
-  `${month.period}: ${month.count} inspeções (${month.growth > 0 ? '+' : ''}${month.growth}%)`
-).join('\n')}
+${trends.monthly.map(month =>
+    `${month.period}: ${month.count} inspeções (${month.growth > 0 ? '+' : ''}${month.growth}%)`
+  ).join('\n')}
 
 Relatório gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
   `.trim();
@@ -313,10 +282,11 @@ Relatório gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: p
 /**
  * Função legada mantida para compatibilidade
  */
-export async function getInspectionsLast30Days(): Promise<InspectionChartData[]> {
+/*
+export async function getInspectionsLast30Days(): Promise<{ date: string; count: number; }[]> {
   const report = await getInspectionsReport12Months();
   return report.chartData;
-}
+}*/
 
 
 /**

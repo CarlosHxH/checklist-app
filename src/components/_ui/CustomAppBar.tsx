@@ -43,8 +43,8 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
   };
 
   return (
-    <>
-      <App component="nav">
+    <Box>
+      <App component="nav" position="fixed">
         <Container maxWidth="xl">
           <Toolbar>
             {(showBackButton || href) && (
@@ -69,7 +69,7 @@ const CustomAppBar: React.FC<Props> = ({ title, showBackButton = false, onBackCl
         </Container>
       </App>
       <Toolbar />
-    </>
+    </Box>
   );
 };
 

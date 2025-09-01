@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import StatCard, { StatCardProps } from "@/components/Dashboard/chats/StatCard";
 import Loading from "@/components/Loading";
 import useSWR from "swr";
 import { fetcher } from "@/lib/ultils";
@@ -21,7 +20,7 @@ export default function DashboardContent() {
   if (error) return <></>;
 
   return (
-    <Box sx={{p:4}}>
+    <Box sx={{ p: 4}}>
       <Typography component="h2" variant="h4" sx={{ mb: 2 }}>Dashboard</Typography>
       <Box component="main" sx={{ flexGrow: 1 }} >
         <Stack spacing={2} sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}>
@@ -31,12 +30,7 @@ export default function DashboardContent() {
 
             <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
 
-              {data.cards && data.cards.map((card: StatCardProps, index: number) => (
-                <Grid key={index} size={{ xs: 6, sm: 3 }} sx={{ cursor: "pointer" }}>
-                  <StatCard {...card} />
-                </Grid>
-              ))}
-
+              <InspectionsDashboard data={data.cards} />
 
               <Grid size={{ xs: 12, md: 12 }}>
                 <Box>
@@ -78,7 +72,7 @@ export default function DashboardContent() {
                             value: (data.ordens.totalOrdens || 0),
                             href: "/dashboard/orders",
                             render: (
-                              <Box sx={{display:'flex', gap: 4}}>
+                              <Box sx={{ display: 'flex', gap: 4 }}>
                                 <Typography variant="subtitle1" fontSize={14} color="textSecondary">{data.ordens.ordensFinalizadas || 0} {"FINALIZADAS"}</Typography>
                                 <Typography variant="subtitle1" fontSize={14} color="textSecondary">{data.ordens.ordensPendentes || 0} {"NÂO FINALIZADAS"}</Typography>
                               </Box>
@@ -90,7 +84,6 @@ export default function DashboardContent() {
                   </React.Suspense>
                 </Box>
               </Grid>
-
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <Card>
@@ -107,7 +100,7 @@ export default function DashboardContent() {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Últimos 30 Dias - Ordens de serviço
+                      Últimos 30 Dias - ORDEM DE SERVIÇO
                     </Typography>
                     <InspectionChart label={"Ordens"} color="red" data={data.lastOrders} />
                   </CardContent>
@@ -127,8 +120,13 @@ export default function DashboardContent() {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <ChartByUsers height={420} dataset={data.byUsers} />
+                <ChartByUsers label={"Detalhes por Usuário"} height={300} dataset={data.byUsers} />
               </Grid>
+
+              <Grid size={{ xs: 12 }}>
+
+              </Grid>
+
             </Grid>
           </Box>
         </Stack>

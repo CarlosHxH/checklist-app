@@ -1,26 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: "Inspeção não encontrada" },
+        { status: 404 }
+      );
+    }
+
     const inspection = await prisma.inspection.findUnique({
       where: { id },
       include: {
-        vehicle: {
-          select: {
-            plate: true,
-            model: true,
-          },
-        },
-        photos: {
-          select: {
-            id: true,
-            type: true,
-            photo: true,
-            description: true,
-          },
-        },
+        vehicle: true,
+        photos: true,
       },
     });
 
@@ -33,6 +32,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(inspection);
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno do servidor" },{ status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
   }
 }

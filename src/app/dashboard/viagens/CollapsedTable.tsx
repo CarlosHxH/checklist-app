@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Collapse, IconButton, Table, TableBody, Paper,
   TableCell, TableContainer, TableHead, TableRow, Typography,
-  Chip, TextField, MenuItem, FormControl, InputLabel, Toolbar,
+  TextField, MenuItem, FormControl, InputLabel, Toolbar,
   Select, Stack, Pagination, InputAdornment, Grid, SelectChangeEvent,
   Tooltip,
   Button,
@@ -21,9 +21,48 @@ import StatusUpdateModal from './Modal';
 import { useInspectionUpdate } from '@/hooks/useInspectionUpdate';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { handlerDelete } from './handlerDelete';
+import { Inspect, inspection, user, vehicle } from '@prisma/client';
 
+interface inspect {
+  id: string;
+  userId: string;
+  vehicleId: string;
+  vehicleKey: string | null;
+  dataInspecao: string;
+  status: string;
+  crlvEmDia: string;
+  certificadoTacografoEmDia: string;
+  nivelAgua: string;
+  nivelOleo: string;
+  eixo: string;
+  dianteira: string;
+  descricaoDianteira: string;
+  tracao: string;
+  descricaoTracao: string;
+  truck: string;
+  descricaoTruck: string;
+  quartoEixo: string | null;
+  descricaoQuartoEixo: string | null;
+  avariasCabine: string;
+  descricaoAvariasCabine: string | null;
+  bauPossuiAvarias: string;
+  descricaoAvariasBau: string | null;
+  funcionamentoParteEletrica: string;
+  descricaoParteEletrica: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  kilometer: string;
+  isFinished: boolean;
+  extintor: string;
+}
 // Definição do tipo para os dados
-interface VehicleInspection {
+type VehicleInspection = Inspect & {
+  start: inspection;
+  end: inspection;
+  vehicle: Partial<vehicle>;
+  user: user;
+}
+/*{
   id: string;
   userId: string;
   startId: string;
@@ -31,79 +70,15 @@ interface VehicleInspection {
   vehicleId: string;
   createdAt: string;
   updatedAt: string;
-  user: {
-    name: string;
-  };
-  start: {
-    id: string;
-    userId: string;
-    vehicleId: string;
-    vehicleKey: string | null;
-    dataInspecao: string;
-    status: string;
-    crlvEmDia: string;
-    certificadoTacografoEmDia: string;
-    nivelAgua: string;
-    nivelOleo: string;
-    eixo: string;
-    dianteira: string;
-    descricaoDianteira: string;
-    tracao: string;
-    descricaoTracao: string;
-    truck: string;
-    descricaoTruck: string;
-    quartoEixo: string | null;
-    descricaoQuartoEixo: string | null;
-    avariasCabine: string;
-    descricaoAvariasCabine: string | null;
-    bauPossuiAvarias: string;
-    descricaoAvariasBau: string | null;
-    funcionamentoParteEletrica: string;
-    descricaoParteEletrica: string | null;
-    createdAt: string;
-    updatedAt: string | null;
-    kilometer: string;
-    isFinished: boolean;
-    extintor: string;
-  };
-  end: {
-    id: string;
-    userId: string;
-    vehicleId: string;
-    vehicleKey: string | null;
-    dataInspecao: string;
-    status: string;
-    crlvEmDia?: string;
-    certificadoTacografoEmDia: string;
-    nivelAgua: string;
-    nivelOleo: string;
-    eixo: string;
-    dianteira: string;
-    descricaoDianteira: string;
-    tracao: string;
-    descricaoTracao: string;
-    truck: string;
-    descricaoTruck: string;
-    quartoEixo: string | null;
-    descricaoQuartoEixo: string | null;
-    avariasCabine: string;
-    descricaoAvariasCabine: string | null;
-    bauPossuiAvarias: string;
-    descricaoAvariasBau: string | null;
-    funcionamentoParteEletrica: string;
-    descricaoParteEletrica: string | null;
-    createdAt: string;
-    updatedAt: string | null;
-    kilometer: string;
-    isFinished: boolean;
-    extintor: string;
-  };
+  user: { name: string; };
+  start: inspect;
+  end: inspect;
   vehicle: {
     make: string;
     plate: string;
     model: string;
   }
-}
+}*/
 
 // Tipos para os filtros
 interface FilterOptions {
@@ -208,12 +183,12 @@ function Row(props: { row: VehicleInspection, mutate: () => void }) {
         </TableCell>
         <TableCell align="right">
           <Typography>
-            {row?.start?.createdAt && formatDate(row.start.createdAt)}
+            {row?.start?.createdAt && formatDate(row.start.createdAt.toString())}
           </Typography>
         </TableCell>
         <TableCell align="right">
           <Typography color={row?.end ? 'textPrimary' : 'warning'}>
-            {row?.end?.createdAt ? formatDate(row?.end?.createdAt) : 'Em andamento'}
+            {row?.end?.createdAt ? formatDate(row?.end?.createdAt.toString()) : 'Em andamento'}
           </Typography>
         </TableCell>
         <TableCell align="right">{row?.start?.kilometer || 0} km</TableCell>
@@ -248,130 +223,62 @@ function Row(props: { row: VehicleInspection, mutate: () => void }) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              <Typography variant="h6" gutterBottom component="div">
-                Detalhes da Viagem
-              </Typography>
+              <Typography variant="h6" gutterBottom>Detalhes da Viagem</Typography>
               <Box sx={{ display: 'flex', gap: 4, mb: 2, flexDirection: { xs: 'column', md: 'row' } }}>
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Inicio da Viagem:
-                    {row.start?.dataInspecao ? formatDate(row.start.dataInspecao) : 'Data não disponível'}
-                  </Typography>
-                  <Table size="small" aria-label="inspection-start">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>CRLV</TableCell>
-                        <TableCell>{row?.start?.crlvEmDia || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row?.start?.certificadoTacografoEmDia || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row?.start?.nivelAgua || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row?.start?.nivelOleo || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row?.start?.dianteira || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row?.start?.tracao || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Truck</TableCell>
-                        <TableCell>{row?.start?.truck || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row?.start?.avariasCabine || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row?.start?.bauPossuiAvarias || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row?.start?.funcionamentoParteEletrica || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Extintor</TableCell>
-                        <TableCell>{row?.start?.extintor || ''}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Box>
-
-                {row?.end && <Box>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Final da Viagem: {row.end?.dataInspecao ? formatDate(row?.end?.dataInspecao) : 'Data não disponível'}
-                  </Typography>
-                  <Table size="small" aria-label="inspection-end">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>CRLV</TableCell>
-                        <TableCell>{row?.end?.crlvEmDia || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Certificado Tacógrafo</TableCell>
-                        <TableCell>{row?.end?.certificadoTacografoEmDia || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Nível de Água</TableCell>
-                        <TableCell>{row?.end?.nivelAgua || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Nível de Óleo</TableCell>
-                        <TableCell>{row?.end?.nivelOleo || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Pneus Dianteiros</TableCell>
-                        <TableCell>{row?.end?.dianteira || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Pneus Tração</TableCell>
-                        <TableCell>{row?.end?.tracao || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Truck</TableCell>
-                        <TableCell>{row?.end?.truck || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Avarias Cabine</TableCell>
-                        <TableCell>{row?.end?.avariasCabine || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Avarias Baú</TableCell>
-                        <TableCell>{row?.end?.bauPossuiAvarias || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Parte Elétrica</TableCell>
-                        <TableCell>{row?.end?.funcionamentoParteEletrica || ''}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Extintor</TableCell>
-                        <TableCell>{row?.end?.extintor || ''}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Box>}
+                {[row.start, ...(row?.end ? [row.end] : [])].map((item,index) => (
+                  <Box key={index} flex={1}>
+                    <Typography variant="subtitle1" fontWeight={"bold"} gutterBottom>
+                      {index===0?"Inicio da Viagem:":"Final da Viagem:"} {item?.dataInspecao ? formatDate(item.dataInspecao.toString()) : 'Data não disponível'}
+                    </Typography>
+                    <Table size="small" aria-label="inspection-start">
+                      <TableBody>
+                        <TableRow>
+                          <TableCell>CRLV</TableCell>
+                          <TableCell>{item?.crlvEmDia || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Certificado Tacógrafo</TableCell>
+                          <TableCell>{item?.certificadoTacografoEmDia || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Nível de Água</TableCell>
+                          <TableCell>{item?.nivelAgua || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Nível de Óleo</TableCell>
+                          <TableCell>{item?.nivelOleo || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Pneus Dianteiros</TableCell>
+                          <TableCell>{item?.dianteira || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Pneus Tração</TableCell>
+                          <TableCell>{item?.tracao || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Truck</TableCell>
+                          <TableCell>{item?.truck || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Avarias Cabine</TableCell>
+                          <TableCell>{row?.start?.avariasCabine || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Avarias Baú</TableCell>
+                          <TableCell>{item?.bauPossuiAvarias || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Parte Elétrica</TableCell>
+                          <TableCell>{item?.funcionamentoParteEletrica || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>Extintor</TableCell>
+                          <TableCell>{item?.extintor || 'N/A'}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Box>))}
               </Box>
             </Box>
           </Collapse>
@@ -381,13 +288,7 @@ function Row(props: { row: VehicleInspection, mutate: () => void }) {
       <StatusUpdateModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        inspectionData={{
-          ...row,
-          vehicle: {
-            ...row.vehicle,
-            id: row.vehicleId
-          }
-        }}
+        inspectionData={row}
         onSave={updateStatus}
         loading={loading}
       />
@@ -534,7 +435,7 @@ export default function CollapsibleTable() {
           </Grid>
           <Grid item xs={12} md={8}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl size='small' sx={{ flex:1 }}>
+              <FormControl size='small' sx={{ flex: 1 }}>
                 <InputLabel id="responsavel-filter-label">Responsável</InputLabel>
                 <Select
                   labelId="responsavel-filter-label"
@@ -602,7 +503,7 @@ export default function CollapsibleTable() {
                 </Select>
               </FormControl>
               <Button variant='contained' color='primary' onClick={() => console.log(filteredRows)/*CSVExporter.export(filteredRows)*/}>
-                <FileDownload/>
+                <FileDownload />
               </Button>
             </Stack>
           </Grid>
@@ -626,7 +527,7 @@ export default function CollapsibleTable() {
           <TableBody>
             {paginatedRows.length > 0 ? (
               paginatedRows.map((row) => (
-                <Row key={row.id} row={row} mutate={mutate}/>
+                <Row key={row.id} row={row} mutate={mutate} />
               ))
             ) : (
               <TableRow>

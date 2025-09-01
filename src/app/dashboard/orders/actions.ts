@@ -3,12 +3,6 @@
 import { prisma } from '@/lib/prisma';
 import { MaintenanceCenter, Oficina, Order, user, vehicle } from '@prisma/client';
 
-interface User {
-    id: string;
-    username: string;
-    name: string;
-}
-
 export type OrderWithRelations = Order & {
     user: {
         id: string;

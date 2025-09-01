@@ -1,5 +1,5 @@
 "use client"
-import { Container } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { fetcher } from '@/lib/ultils';
 import { Suspense } from 'react';
 import CustomFab from '@/components/_ui/CustomFab';
@@ -16,11 +16,13 @@ export default function Inspecao() {
 
   return (
     <Suspense>
-      <Container maxWidth="lg">
+      <Box >
         <CustomAppBar href='/' />
-        <VehicleInspectionCard data={data} />
-      </Container>
-      <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
+        <Container maxWidth="lg">
+          <VehicleInspectionCard data={data} />
+        </Container>
+        <CustomFab href={'/inspecao/create'} variant={"Plus"} color='success' />
+      </Box>
     </Suspense>
   );
 }

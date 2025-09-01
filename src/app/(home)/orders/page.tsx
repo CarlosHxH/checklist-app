@@ -88,12 +88,14 @@ export default function ServicePage() {
   if (isLoading) return <Loading />;
 
   return (
-    <Container maxWidth="lg">
+    <Box>
       <CustomAppBar href='/' />
-      <Box sx={{ width: "100%", display: 'flex', flexDirection: 'column', mb: 5 }}>
-        {orders && orders.map((data) => (<CardList key={data.id} order={data} />))}
-      </Box>
+      <Container maxWidth="lg">
+        <Box sx={{ width: "100%", display: 'flex', flexDirection: 'column', mb: 5 }}>
+          {orders && orders.map((data) => (<CardList key={data.id} order={data} />))}
+        </Box>
+      </Container>
       <CustomFab href="/orders/create" variant="Plus" />
-    </Container>
+    </Box>
   );
 }
