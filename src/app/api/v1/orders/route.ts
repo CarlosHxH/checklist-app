@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
             kilometer: z.number().min(2),
             oficina: z.string().min(3),
             startedData: z.string().min(3),
+            finishedData: z.string().min(3).optional().nullable(),
             maintenanceType: z.string().min(3),
             maintenanceCenter: z.string().min(3),
             serviceDescriptions: z.string().min(3),
@@ -32,9 +33,10 @@ export async function POST(request: NextRequest) {
         
         const validatedData = EventSchema.parse(formData);
         
-        const { maintenanceCenter, oficina, startedData, ...data } = validatedData;
+        const { maintenanceCenter, oficina, startedData, finishedData, ...data } = validatedData;
         
-        const dateObject = new Date(startedData);
+        const started = new Date(startedData);
+        const finished = finishedData ? new Date(finishedData) : null;
         
         // Fix: Use correct model for oficina upsert
         const oficinaRecord = await prisma.oficina.upsert({
@@ -55,7 +57,8 @@ export async function POST(request: NextRequest) {
                 ...data,
                 oficinaId: oficinaRecord.id,
                 maintenanceCenterId: maintenanceCenterRecord.id,
-                startedData: dateObject
+                startedData: started,
+                finishedData: finished
             }
         })
         

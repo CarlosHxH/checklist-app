@@ -1,19 +1,12 @@
-// app/api/v1/maintenance-centers/[id]/route.ts
-
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-
-// Add this interface to help with type inference
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
 
 // GET - Buscar centro por ID
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // Await the params promise
+  const { id } = await context.params;
   const centerId = parseInt(id);
   
   if (isNaN(centerId)) {
@@ -35,9 +28,9 @@ export async function GET(
 // PUT - Atualizar centro
 export async function PUT(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // Await the params promise
+  const { id } = await context.params;
   const centerId = parseInt(id);
   
   if (isNaN(centerId)) {
@@ -80,9 +73,9 @@ export async function PUT(
 // DELETE - Deletar centro
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // Await the params promise
+  const { id } = await context.params;
   const centerId = parseInt(id);
   
   if (isNaN(centerId)) {

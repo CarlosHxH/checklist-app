@@ -4,12 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET - Buscar oficina por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await context.params;
+    const newId = parseInt(id);
 
-    if (isNaN(id)) {
+    if (isNaN(newId)) {
       return NextResponse.json(
         { error: 'ID inválido' },
         { status: 400 }
@@ -17,7 +18,7 @@ export async function GET(
     }
 
     const oficina = await prisma.oficina.findUnique({
-      where: { id },
+      where: { id: newId },
       include: {
         _count: {
           select: { orders: true }
@@ -45,14 +46,15 @@ export async function GET(
 // PUT - Atualizar oficina
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await context.params;
+    const newId = parseInt(id);
     const body = await request.json();
     const { name } = body;
 
-    if (isNaN(id)) {
+    if (isNaN(newId)) {
       return NextResponse.json(
         { error: 'ID inválido' },
         { status: 400 }
@@ -68,7 +70,7 @@ export async function PUT(
 
     // Verificar se a oficina existe
     const existingOficina = await prisma.oficina.findUnique({
-      where: { id }
+      where: { id: newId }
     });
 
     if (!existingOficina) {
@@ -82,7 +84,7 @@ export async function PUT(
     const duplicateOficina = await prisma.oficina.findFirst({
       where: {
         name: name.trim(),
-        id: { not: id }
+        id: { not: newId }
       }
     });
 
@@ -94,7 +96,7 @@ export async function PUT(
     }
 
     const oficina = await prisma.oficina.update({
-      where: { id },
+      where: { id: newId },
       data: {
         name: name.trim()
       },
@@ -118,12 +120,13 @@ export async function PUT(
 // DELETE - Deletar oficina
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await context.params;
+    const newId = parseInt(id);
 
-    if (isNaN(id)) {
+    if (isNaN(newId)) {
       return NextResponse.json(
         { error: 'ID inválido' },
         { status: 400 }
@@ -132,7 +135,7 @@ export async function DELETE(
 
     // Verificar se a oficina existe
     const existingOficina = await prisma.oficina.findUnique({
-      where: { id },
+      where: { id: newId },
       include: {
         _count: {
           select: { orders: true }
@@ -158,7 +161,7 @@ export async function DELETE(
     }
 
     await prisma.oficina.delete({
-      where: { id }
+      where: { id: newId }
     });
 
     return NextResponse.json(

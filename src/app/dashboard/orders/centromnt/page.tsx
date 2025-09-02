@@ -101,7 +101,7 @@ function EditToolbar(props: {
 
 export default function MaintenanceCentersCrudGrid() {
   const { data, isLoading, mutate, error } = useSWR<MaintenanceCenter[]>(
-    '/api/v1/maintenance-centers', 
+    '/api/v1/centers', 
     fetcher
   );
   
