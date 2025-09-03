@@ -79,12 +79,13 @@ export default function OrderCreateModal({
       reset({
         userId: session?.user?.id || '',
         startedData: formattedDate,
+        finishedData: null,
         kilometer: undefined,
         oficina: '',
         maintenanceType: '',
         maintenanceCenter: '',
         serviceDescriptions: '',
-        vehicleId: ''
+        vehicleId: '',
       });
     }
   }, [open, session, reset]);

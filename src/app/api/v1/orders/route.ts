@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
                 oficinaId: oficinaRecord.id,
                 maintenanceCenterId: maintenanceCenterRecord.id,
                 startedData: started,
-                finishedData: finished
+                finishedData: finished,
+                isCompleted: !!finished
             }
         })
         
