@@ -74,11 +74,15 @@ export async function middleware(req: NextRequest) {
   // Admin-only routes
   const isAdmin = token.role === "ADMIN";
   if (pathname.startsWith("/api/v2") && !isAdmin) {
-    return NextResponse.redirect("/");
+    const signInUrl = new URL("/api/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
     //return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
   if (pathname.startsWith("/dashboard") && !isAdmin) {
-    return NextResponse.redirect("/");
+    const signInUrl = new URL("/api/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
     //return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
