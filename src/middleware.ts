@@ -77,7 +77,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
   if (pathname.startsWith("/dashboard") && !isAdmin) {
-    return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+    return NextResponse.redirect("/");
+    //return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
   // Allow the request to proceed
