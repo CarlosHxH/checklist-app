@@ -24,11 +24,7 @@ export default function Viagens() {
     return (
       <Container maxWidth="lg">
         <CustomAppBar showBackButton />
-        <Box mt={2}>
-          <Alert severity="error">
-            Erro ao carregar dados. Por favor, tente novamente.
-          </Alert>
-        </Box>
+        <Alert sx={{mt:2}} severity="error">Erro ao carregar dados. Por favor, tente novamente.</Alert>
         <CustomFab href="/viagem/create" variant="Plus" />
       </Container>
     );
@@ -38,7 +34,6 @@ export default function Viagens() {
   // Ocultar Fab se houver uma viagem ativa (tem startId, mas sem endid)
   const shouldShowFab = () => {
     if (!data || !Array.isArray(data) || data.length === 0) return true;
-
     const activeTrip = data.find(trip => trip.startId && !trip.endId);
     return !activeTrip;
   };

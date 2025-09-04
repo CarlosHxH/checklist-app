@@ -77,13 +77,11 @@ export async function middleware(req: NextRequest) {
     const signInUrl = new URL("/api/auth/signin", req.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
-    //return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
   if (pathname.startsWith("/dashboard") && !isAdmin) {
     const signInUrl = new URL("/api/auth/signin", req.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
-    //return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
   // Allow the request to proceed
