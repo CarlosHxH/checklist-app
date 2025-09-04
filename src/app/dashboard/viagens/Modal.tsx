@@ -1,18 +1,29 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Grid, CircularProgress, Alert, Divider, Box, Tabs, Tab, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  Button, 
+  Typography, 
+  Grid, 
+  CircularProgress, 
+  Alert, 
+  Divider, 
+  Box, 
+  Tabs, 
+  Tab, 
+  FormControl, 
+  InputLabel, 
+  MenuItem, 
+  Select, 
+  TextField 
+} from '@mui/material';
 import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
 import ButtonLabel from '@/components/_ui/ButtonLabel';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { Inspect, inspection, user, vehicle } from '@prisma/client';
-
-
-type InspectionData = Inspect & {
-  start: inspection;
-  end: inspection;
-  vehicle: Partial<vehicle>;
-  user: user;
-}
 
 interface FormDataType {
   nivelAgua: string;
@@ -35,63 +46,60 @@ interface FormDataType {
   descricaoQuartoEixo: string;
 }
 
+type VehicleInspection = Inspect & {
+  start: inspection;
+  end: inspection;
+  vehicle: Partial<vehicle>;
+  user: user;
+}
+
 interface StatusUpdateModalProps {
   open: boolean;
   onClose: () => void;
-  inspectionData: InspectionData;
-  onSave: (data: { section: 'start' | 'end'; data: any }) => Promise<void>;
+  inspectionData?: VehicleInspection | null;
+  onSave: (id: string, data: { section: 'start' | 'end'; data: FormDataType }) => Promise<void>;
   loading?: boolean;
 }
 
-const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, inspectionData, onSave, loading = false }) => {
+const createDefaultValues = (sectionData?: inspection): FormDataType => ({
+  nivelAgua: sectionData?.nivelAgua || '',
+  nivelOleo: sectionData?.nivelOleo || '',
+  avariasCabine: sectionData?.avariasCabine || '',
+  bauPossuiAvarias: sectionData?.bauPossuiAvarias || '',
+  funcionamentoParteEletrica: sectionData?.funcionamentoParteEletrica || '',
+  descricaoAvariasCabine: sectionData?.descricaoAvariasCabine || '',
+  descricaoAvariasBau: sectionData?.descricaoAvariasBau || '',
+  descricaoParteEletrica: sectionData?.descricaoParteEletrica || '',
+  resolvidoPor: '',
+  observacoes: '',
+  dianteira: sectionData?.dianteira || '',
+  descricaoDianteira: sectionData?.descricaoDianteira || '',
+  tracao: sectionData?.tracao || '',
+  descricaoTracao: sectionData?.descricaoTracao || '',
+  truck: sectionData?.truck || '',
+  descricaoTruck: sectionData?.descricaoTruck || '',
+  quartoEixo: sectionData?.quartoEixo || '',
+  descricaoQuartoEixo: sectionData?.descricaoQuartoEixo || '',
+});
+
+const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ 
+  open, 
+  onClose, 
+  inspectionData, 
+  onSave, 
+  loading = false 
+}) => {
   const [tabValue, setTabValue] = useState(0);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
+  // Always call hooks - never conditionally
   const startForm = useForm<FormDataType>({
-    defaultValues: {
-      nivelAgua: inspectionData?.start?.nivelAgua || '',
-      nivelOleo: inspectionData?.start?.nivelOleo || '',
-      avariasCabine: inspectionData?.start?.avariasCabine || '',
-      bauPossuiAvarias: inspectionData?.start?.bauPossuiAvarias || '',
-      funcionamentoParteEletrica: inspectionData?.start?.funcionamentoParteEletrica || '',
-      descricaoAvariasCabine: inspectionData?.start?.descricaoAvariasCabine || '',
-      descricaoAvariasBau: inspectionData?.start?.descricaoAvariasBau || '',
-      descricaoParteEletrica: inspectionData?.start?.descricaoParteEletrica || '',
-      resolvidoPor: '',
-      observacoes: '',
-      dianteira: inspectionData?.start?.dianteira || '',
-      descricaoDianteira: inspectionData?.start?.descricaoDianteira || '',
-      tracao: inspectionData?.start?.tracao || '',
-      descricaoTracao: inspectionData?.start?.descricaoTracao || '',
-      truck: inspectionData?.start?.truck || '',
-      descricaoTruck: inspectionData?.start?.descricaoTruck || '',
-      quartoEixo: inspectionData?.start?.quartoEixo || '',
-      descricaoQuartoEixo: inspectionData?.start?.descricaoQuartoEixo || '',
-    }
+    defaultValues: createDefaultValues(inspectionData?.start)
   });
 
   const endForm = useForm<FormDataType>({
-    defaultValues: {
-      nivelAgua: inspectionData?.end?.nivelAgua || '',
-      nivelOleo: inspectionData?.end?.nivelOleo || '',
-      avariasCabine: inspectionData?.end?.avariasCabine || '',
-      bauPossuiAvarias: inspectionData?.end?.bauPossuiAvarias || '',
-      funcionamentoParteEletrica: inspectionData?.end?.funcionamentoParteEletrica || '',
-      descricaoAvariasCabine: inspectionData?.end?.descricaoAvariasCabine || '',
-      descricaoAvariasBau: inspectionData?.end?.descricaoAvariasBau || '',
-      descricaoParteEletrica: inspectionData?.end?.descricaoParteEletrica || '',
-      resolvidoPor: '',
-      observacoes: '',
-      dianteira: inspectionData?.end?.dianteira || '',
-      descricaoDianteira: inspectionData?.end?.descricaoDianteira || '',
-      tracao: inspectionData?.end?.tracao || '',
-      descricaoTracao: inspectionData?.end?.descricaoTracao || '',
-      truck: inspectionData?.end?.truck || '',
-      descricaoTruck: inspectionData?.end?.descricaoTruck || '',
-      quartoEixo: inspectionData?.end?.quartoEixo || '',
-      descricaoQuartoEixo: inspectionData?.end?.descricaoQuartoEixo || '',
-    }
+    defaultValues: createDefaultValues(inspectionData?.end)
   });
 
   // Get the current form based on the active tab
@@ -103,55 +111,31 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
   const bauPossuiAvarias = watch('bauPossuiAvarias');
   const funcionamentoParteEletrica = watch('funcionamentoParteEletrica');
 
-
+  // Reset forms when inspectionData changes
   useEffect(() => {
-    // Reset forms when inspectionData changes
     if (inspectionData?.start) {
-      startForm.reset({
-        nivelAgua: inspectionData.start.nivelAgua || '',
-        nivelOleo: inspectionData.start.nivelOleo || '',
-        avariasCabine: inspectionData.start.avariasCabine || '',
-        bauPossuiAvarias: inspectionData.start.bauPossuiAvarias || '',
-        funcionamentoParteEletrica: inspectionData.start.funcionamentoParteEletrica || '',
-        descricaoAvariasCabine: inspectionData.start.descricaoAvariasCabine || '',
-        descricaoAvariasBau: inspectionData.start.descricaoAvariasBau || '',
-        descricaoParteEletrica: inspectionData.start.descricaoParteEletrica || '',
-        resolvidoPor: '',
-        observacoes: '',
-        dianteira: inspectionData.start.dianteira || '',
-        descricaoDianteira: inspectionData.start.descricaoDianteira || '',
-        tracao: inspectionData.start.tracao || '',
-        descricaoTracao: inspectionData.start.descricaoTracao || '',
-        truck: inspectionData.start.truck || '',
-        descricaoTruck: inspectionData.start.descricaoTruck || '',
-        quartoEixo: inspectionData.start.quartoEixo || '',
-        descricaoQuartoEixo: inspectionData.start.descricaoQuartoEixo || '',
-      });
+      startForm.reset(createDefaultValues(inspectionData.start));
     }
-
     if (inspectionData?.end) {
-      endForm.reset({
-        nivelAgua: inspectionData.end.nivelAgua || '',
-        nivelOleo: inspectionData.end.nivelOleo || '',
-        avariasCabine: inspectionData.end.avariasCabine || '',
-        bauPossuiAvarias: inspectionData.end.bauPossuiAvarias || '',
-        funcionamentoParteEletrica: inspectionData.end.funcionamentoParteEletrica || '',
-        descricaoAvariasCabine: inspectionData.end.descricaoAvariasCabine || '',
-        descricaoAvariasBau: inspectionData.end.descricaoAvariasBau || '',
-        descricaoParteEletrica: inspectionData.end.descricaoParteEletrica || '',
-        resolvidoPor: '',
-        observacoes: '',
-        dianteira: inspectionData.end.dianteira || '',
-        descricaoDianteira: inspectionData.end.descricaoDianteira || '',
-        tracao: inspectionData.end.tracao || '',
-        descricaoTracao: inspectionData.end.descricaoTracao || '',
-        truck: inspectionData.end.truck || '',
-        descricaoTruck: inspectionData.end.descricaoTruck || '',
-        quartoEixo: inspectionData.end.quartoEixo || '',
-        descricaoQuartoEixo: inspectionData.end.descricaoQuartoEixo || '',
-      });
+      endForm.reset(createDefaultValues(inspectionData.end));
     }
   }, [inspectionData, startForm, endForm]);
+
+  // Early return AFTER all hooks have been called
+  if (!inspectionData) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="sm">
+        <DialogContent>
+          <Typography variant="body1" sx={{ py: 4, textAlign: 'center' }}>
+            Nenhum dado de inspeção disponível.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -160,8 +144,8 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
   };
 
   const resetForm = () => {
-    startForm.reset();
-    endForm.reset();
+    startForm.reset(createDefaultValues());
+    endForm.reset(createDefaultValues());
     setSuccess(false);
     setError('');
   };
@@ -172,18 +156,23 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
       setError('');
 
       const currentSection = tabValue === 0 ? 'start' : 'end';
-      if (!data.resolvidoPor) {
+      
+      if (!data.resolvidoPor?.trim()) {
         setError('Por favor, preencha quem resolveu o problema.');
         return;
       }
 
-      await onSave({
+      await onSave(inspectionData.id,{
         section: currentSection,
         data: data
       });
 
       setSuccess(true);
-      onClose(); // Fechar o modal diretamente após o salvamento bem-sucedido
+      
+      // Close modal after a brief delay to show success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar as alterações.');
     }
@@ -191,23 +180,69 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
 
   const handleClose = () => {
     resetForm();
+    setSuccess(false);
+    setError('');
     onClose();
   };
 
-  const hasIssues = (section: 'start' | 'end') => {
+  const hasIssues = (section: 'start' | 'end'): boolean => {
     const data = inspectionData?.[section];
     if (!data) return false;
 
     return (
-      data.nivelAgua != 'NORMAL' ||
-      data.nivelOleo != 'NORMAL' ||
+      data.nivelAgua !== 'NORMAL' ||
+      data.nivelOleo !== 'NORMAL' ||
       data.avariasCabine === 'SIM' ||
       data.bauPossuiAvarias === 'SIM' ||
       data.funcionamentoParteEletrica === 'RUIM' ||
-      data?.dianteira === 'RUIM' ||
-      data?.tracao === 'RUIM' ||
-      data?.truck === 'RUIM' ||
-      data?.quartoEixo === 'RUIM'
+      data.dianteira === 'RUIM' ||
+      data.tracao === 'RUIM' ||
+      data.truck === 'RUIM' ||
+      data.quartoEixo === 'RUIM'
+    );
+  };
+
+  // EixoSection component definition
+  const EixoSection: React.FC<{
+    name: "dianteira" | "tracao" | "truck" | "quartoEixo";
+    label: string;
+    descricao: "descricaoDianteira" | "descricaoTracao" | "descricaoTruck" | "descricaoQuartoEixo";
+    data: inspection;
+  }> = ({ name, label, descricao, data }) => {
+    if (data[name] !== 'RUIM') return null;
+    
+    return (
+      <>
+        <Grid item xs={12} md={6}>
+          <Controller 
+            name={name} 
+            control={control} 
+            render={({ field }) => (
+              <ButtonLabel 
+                name={name} 
+                label={label} 
+                options={["BOM", "RUIM"]} 
+                control={control} 
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Controller 
+            name={descricao} 
+            control={control} 
+            render={({ field }) => (
+              <TextField 
+                {...field} 
+                label="Qual Defeito?" 
+                multiline 
+                fullWidth 
+                rows={2} 
+              />
+            )} 
+          />
+        </Grid>
+      </>
     );
   };
 
@@ -229,66 +264,58 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
       );
     }
 
-    const EixoSection: React.FC<{
-      name: "dianteira" | "tracao" | "truck" | "quartoEixo";
-      label: string;
-      descricao: "descricaoDianteira" | "descricaoTracao" | "descricaoTruck" | "descricaoQuartoEixo"; }> =
-      ({ name, label, descricao }) => {
-      if (!(data && data[name] === 'RUIM')) return null;
-      return (
-        <Grid item xs={12} md={6}>
-          <Controller name={name} control={control} render={({ field }) => (
-            <ButtonLabel name={name} label={label} options={["BOM", "RUIM"]} control={control} />
-          )}/>
-          <Controller name={descricao} control={control} render={({ field }) => (<TextField {...field} label="Qual Defeito?" multiline fullWidth rows={2} />)} />
-        </Grid>
-      );
-    }
-
     return (
       <FormProvider {...currentForm}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            {(data.nivelAgua != 'NORMAL' || data.nivelOleo != 'NORMAL') && (
+            {/* Fluid Levels Section */}
+            {(data.nivelAgua !== 'NORMAL' || data.nivelOleo !== 'NORMAL') && (
               <>
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" fontWeight="bold">Níveis de Fluidos</Typography>
                   <Divider sx={{ mb: 1 }} />
                 </Grid>
-                {data.nivelAgua != 'NORMAL' && (
+                {data.nivelAgua !== 'NORMAL' && (
                   <Grid item xs={12} sm={6}>
-                    <Controller name="nivelAgua" control={control} render={({ field }) => (
-                      <FormControl fullWidth>
-                        <InputLabel>Nível de Água</InputLabel>
-                        <Select {...field} label="Nível de Água">
-                          <MenuItem value="BAIXO">BAIXO</MenuItem>
-                          <MenuItem value="CRITICO">CRITICO</MenuItem>
-                          <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
-                        </Select>
-                      </FormControl>
-                    )}
+                    <Controller 
+                      name="nivelAgua" 
+                      control={control} 
+                      render={({ field }) => (
+                        <FormControl fullWidth>
+                          <InputLabel>Nível de Água</InputLabel>
+                          <Select {...field} label="Nível de Água">
+                            <MenuItem value="BAIXO">BAIXO</MenuItem>
+                            <MenuItem value="CRITICO">CRITICO</MenuItem>
+                            <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
                     />
                   </Grid>
                 )}
-                {data.nivelOleo != 'NORMAL' && (
+                {data.nivelOleo !== 'NORMAL' && (
                   <Grid item xs={12} sm={6}>
-                    <Controller name="nivelOleo" control={control} render={({ field }) => (
-                      <FormControl fullWidth>
-                        <InputLabel>Nível de Óleo</InputLabel>
-                        <Select {...field} label="Nível de Óleo">
-                          <MenuItem value="BAIXO">BAIXO</MenuItem>
-                          <MenuItem value="CRITICO">CRITICO</MenuItem>
-                          <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
-                        </Select>
-                      </FormControl>
-                    )}
+                    <Controller 
+                      name="nivelOleo" 
+                      control={control} 
+                      render={({ field }) => (
+                        <FormControl fullWidth>
+                          <InputLabel>Nível de Óleo</InputLabel>
+                          <Select {...field} label="Nível de Óleo">
+                            <MenuItem value="BAIXO">BAIXO</MenuItem>
+                            <MenuItem value="CRITICO">CRITICO</MenuItem>
+                            <MenuItem value="NORMAL">OK (Corrigido)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
                     />
                   </Grid>
                 )}
               </>
             )}
 
-            {[data.avariasCabine, data.bauPossuiAvarias].includes("SIM") && (
+            {/* Damages Section */}
+            {(data.avariasCabine === 'SIM' || data.bauPossuiAvarias === 'SIM') && (
               <>
                 <Grid item xs={12} sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" fontWeight="bold">Avarias</Typography>
@@ -297,20 +324,34 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 {data.avariasCabine === 'SIM' && (
                   <>
                     <Grid item xs={12} sm={6}>
-                      <Controller name="avariasCabine" control={control} render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Avarias na Cabine</InputLabel>
-                          <Select {...field} label="Avarias na Cabine">
-                            <MenuItem value="SIM">Com Avarias</MenuItem>
-                            <MenuItem value="NÃO">Corrigido</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
+                      <Controller 
+                        name="avariasCabine" 
+                        control={control} 
+                        render={({ field }) => (
+                          <FormControl fullWidth>
+                            <InputLabel>Avarias na Cabine</InputLabel>
+                            <Select {...field} label="Avarias na Cabine">
+                              <MenuItem value="SIM">Com Avarias</MenuItem>
+                              <MenuItem value="NÃO">Corrigido</MenuItem>
+                            </Select>
+                          </FormControl>
+                        )}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Controller name="descricaoAvariasCabine" control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Descrição das Avarias na Cabine" disabled={avariasCabine !== 'SIM'} multiline rows={2} />)}
+                      <Controller 
+                        name="descricaoAvariasCabine" 
+                        control={control} 
+                        render={({ field }) => (
+                          <TextField 
+                            {...field} 
+                            fullWidth 
+                            label="Descrição das Avarias na Cabine" 
+                            disabled={avariasCabine !== 'SIM'} 
+                            multiline 
+                            rows={2} 
+                          />
+                        )}
                       />
                     </Grid>
                   </>
@@ -318,21 +359,34 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                 {data.bauPossuiAvarias === 'SIM' && (
                   <>
                     <Grid item xs={12} sm={6}>
-                      <Controller name="bauPossuiAvarias" control={control} render={({ field }) => (
-                        <FormControl fullWidth>
-                          <InputLabel>Avarias no Baú</InputLabel>
-                          <Select {...field} label="Avarias no Baú">
-                            <MenuItem value="SIM">Com Avarias</MenuItem>
-                            <MenuItem value="NÃO">Corrigido</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
+                      <Controller 
+                        name="bauPossuiAvarias" 
+                        control={control} 
+                        render={({ field }) => (
+                          <FormControl fullWidth>
+                            <InputLabel>Avarias no Baú</InputLabel>
+                            <Select {...field} label="Avarias no Baú">
+                              <MenuItem value="SIM">Com Avarias</MenuItem>
+                              <MenuItem value="NÃO">Corrigido</MenuItem>
+                            </Select>
+                          </FormControl>
+                        )}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Controller name="descricaoAvariasBau" control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Descrição das Avarias no Baú" disabled={bauPossuiAvarias !== 'SIM'} multiline rows={2} />
-                      )}
+                      <Controller 
+                        name="descricaoAvariasBau" 
+                        control={control} 
+                        render={({ field }) => (
+                          <TextField 
+                            {...field} 
+                            fullWidth 
+                            label="Descrição das Avarias no Baú" 
+                            disabled={bauPossuiAvarias !== 'SIM'} 
+                            multiline 
+                            rows={2} 
+                          />
+                        )}
                       />
                     </Grid>
                   </>
@@ -340,6 +394,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
               </>
             )}
 
+            {/* Electrical Section */}
             {data.funcionamentoParteEletrica === "RUIM" && (
               <>
                 <Grid item xs={12} sx={{ mt: 2 }}>
@@ -347,34 +402,53 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   <Divider sx={{ mb: 1 }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Controller name="funcionamentoParteEletrica" control={control} render={({ field }) => (
-                    <FormControl fullWidth>
-                      <InputLabel>Funcionamento da Parte Elétrica</InputLabel>
-                      <Select {...field} label="Funcionamento da Parte Elétrica">
-                        <MenuItem value="RUIM">PROBLEMAS</MenuItem>
-                        <MenuItem value="BOM">OK (Corrigido)</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
+                  <Controller 
+                    name="funcionamentoParteEletrica" 
+                    control={control} 
+                    render={({ field }) => (
+                      <FormControl fullWidth>
+                        <InputLabel>Funcionamento da Parte Elétrica</InputLabel>
+                        <Select {...field} label="Funcionamento da Parte Elétrica">
+                          <MenuItem value="RUIM">PROBLEMAS</MenuItem>
+                          <MenuItem value="BOM">OK (Corrigido)</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Controller name="descricaoParteEletrica" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Descrição dos Problemas Elétricos" disabled={funcionamentoParteEletrica !== 'RUIM'} multiline rows={2} />
-                  )} />
+                  <Controller 
+                    name="descricaoParteEletrica" 
+                    control={control} 
+                    render={({ field }) => (
+                      <TextField 
+                        {...field} 
+                        fullWidth 
+                        label="Descrição dos Problemas Elétricos" 
+                        disabled={funcionamentoParteEletrica !== 'RUIM'} 
+                        multiline 
+                        rows={2} 
+                      />
+                    )} 
+                  />
                 </Grid>
               </>
             )}
 
-            {[data.dianteira, data.tracao, data.truck, data.quartoEixo].includes('RUIM') && (
-              <Grid item xs={12}><Divider>Situação dos Pneus</Divider></Grid>
+            {/* Tires Section */}
+            {(data.dianteira === 'RUIM' || data.tracao === 'RUIM' || data.truck === 'RUIM' || data.quartoEixo === 'RUIM') && (
+              <>
+                <Grid item xs={12}>
+                  <Divider>Situação dos Pneus</Divider>
+                </Grid>
+                <EixoSection name="dianteira" descricao="descricaoDianteira" label="Dianteira" data={data} />
+                <EixoSection name="tracao" descricao="descricaoTracao" label="Tração" data={data} />
+                <EixoSection name="truck" descricao="descricaoTruck" label="Truck" data={data} />
+                <EixoSection name="quartoEixo" descricao="descricaoQuartoEixo" label="Quarto Eixo" data={data} />
+              </>
             )}
 
-            <EixoSection name='dianteira' descricao='descricaoDianteira' label='Dianteira' />
-            <EixoSection name='tracao' descricao='descricaoTracao' label='Tração' />
-            <EixoSection name='truck' descricao='descricaoTruck' label='Truck' />
-            <EixoSection name='quartoEixo' descricao='descricaoQuartoEixo' label='Quarto Eixo' />
-
+            {/* Resolution Section */}
             {hasIssues(section) && (
               <>
                 <Grid item xs={12} sx={{ mt: 2 }}>
@@ -382,15 +456,38 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
                   <Divider sx={{ mb: 1 }} />
                 </Grid>
                 <Grid item xs={12}>
-                  <Controller name="resolvidoPor" control={control} rules={{ required: "Campo obrigatório" }} render={({ field, fieldState }) => (
-                    <TextField {...field} required fullWidth label="Resolvido por" placeholder="Nome do responsável pela correção" error={!!fieldState.error} helperText={fieldState.error?.message || ''} />
-                  )}
+                  <Controller 
+                    name="resolvidoPor" 
+                    control={control} 
+                    rules={{ required: "Campo obrigatório" }} 
+                    render={({ field, fieldState }) => (
+                      <TextField 
+                        {...field} 
+                        required 
+                        fullWidth 
+                        label="Resolvido por" 
+                        placeholder="Nome do responsável pela correção" 
+                        error={!!fieldState.error} 
+                        helperText={fieldState.error?.message || ''} 
+                      />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Controller name="observacoes" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Observações" multiline rows={3} placeholder="Detalhes sobre as correções realizadas" />
-                  )} />
+                  <Controller 
+                    name="observacoes" 
+                    control={control} 
+                    render={({ field }) => (
+                      <TextField 
+                        {...field} 
+                        fullWidth 
+                        label="Observações" 
+                        multiline 
+                        rows={3} 
+                        placeholder="Detalhes sobre as correções realizadas" 
+                      />
+                    )} 
+                  />
                 </Grid>
               </>
             )}
@@ -413,14 +510,28 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="inspection tabs">
-          <Tab label="Início da Viagem" disabled={!inspectionData?.start || !hasIssues('start')} />
-          <Tab label="Fim da Viagem" disabled={!inspectionData?.end || !hasIssues('end')} />
+          <Tab 
+            label="Início da Viagem" 
+            disabled={!inspectionData?.start || !hasIssues('start')} 
+          />
+          <Tab 
+            label="Fim da Viagem" 
+            disabled={!inspectionData?.end || !hasIssues('end')} 
+          />
         </Tabs>
       </Box>
 
       <DialogContent>
-        {success && (<Alert severity="success" sx={{ mb: 2 }}>Alterações salvas com sucesso!</Alert>)}
-        {error && !success && (<Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>)}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Alterações salvas com sucesso!
+          </Alert>
+        )}
+        {error && !success && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         {tabValue === 0 ? renderFormFields('start') : renderFormFields('end')}
       </DialogContent>
 
@@ -434,7 +545,11 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ open, onClose, in
           onClick={handleSubmit(onSubmit)}
           color="primary"
           variant="contained"
-          disabled={loading || (tabValue === 0 && !hasIssues('start')) || (tabValue === 1 && !hasIssues('end'))}
+          disabled={
+            loading || 
+            (tabValue === 0 && !hasIssues('start')) || 
+            (tabValue === 1 && !hasIssues('end'))
+          }
         >
           {loading ? 'Salvando...' : 'Salvar Alterações'}
         </Button>
